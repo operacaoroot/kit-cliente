@@ -1,0 +1,13 @@
+# A chave do kit é pessoal e nunca vai para o repositório.
+.root/chave
+.root/chave.pub
+# O que a pessoa coloca para o Claude ler e os intermediários nunca saem da máquina.
+entrada/
+_privado/
+# Sujeira de sistema e do Obsidian
+.DS_Store
+Thumbs.db
+vault/.obsidian/workspace*.json
+vault/.obsidian/cache
+.claude/settings.local.json
+__pycache__/

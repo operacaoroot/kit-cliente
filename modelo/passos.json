@@ -1,0 +1,107 @@
+{
+  "versao": "1.0.0",
+  "passos": [
+    {
+      "id": "instalar",
+      "titulo": "Instalar o kit",
+      "minutos": 20,
+      "ao_vivo_para": ["guiado", "chat"],
+      "texto": {
+        "guiado": "Este passo deixa o seu computador pronto. Você só precisa dar dois cliques no instalador e esperar. Ele confere se o Claude, o Obsidian e o git estão instalados e instala o que faltar. Se o Mac disser que não pode abrir o arquivo, vá em Ajustes do Sistema, Privacidade e Segurança, e clique em \"Abrir mesmo assim\" (na primeira vez a Root faz isso com você). No fim aparece uma lista com bolinhas verdes; se alguma ficar vermelha, tire um print e mande para a Root.",
+        "chat": "Dê dois cliques no instalador. Ele instala o que faltar (Claude Code, Obsidian, git), liga a sua chave do kit e roda a conferência. Tudo verde, passo concluído. Algo vermelho, mande o print.",
+        "construtor": "Rode o instalador. Ele instala Claude Code, Obsidian e git se faltarem, configura a chave SSH do kit no git local e roda `ferramentas/verificar.py`."
+      },
+      "comando": {
+        "mac": "clique duas vezes em instalar/instalar.command",
+        "windows": "clique com o botão direito em instalar\\instalar.ps1 e escolha \"Executar com o PowerShell\"",
+        "linux": "bash instalar/instalar.sh"
+      },
+      "prova": "a conferência mostra tudo verde e o kit consegue falar com a Root"
+    },
+    {
+      "id": "perfil",
+      "titulo": "Dizer ao Claude como você prefere ser atendido",
+      "minutos": 10,
+      "ao_vivo_para": ["guiado", "chat"],
+      "texto": {
+        "guiado": "Abra o Claude na pasta do kit (o instalador deixou um atalho) e escreva: \"vamos configurar o meu perfil\". Ele vai mostrar o que a Root entendeu de você no kickoff e fazer algumas perguntas curtas: como prefere as explicações, quanto tempo tem por dia e se quer que ele sugira coisas por conta própria. Responda do seu jeito. Dá para mudar tudo depois.",
+        "chat": "No Claude, dentro da pasta do kit, escreva \"vamos configurar o meu perfil\". Ele mostra o perfil que saiu do kickoff e você ajusta tom, formato, ritmo e o quanto quer de sugestão.",
+        "construtor": "No Claude Code, na raiz do kit: \"vamos configurar o meu perfil\". Confirme ou ajuste o `perfil.md`."
+      },
+      "comando": {
+        "mac": "abra o atalho \"Claude do kit\" ou rode `claude` dentro da pasta do kit",
+        "windows": "abra o atalho \"Claude do kit\" ou rode `claude` dentro da pasta do kit",
+        "linux": "rode `claude` dentro da pasta do kit"
+      },
+      "prova": "o perfil.md está com a linha confirmado: sim"
+    },
+    {
+      "id": "vault",
+      "titulo": "Abrir a sua base no Obsidian e corrigir o que entendemos",
+      "minutos": 20,
+      "ao_vivo_para": ["guiado"],
+      "texto": {
+        "guiado": "Abra o Obsidian, clique em \"Abrir pasta como cofre\" e escolha a pasta vault dentro do kit. Comece pela nota \"00 - Comece aqui\". As notas marcadas com revisar: sim foram escritas pela Root a partir da conversa. Leia cada uma e corrija o que estiver errado. Quando uma estiver certa, troque revisar: sim por revisar: não. Se preferir, peça ao Claude: \"me ajuda a revisar as notas\".",
+        "chat": "Abra a pasta vault no Obsidian e revise as notas marcadas com revisar: sim. Elas saíram da conversa com a Root. Corrija o que precisar e troque para revisar: não. O Claude ajuda se você pedir \"me ajuda a revisar as notas\".",
+        "construtor": "Abra `vault/` no Obsidian. Revise as notas com `revisar: sim` (escritas a partir da ata) e marque `revisar: não`."
+      },
+      "comando": {
+        "mac": "Obsidian > Abrir pasta como cofre > pasta vault do kit",
+        "windows": "Obsidian > Abrir pasta como cofre > pasta vault do kit",
+        "linux": "Obsidian > Abrir pasta como cofre > pasta vault do kit"
+      },
+      "prova": "nenhuma nota com revisar: sim"
+    },
+    {
+      "id": "contexto",
+      "titulo": "Trazer o que você já construiu com IA",
+      "minutos": 40,
+      "ao_vivo_para": [],
+      "texto": {
+        "guiado": "Aqui o Claude lê o histórico das suas conversas com IA e escreve notas sobre como você trabalha. Nada sai do seu computador. Peça \"quero trazer o meu histórico de IA\" e ele explica, com prints, como baixar o histórico do ChatGPT e do Claude. Se você não usa essas ferramentas, ele faz algumas perguntas no lugar.",
+        "chat": "Baixe a exportação do ChatGPT e do Claude (o Claude explica onde fica) e peça \"quero trazer o meu histórico de IA\". Ele monta notas com fonte sobre as suas tarefas repetidas, o seu vocabulário e onde a IA falha com você. Tudo fica na sua máquina.",
+        "construtor": "Coloque as exportações em `entrada/chatgpt` e `entrada/claude` e rode a skill `extrair-contexto`. Saída em `vault/_contexto/`, com auditoria feita pelo agente `auditor-de-contexto`."
+      },
+      "comando": {
+        "mac": "no Claude do kit: \"quero trazer o meu histórico de IA\"",
+        "windows": "no Claude do kit: \"quero trazer o meu histórico de IA\"",
+        "linux": "no Claude do kit: \"quero trazer o meu histórico de IA\""
+      },
+      "prova": "existem vault/_contexto/00 - LEIA-ME.md e vault/_contexto/00 - Auditoria.md"
+    },
+    {
+      "id": "primeira-frente",
+      "titulo": "Rodar a primeira frente com um caso real seu",
+      "minutos": 30,
+      "ao_vivo_para": ["guiado"],
+      "texto": {
+        "guiado": "Agora o kit trabalha para você. Escolha um caso real desta semana e peça ao Claude o que está em \"Como pedir\" no README do kit. Ele entrega um rascunho. Leia, diga o que ficou bom e o que ficou ruim. Essa conversa ensina o kit a acertar da próxima vez.",
+        "chat": "Pegue um caso real desta semana e use a frente do seu kit (os pedidos prontos estão no README). Avalie o rascunho e diga ao Claude o que corrigir: ele registra o aprendizado no vault.",
+        "construtor": "Rode a frente principal num caso real (pedidos no README). O resultado vai para `entregas/` e a avaliação para `vault/40-Operacao/Resultados da frente.md`."
+      },
+      "comando": {
+        "mac": "no Claude do kit, use um dos pedidos da seção \"Como pedir\" do README",
+        "windows": "no Claude do kit, use um dos pedidos da seção \"Como pedir\" do README",
+        "linux": "no Claude do kit, use um dos pedidos da seção \"Como pedir\" do README"
+      },
+      "prova": "existe pelo menos um arquivo em entregas/ e uma avaliação em vault/40-Operacao/Resultados da frente.md"
+    },
+    {
+      "id": "fechar-o-dia",
+      "titulo": "Fechar o dia",
+      "minutos": 2,
+      "ao_vivo_para": [],
+      "texto": {
+        "guiado": "Antes de desligar, diga ao Claude \"fechar o dia\". Ele guarda o que você fez, manda para a Root acompanhar e busca melhorias que a Root tenha preparado para o seu kit. Você não precisa fazer mais nada.",
+        "chat": "No fim do dia, \"fechar o dia\". O Claude salva, envia o progresso para a Root e traz as atualizações do kit.",
+        "construtor": "\"fechar o dia\": commit, pull com rebase das atualizações da Root e push pela chave do kit."
+      },
+      "comando": {
+        "mac": "no Claude do kit: \"fechar o dia\"",
+        "windows": "no Claude do kit: \"fechar o dia\"",
+        "linux": "no Claude do kit: \"fechar o dia\""
+      },
+      "prova": "o último envio para a Root aconteceu hoje"
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "versao_do_manifesto": "1",
+  "_aviso": "Cliente FICTÍCIO, usado só para testar o montador e o acompanhador. Nenhum dado real.",
+  "cliente": {
+    "slug": "exemplo-marina-duarte",
+    "nome": "Marina Duarte",
+    "primeiro_nome": "Marina",
+    "empresa": "Distribuidora Exemplo",
+    "cargo": "Gerente comercial",
+    "sistema": "mac"
+  },
+  "kickoff": {
+    "data": "2026-09-30",
+    "conduzido_por": "Sócio da Root",
+    "gravacao": "granola:exemplo",
+    "desvios_do_roteiro": [
+      "instalação ficou para o dia seguinte porque ela estava no celular"
+    ]
+  },
+  "reunioes": [
+    {
+      "data": "2026-09-22",
+      "tipo": "comercial",
+      "fonte": "granola:exemplo-1"
+    },
+    {
+      "data": "2026-09-30",
+      "tipo": "kickoff",
+      "fonte": "granola:exemplo-2"
+    }
+  ],
+  "conferencia_das_reunioes": {
+    "feita_por": "Sócio da Root",
+    "feita_em": "2026-09-30",
+    "divergencias_em_aberto": []
+  },
+  "perfil": {
+    "sinais": [
+      {
+        "id": "cita-ferramenta-de-ia",
+        "minuto": "00:04:10",
+        "trecho": "eu uso o ChatGPT pra escrever proposta quase todo dia"
+      },
+      {
+        "id": "usa-ia-toda-semana",
+        "minuto": "00:04:25",
+        "trecho": "quase todo dia, pelo menos três vezes na semana"
+      },
+      {
+        "id": "tem-prompt-ou-projeto-salvo",
+        "minuto": "00:06:02",
+        "trecho": "tenho um prompt salvo no bloco de notas que eu colo sempre"
+      },
+      {
+        "id": "pouco-tempo-na-agenda",
+        "minuto": "00:11:40",
+        "trecho": "só consigo mexer nisso cedo, antes das oito"
+      }
+    ],
+    "proposto": {
+      "perfil": "chat",
+      "porcentagem": {
+        "guiado": 7,
+        "chat": 60,
+        "construtor": 33
+      },
+      "distancia": 27,
+      "decisao": "socio-confere",
+      "sinais_aceitos": [
+        "cita-ferramenta-de-ia",
+        "usa-ia-toda-semana",
+        "tem-prompt-ou-projeto-salvo",
+        "pouco-tempo-na-agenda"
+      ],
+      "sinais_descartados": [],
+      "versao_dos_pesos": "1.0.0"
+    },
+    "escolhido": "chat",
+    "ajustes": {
+      "tom": null,
+      "formato": null,
+      "iniciativa_claude": null,
+      "passos_por_dia": 1,
+      "horario": "7h às 8h",
+      "como_aprende": "fazendo"
+    },
+    "restricoes": [
+      "dado de cliente da distribuidora não sai da máquina dela"
+    ],
+    "conferido_por": "Sócio da Root",
+    "conferido_em": "2026-09-30"
+  },
+  "dores": [
+    {
+      "texto": "entro em reunião sem saber direito quem é o cliente, a preparação fica para o carro",
+      "minuto": "00:14:05"
+    },
+    {
+      "texto": "toda proposta eu refaço do zero, o prompt que eu tenho não lembra de nada",
+      "minuto": "00:16:30"
+    }
+  ],
+  "fontes": [
+    {
+      "tipo": "chatgpt-export",
+      "descricao": "histórico de propostas e e-mails escritos com IA",
+      "prioridade": 1,
+      "acesso": "o cliente tem",
+      "minuto": "00:18:00"
+    },
+    {
+      "tipo": "crm",
+      "descricao": "lista de reuniões e contas no CRM da distribuidora",
+      "prioridade": 2,
+      "acesso": "depende da TI",
+      "minuto": "00:19:20"
+    },
+    {
+      "tipo": "pasta-local",
+      "descricao": "pasta de propostas antigas em PDF",
+      "prioridade": 3,
+      "acesso": "o cliente tem",
+      "minuto": "00:20:05"
+    }
+  ],
+  "frente": [
+    "dossie-de-conta",
+    "kit-de-contexto-e-conteudo"
+  ],
+  "notas_iniciais": [
+    {
+      "pasta": "10-Identidade",
+      "titulo": "Quem é a Marina",
+      "kind": "fato",
+      "corpo": "Gerente comercial da Distribuidora Exemplo. Cuida das contas grandes e prepara as propostas sozinha.",
+      "fonte": "kickoff 2026-09-30 00:02:10"
+    },
+    {
+      "pasta": "40-Operacao",
+      "titulo": "Como a proposta é feita hoje",
+      "kind": "nota",
+      "corpo": "A Marina escreve cada proposta a partir de um prompt salvo num bloco de notas e cola no ChatGPT. O prompt não guarda nada da conta, então o contexto do cliente é redigitado a cada vez.",
+      "fonte": "kickoff 2026-09-30 00:16:30"
+    },
+    {
+      "pasta": "90-Metas",
+      "titulo": "O que ela quer em 30 dias",
+      "kind": "fato",
+      "corpo": "Entrar nas reuniões da semana com um dossiê de uma página de cada conta, pronto na véspera.",
+      "fonte": "kickoff 2026-09-30 00:24:50"
+    }
+  ],
+  "combinado": {
+    "canal_de_ajuda": "WhatsApp com a Root",
+    "responsavel_root": "Sócio da Root",
+    "prazo_resposta_horas": 4,
+    "horarios_acompanhamento": [
+      "08:30",
+      "13:00",
+      "18:00"
+    ]
+  },
+  "claude": {
+    "plano": "assinatura individual no nome do cliente",
+    "reembolso": "1 mês, reembolsado pela Root contra o comprovante",
+    "assinado_em": ""
+  },
+  "entrega": {
+    "repo": "operacaoroot/kit-exemplo-marina-duarte",
+    "local": "/Users/rodrigosaggioro/kit-cliente/saida/exemplo-marina-duarte",
+    "kit_id": "kit-6d984b6fbfda",
+    "montado_em": "2026-09-27T19:03:22-03:00",
+    "publicado": true,
+    "zip": "/Users/rodrigosaggioro/kit-cliente/saida/exemplo-marina-duarte.zip",
+    "rascunho": false
+  }
+}

@@ -1,0 +1,45 @@
+---
+kind: nota
+dono: {{nome}}
+valido_de: {{hoje}}
+fonte: montado pela Root a partir de {{reunioes_texto}}
+revisar: não
+---
+
+# A base de {{primeiro_nome}}
+
+Esta pasta é a memória do seu trabalho. O Claude do kit lê estas notas antes de responder, e por
+isso quanto mais certas elas estiverem, melhor ele acerta.
+
+As notas marcadas com `revisar: sim` foram escritas pela Root a partir das nossas conversas. Leia,
+corrija o que estiver errado e troque para `revisar: não`. Se preferir, peça ao Claude: "me ajuda a
+revisar as notas".
+
+## O que já está aqui
+
+{{indice_notas}}
+
+## As pastas
+
+| Pasta | O que guarda |
+|---|---|
+| [[10-Identidade/Índice\|10-Identidade]] | quem você é, o que faz, a sua voz e o seu vocabulário |
+| [[30-Organizacao/Índice\|30-Organizacao]] | pessoas e empresas com quem você trabalha |
+| [[40-Operacao/Índice\|40-Operacao]] | como o trabalho é feito e os resultados da frente |
+| [[50-Projetos/Índice\|50-Projetos]] | os projetos em andamento |
+| [[60-Decisoes/Índice\|60-Decisoes]] | uma nota por decisão, com data |
+| [[70-Dados/Índice\|70-Dados]] | números de referência e de onde vêm |
+| [[90-Metas/Índice\|90-Metas]] | o que você quer alcançar e até quando |
+| `_contexto` | o pacote do seu histórico de IA (aparece no passo "contexto") |
+
+## O cabeçalho de toda nota
+
+```yaml
+---
+kind: fato            # regra | definicao | dicionario | decisao | fato | nota
+dono: {{nome}}
+valido_de: AAAA-MM-DD
+fonte: de onde veio a informação
+revisar: não
+---
+```

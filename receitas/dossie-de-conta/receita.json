@@ -1,0 +1,18 @@
+{
+  "chave": "dossie-de-conta",
+  "nome": "Dossiê de conta antes da reunião",
+  "estado": "inteira",
+  "dor": "A pessoa entra na reunião sem saber direito quem é o cliente, e a preparação depende de um tempo que não existe.",
+  "pre_requisito": "Lista de reuniões da semana (agenda, CRM ou digitada) e acesso à internet para fonte pública.",
+  "criterio_de_saida": "Um dossiê de uma página de uma conta real desta semana, lido e aprovado pela pessoa, com toda afirmação ligada a uma fonte.",
+  "metrica": "Minutos de preparação por reunião, antes e depois.",
+  "skills": ["dossie-de-conta"],
+  "como_pedir": [
+    "\"monta o dossiê da <empresa> para a reunião de quinta\"",
+    "\"o que eu preciso saber da <empresa> antes de amanhã\"",
+    "\"atualiza o dossiê da <empresa> com o que conversamos hoje\""
+  ],
+  "notas_do_vault": [
+    { "pasta": "40-Operacao", "titulo": "Como eu preparo uma reunião", "kind": "regra", "corpo": "O que não pode faltar no dossiê, na ordem em que a pessoa lê. A ser preenchido com ela no primeiro uso da frente." }
+  ]
+}

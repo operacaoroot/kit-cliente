@@ -1,0 +1,13 @@
+{
+  "chave": "conciliacao-sobre-erp",
+  "nome": "Relatório de conciliação sobre o ERP",
+  "estado": "semente",
+  "dor": "A conciliação é feita à mão a cada fechamento, e o número chega tarde.",
+  "pre_requisito": "ERP com API ou exportação e o extrato bancário.",
+  "criterio_de_saida": "[a definir pela mesa]",
+  "metrica": "Horas por fechamento e divergências achadas por mês.",
+  "skills": [],
+  "como_pedir": [],
+  "notas_do_vault": [],
+  "nota": "Semente: já rodou em cliente, mas ainda não foi empacotada. O montador recusa esta receita sem --permitir-semente. Para virar inteira: skills em skills/, critério de saída e pedidos de exemplo."
+}

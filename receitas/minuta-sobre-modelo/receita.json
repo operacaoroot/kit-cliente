@@ -1,0 +1,13 @@
+{
+  "chave": "minuta-sobre-modelo",
+  "nome": "Minuta sobre o modelo da casa",
+  "estado": "semente",
+  "dor": "Cada documento padrão nasce do zero e a conferência depende da memória de quem faz.",
+  "pre_requisito": "Modelos de documento da casa e a pasta com os documentos de cada caso.",
+  "criterio_de_saida": "[a definir pela mesa]",
+  "metrica": "Minutos por minuta e lacunas por campo.",
+  "skills": [],
+  "como_pedir": [],
+  "notas_do_vault": [],
+  "nota": "Semente: já rodou em cliente, mas ainda não foi empacotada. O montador recusa esta receita sem --permitir-semente. Para virar inteira: skills em skills/, critério de saída e pedidos de exemplo."
+}

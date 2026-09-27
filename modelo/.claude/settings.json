@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 ferramentas/verificar.py:*)",
+      "Bash(py ferramentas/verificar.py:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull --rebase)",
+      "Bash(git pull --rebase --autostash)",
+      "Bash(git push)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)"
+    ],
+    "deny": [
+      "Read(./.root/chave)",
+      "Read(./.root/chave.pub)",
+      "Bash(cat .root/chave:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}

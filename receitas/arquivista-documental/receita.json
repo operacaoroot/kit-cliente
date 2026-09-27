@@ -1,0 +1,18 @@
+{
+  "chave": "arquivista-documental",
+  "nome": "Arquivista documental",
+  "estado": "inteira",
+  "dor": "O documento existe, mas ninguém acha, porque cada um salva de um jeito.",
+  "pre_requisito": "Uma pasta (local, rede ou Drive sincronizado) com os documentos e uma lista de clientes ou assuntos.",
+  "criterio_de_saida": "10 documentos reais classificados, renomeados e arquivados sem erro, com a pessoa olhando.",
+  "metrica": "Minutos para achar um documento e porcentagem de arquivos fora do padrão.",
+  "skills": ["arquivar-documentos"],
+  "como_pedir": [
+    "\"organiza os documentos que estão em entrada/\"",
+    "\"qual é o nosso padrão de nome de arquivo?\"",
+    "\"onde está o contrato da <empresa>?\""
+  ],
+  "notas_do_vault": [
+    { "pasta": "40-Operacao", "titulo": "Padrão de nomes e pastas", "kind": "regra", "corpo": "O padrão de nome de arquivo e as pastas-destino por assunto. Levantado no primeiro uso da frente a partir dos arquivos que já existem." }
+  ]
+}

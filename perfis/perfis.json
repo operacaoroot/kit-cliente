@@ -1,0 +1,123 @@
+{
+  "versao": "1.0.0",
+  "nota": "Pesos de partida escolhidos por julgamento da Root em 2026-09-27. Recalibrar depois de 10 a 15 clientes, comparando o perfil previsto com o comportamento medido pelo acompanhador.",
+  "limiares": {
+    "confianca_minima": 60,
+    "distancia_minima": 15,
+    "explicacao": "Se o primeiro perfil fica abaixo de 60% ou a distância para o segundo é menor que 15 pontos, a pontuação devolve 'sócio decide'. Nos outros casos devolve 'sócio confere'. Nenhum kit sai sem um sócio assinar o perfil."
+  },
+  "perfis": {
+    "guiado": {
+      "nome": "Guiado",
+      "quem_e": "Nunca usou IA ou usou pouco. Quer ver alguém fazendo antes de fazer.",
+      "nivel_do_texto": "guiado",
+      "tom": "explicado",
+      "formato": "com-print",
+      "iniciativa_claude": "sempre",
+      "passos_por_dia": 1,
+      "entrega": "zip com instalador de clique duplo; o git fica invisível",
+      "instalacao": "sempre ao vivo",
+      "dias_sem_avanco_para_alerta": 2
+    },
+    "chat": {
+      "nome": "Usuário de chat",
+      "quem_e": "Usa ChatGPT ou Claude toda semana, mas nunca instalou nada nem automatizou.",
+      "nivel_do_texto": "chat",
+      "tom": "direto-com-contexto",
+      "formato": "passo-curto-com-porque",
+      "iniciativa_claude": "as-vezes",
+      "passos_por_dia": 2,
+      "entrega": "zip com instalador; git pelo próprio Claude",
+      "instalacao": "ao vivo nos primeiros clientes",
+      "dias_sem_avanco_para_alerta": 3
+    },
+    "construtor": {
+      "nome": "Construtor",
+      "quem_e": "Já automatiza: usa API, n8n, agentes ou escreve código.",
+      "nivel_do_texto": "construtor",
+      "tom": "direto",
+      "formato": "passo-curto",
+      "iniciativa_claude": "quando-pedido",
+      "passos_por_dia": 3,
+      "entrega": "zip ou acesso ao repositório; terminal liberado",
+      "instalacao": "sozinho, com a Root de sobreaviso",
+      "dias_sem_avanco_para_alerta": 5
+    }
+  },
+  "sinais": [
+    {
+      "id": "cita-ferramenta-de-ia",
+      "descricao": "Cita pelo nome uma ferramenta de IA que usa (ChatGPT, Claude, Gemini, Copilot).",
+      "pesos": { "guiado": 0, "chat": 3, "construtor": 2 }
+    },
+    {
+      "id": "vocabulario-tecnico",
+      "descricao": "Usa termos como API, prompt, automação, webhook, n8n, script ou agente sem precisar de explicação.",
+      "pesos": { "guiado": 0, "chat": 1, "construtor": 3 }
+    },
+    {
+      "id": "tem-prompt-ou-projeto-salvo",
+      "descricao": "Já tem prompt salvo, GPT próprio, projeto no Claude ou instrução personalizada.",
+      "pesos": { "guiado": 0, "chat": 2, "construtor": 2 }
+    },
+    {
+      "id": "ja-automatizou-algo",
+      "descricao": "Descreve uma automação que ele mesmo montou ou mantém.",
+      "pesos": { "guiado": 0, "chat": 0, "construtor": 4 }
+    },
+    {
+      "id": "pede-para-ver-fazendo",
+      "descricao": "Pede para ver como se faz antes de tentar, ou pergunta onde clicar.",
+      "pesos": { "guiado": 3, "chat": 1, "construtor": 0 }
+    },
+    {
+      "id": "desconforto-com-tecnologia",
+      "descricao": "Diz que não é de tecnologia, que tem dificuldade ou que depende de alguém para instalar.",
+      "pesos": { "guiado": 4, "chat": 0, "construtor": 0 }
+    },
+    {
+      "id": "pouco-tempo-na-agenda",
+      "descricao": "Diz que a agenda é apertada ou que só consegue mexer fora do horário de trabalho.",
+      "pesos": { "guiado": 1, "chat": 1, "construtor": 0 }
+    },
+    {
+      "id": "usa-terminal",
+      "descricao": "Já usou terminal, git ou linha de comando.",
+      "pesos": { "guiado": 0, "chat": 0, "construtor": 3 }
+    },
+    {
+      "id": "usa-ia-toda-semana",
+      "descricao": "Usa IA pelo menos uma vez por semana no trabalho.",
+      "pesos": { "guiado": 0, "chat": 3, "construtor": 1 }
+    }
+  ],
+  "ajustes": [
+    {
+      "id": "restricao-corporativa",
+      "descricao": "A empresa tem política de IA, dado de cliente que não pode sair ou TI que libera acesso.",
+      "efeito": "Não muda o perfil. Liga o modo cuidadoso: o kit só lê dado local, a extração pede OK por fonte e a mensagem de ajuda nunca cita dado."
+    },
+    {
+      "id": "equipe-junto",
+      "descricao": "Mais de uma pessoa vai usar o kit.",
+      "efeito": "Não muda o perfil. Cada pessoa recebe o próprio perfil.md dentro do mesmo kit."
+    }
+  ],
+  "mensagens": {
+    "explicado": {
+      "parado": "Oi, {nome}. Vi que o passo \"{passo}\" ainda está em aberto. Se travou em alguma parte, me conta onde e eu te mostro o caminho, pode ser por print. Quando quiser, a gente faz junto numa chamada de 15 minutos.",
+      "avancou": "Oi, {nome}. O passo \"{passo}\" ficou pronto, parabéns. O próximo é \"{proximo}\" e ele leva em torno de {minutos} minutos. Abra o Claude na pasta do kit e diga \"qual o próximo passo\".",
+      "ajuda": "Oi, {nome}. Recebi o seu pedido de ajuda sobre \"{assunto}\". Já estou olhando e te respondo em até {prazo}."
+    },
+    "direto-com-contexto": {
+      "parado": "{nome}, o passo \"{passo}\" está parado há {dias} dias. Travou em algo? Me diga onde e eu destravo.",
+      "avancou": "{nome}, \"{passo}\" concluído. Próximo: \"{proximo}\", uns {minutos} minutos.",
+      "ajuda": "{nome}, vi o pedido sobre \"{assunto}\". Respondo em até {prazo}."
+    },
+    "direto": {
+      "parado": "{nome}, \"{passo}\" parado há {dias} dias. Algum bloqueio?",
+      "avancou": "\"{passo}\" ok. Próximo: \"{proximo}\".",
+      "ajuda": "Vi o pedido sobre \"{assunto}\". Retorno em até {prazo}."
+    }
+  }
+}

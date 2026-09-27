@@ -1,0 +1,7 @@
+# Kits montados carregam chave e dado de cliente: nunca entram neste repositório.
+saida/
+# Estado e relatórios do acompanhador têm dado de cliente.
+acompanhador/estado.json
+acompanhador/saida/
+.DS_Store
+__pycache__/

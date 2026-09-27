@@ -1,0 +1,80 @@
+{
+  "versao_do_manifesto": "1",
+  "cliente": {
+    "slug": "nome-sobrenome",
+    "nome": "Nome Sobrenome",
+    "primeiro_nome": "Nome",
+    "empresa": "Empresa",
+    "cargo": "Cargo",
+    "sistema": "mac"
+  },
+  "kickoff": {
+    "data": "AAAA-MM-DD",
+    "conduzido_por": "sócio que conduziu",
+    "gravacao": "granola:<id da nota>",
+    "desvios_do_roteiro": []
+  },
+  "reunioes": [
+    { "data": "AAAA-MM-DD", "tipo": "comercial | kickoff | alinhamento", "fonte": "granola:<id>" }
+  ],
+  "conferencia_das_reunioes": {
+    "feita_por": "",
+    "feita_em": "",
+    "divergencias_em_aberto": []
+  },
+  "perfil": {
+    "sinais": [
+      { "id": "cita-ferramenta-de-ia", "minuto": "00:00:00", "trecho": "frase exata da ata" }
+    ],
+    "proposto": {},
+    "escolhido": "",
+    "ajustes": {
+      "tom": null,
+      "formato": null,
+      "iniciativa_claude": null,
+      "passos_por_dia": null,
+      "horario": "",
+      "como_aprende": "fazendo | lendo | vendo"
+    },
+    "restricoes": [],
+    "conferido_por": "",
+    "conferido_em": ""
+  },
+  "dores": [
+    { "texto": "a dor nas palavras do cliente", "minuto": "00:00:00" }
+  ],
+  "fontes": [
+    {
+      "tipo": "chatgpt-export | claude-export | drive | email | crm | whatsapp | pasta-local | outro",
+      "descricao": "o que tem lá e para que serve",
+      "prioridade": 1,
+      "acesso": "o cliente tem | depende da TI | a confirmar",
+      "minuto": "00:00:00"
+    }
+  ],
+  "frente": ["dossie-de-conta"],
+  "notas_iniciais": [
+    {
+      "pasta": "10-Identidade",
+      "titulo": "Quem é",
+      "kind": "fato",
+      "corpo": "texto da nota, só com o que a conversa disse",
+      "fonte": "kickoff AAAA-MM-DD 00:00:00"
+    }
+  ],
+  "combinado": {
+    "canal_de_ajuda": "WhatsApp com a Root",
+    "responsavel_root": "sócio responsável",
+    "prazo_resposta_horas": 4,
+    "horarios_acompanhamento": ["08:30", "13:00", "18:00"]
+  },
+  "claude": {
+    "plano": "assinatura individual no nome do cliente",
+    "reembolso": "1 mês, reembolsado pela Root contra o comprovante",
+    "assinado_em": ""
+  },
+  "entrega": {
+    "repo": "operacaoroot/kit-nome-sobrenome",
+    "local": ""
+  }
+}

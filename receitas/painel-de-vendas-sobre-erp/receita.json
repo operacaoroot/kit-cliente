@@ -1,0 +1,13 @@
+{
+  "chave": "painel-de-vendas-sobre-erp",
+  "nome": "Painel de vendas sobre o ERP",
+  "estado": "semente",
+  "dor": "O dono não sabe o que a base tem e o número da semana depende de alguém montar planilha.",
+  "pre_requisito": "ERP com API ou exportação que libere o dado de vendas.",
+  "criterio_de_saida": "[a definir pela mesa]",
+  "metrica": "Minutos para responder como foi a semana.",
+  "skills": [],
+  "como_pedir": [],
+  "notas_do_vault": [],
+  "nota": "Semente: já rodou em cliente, mas ainda não foi empacotada. O montador recusa esta receita sem --permitir-semente. Para virar inteira: skills em skills/, critério de saída e pedidos de exemplo."
+}

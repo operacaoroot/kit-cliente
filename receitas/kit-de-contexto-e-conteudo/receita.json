@@ -1,0 +1,18 @@
+{
+  "chave": "kit-de-contexto-e-conteudo",
+  "nome": "Contexto e conteúdo na sua voz",
+  "estado": "inteira",
+  "dor": "A pessoa repete o briefing a cada texto, e a IA devolve algo genérico que precisa ser reescrito.",
+  "pre_requisito": "Algum texto aprovado pela pessoa (post, e-mail, proposta) ou o histórico de IA extraído no passo contexto.",
+  "criterio_de_saida": "Um texto real da semana escrito pelo kit e aprovado com no máximo uma rodada de correção.",
+  "metrica": "Minutos por peça e rodadas de correção até a aprovação.",
+  "skills": ["escrever-com-a-minha-voz", "revisar-texto"],
+  "como_pedir": [
+    "\"escreve um post sobre <assunto> do meu jeito\"",
+    "\"rascunha a proposta para a <empresa> a partir do dossiê\"",
+    "\"revisa esse texto e tira o jeito de IA\""
+  ],
+  "notas_do_vault": [
+    { "pasta": "10-Identidade", "titulo": "Voz e escrita", "kind": "regra", "corpo": "Como a pessoa escreve, o que ela manda tirar do texto da IA e 5 trechos aprovados. Preenchida pelo passo contexto ou com a pessoa no primeiro uso." }
+  ]
+}
