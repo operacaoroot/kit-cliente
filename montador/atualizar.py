@@ -5,10 +5,12 @@ Uso:
     python3 montador/atualizar.py <slug> [<slug> ...] "o que mudou, em uma frase"
     python3 montador/atualizar.py --todos "o que mudou, em uma frase"
 
-Atualiza só o que é igual em todo kit: a conferência (ferramentas/), os instaladores,
-as seis skills de base, o agente auditor, as permissões do Claude e o .gitignore.
-Nunca toca no que é do cliente: CLAUDE.md, README.md, COMECE-AQUI.md, perfil.md,
-vault/, entregas/, ajuda/ e as skills da frente. O cliente recebe a atualização
+Atualiza só o que é igual em todo kit: as ferramentas (conferência, ambiente, oficina),
+o catálogo de apps, os instaladores, as skills de base, o agente auditor, as permissões
+do Claude e o .gitignore. No catalogo.json refaz as linhas da Root e da frente e mantém
+as do cliente. Nunca toca no que é do cliente: CLAUDE.md, README.md, COMECE-AQUI.md,
+perfil.md, vault/, entregas/, ajuda/, oficina/<ferramentas>, as skills que ele criou e
+as skills da frente. O cliente recebe a atualização
 quando fechar o dia (git pull --rebase pela chave do kit).
 
 Trabalha num clone temporário do repositório do kit, feito com o token da conta
@@ -23,11 +25,16 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "montador"))
-from montar import MODELO, Recusa, rodar, token_github  # noqa: E402
+from montar import MODELO, RECEITAS, Recusa, montar_catalogo, para_windows, rodar, skills_de_base, token_github  # noqa: E402
 
-SKILLS_DE_BASE = ["perfil-de-interacao", "proximo-passo", "cuidar-do-vault", "extrair-contexto", "pedir-ajuda", "fechar-o-dia"]
 ARQUIVOS = [
     ("ferramentas/verificar.py", "ferramentas/verificar.py"),
+    ("ferramentas/ambiente.py", "ferramentas/ambiente.py"),
+    ("ferramentas/skills.py", "ferramentas/skills.py"),
+    ("ambiente/apps.json", "ambiente/apps.json"),
+    ("ambiente/requirements.txt", "ambiente/requirements.txt"),
+    ("oficina/LEIA-ME.md", "oficina/LEIA-ME.md"),
+    ("instalar/instalar.cmd", "instalar/instalar.cmd"),
     ("passos.json", "ferramentas/passos.json"),
     ("instalar/instalar.sh", "instalar/instalar.sh"),
     ("instalar/instalar.command", "instalar/instalar.command"),
@@ -52,17 +59,22 @@ def atualizar(slug, motivo):
             alvo = kit / destino
             alvo.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(MODELO / origem, alvo)
-        for s in SKILLS_DE_BASE:
+        for s in skills_de_base():
             alvo = kit / ".claude" / "skills" / s
             if alvo.exists():
                 shutil.rmtree(alvo)
             shutil.copytree(MODELO / ".claude" / "skills" / s, alvo)
+        versao = json.loads((MODELO / "passos.json").read_text(encoding="utf-8"))["versao"]
+        arq_cat = kit / "catalogo.json"
+        existente = json.loads(arq_cat.read_text(encoding="utf-8")) if arq_cat.exists() else None
+        receitas = [json.loads((RECEITAS / k / "receita.json").read_text(encoding="utf-8")) for k in m.get("frente", [])]
+        arq_cat.write_text(json.dumps(montar_catalogo(receitas, versao, existente), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         for md in list((kit / ".claude").rglob("*.md")):
             texto = md.read_text(encoding="utf-8").rstrip()
             if kit_id not in texto:
                 texto += "\n\n<!-- {} -->".format(kit_id)
             if windows:
-                texto = texto.replace("python3 ferramentas/", "py ferramentas/")
+                texto = para_windows(texto)
             md.write_text(texto + "\n", encoding="utf-8")
         rodar(["git", "config", "user.name", "Root (montador de kits)"], kit)
         rodar(["git", "config", "user.email", "kits@operacaoroot.com"], kit)
@@ -71,7 +83,6 @@ def atualizar(slug, motivo):
         if not mudou:
             print("{}: já estava em dia".format(slug))
             return
-        versao = json.loads((MODELO / "passos.json").read_text(encoding="utf-8"))["versao"]
         rodar(["git", "commit", "-q", "-m", "Atualização do kit (modelo {}): {}".format(versao, motivo)], kit)
         rodar(["git", "push", "-q", "origin", "HEAD"], kit)
         print("{}: atualização enviada ({})".format(slug, motivo))

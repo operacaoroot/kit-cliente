@@ -62,8 +62,51 @@ INICIATIVA = {
 }
 
 
+PYTHON_NO_WINDOWS = ".venv/Scripts/python "  # o Claude Code no Windows roda comandos no Git Bash
+
+
 class Recusa(Exception):
     pass
+
+
+def para_windows(texto):
+    """No Windows não existe python3: o kit usa o Python que o instalador cria em .venv."""
+    return texto.replace("python3 ", PYTHON_NO_WINDOWS)
+
+
+def resumo_da_skill(skill_md):
+    texto = Path(skill_md).read_text(encoding="utf-8")
+    m = re.search(r"(?m)^description:\s*(.+)$", texto)
+    if not m:
+        return ""
+    desc = m.group(1).strip()
+    corte = desc.find(". ")
+    return desc[: corte + 1] if corte > 0 else desc
+
+
+def skills_de_base():
+    return sorted(p.name for p in (MODELO / ".claude" / "skills").iterdir() if (p / "SKILL.md").exists())
+
+
+def montar_catalogo(receitas, versao, existente=None):
+    """Catálogo das ferramentas do kit. As da Root e da frente são refeitas; as do cliente ficam."""
+    hoje = dt.date.today().isoformat()
+    antigas = {s["nome"]: s for s in (existente or {}).get("skills", [])}
+    skills = []
+    for nome in skills_de_base():
+        skills.append({"nome": nome, "origem": "root", "estado": "ativa", "versao": versao,
+                       "resumo": resumo_da_skill(MODELO / ".claude" / "skills" / nome / "SKILL.md"),
+                       "desde": antigas.get(nome, {}).get("desde", hoje)})
+    for r in receitas:
+        for s in r["skills"]:
+            skills.append({"nome": s, "origem": "frente", "receita": r["chave"], "estado": "ativa",
+                           "versao": r.get("versao", "1.0.0"),
+                           "resumo": resumo_da_skill(RECEITAS / r["chave"] / "skills" / s / "SKILL.md"),
+                           "desde": antigas.get(s, {}).get("desde", hoje)})
+    feitas = {s["nome"] for s in skills}
+    skills += [s for s in (existente or {}).get("skills", []) if s.get("origem") == "cliente" and s["nome"] not in feitas]
+    return {"versao_catalogo": 1, "_leia": "Ferramentas do kit. origem root e frente: da Root, atualizadas por ela. "
+            "origem cliente: criadas por você (ferramentas/skills.py).", "skills": skills}
 
 
 def ler_json(caminho):
@@ -144,12 +187,14 @@ def montar_contexto(m, perfis, kit_id):
         for s in p.get("sinais", [])
     ) or "- Nenhum sinal registrado. O perfil é o padrão até você configurar."
     skills_base = [
+        ("preparar-ambiente", "confere o computador e instala o que falta do catálogo"),
         ("perfil-de-interacao", "como falar com a pessoa; ajustar a pedido"),
         ("proximo-passo", "onde a pessoa está e o que vem agora"),
         ("cuidar-do-vault", "notas do Obsidian com cabeçalho e fonte"),
         ("extrair-contexto", "o histórico de IA vira notas com fonte, sem sair da máquina"),
         ("pedir-ajuda", "registra o pedido para a Root"),
         ("fechar-o-dia", "salva, envia o progresso e traz atualizações"),
+        ("criar-skill", "cria, testa e põe em uso as ferramentas da própria pessoa"),
     ]
     linhas = ["**Base (todo kit tem):**", ""]
     linhas += ["- `{}`: {}".format(n, d) for n, d in skills_base]
@@ -342,7 +387,7 @@ def montar(caminho_manifesto, opcoes):
     kit_id = "kit-" + uuid.uuid4().hex[:12]
     ctx, receitas = montar_contexto(m, perfis, kit_id)
 
-    ignorar = shutil.ignore_patterns("*.tmpl", "passos.json", ".DS_Store", "__pycache__")
+    ignorar = shutil.ignore_patterns("*.tmpl", "passos.json", ".DS_Store", "__pycache__", ".venv")
     shutil.copytree(MODELO, destino, ignore=ignorar)
     shutil.copy2(MODELO / "passos.json", destino / "ferramentas" / "passos.json")
     for tmpl in MODELO.rglob("*.tmpl"):
@@ -361,6 +406,9 @@ def montar(caminho_manifesto, opcoes):
             skill_md = alvo / "SKILL.md"
             skill_md.write_text(skill_md.read_text(encoding="utf-8").replace("{{registrar_resultado}}", registrar), encoding="utf-8")
 
+    catalogo = montar_catalogo(receitas, ctx["versao_modelo"])
+    (destino / "catalogo.json").write_text(json.dumps(catalogo, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
     ctx["indice_notas"] = escrever_vault(destino, m, receitas, ctx)
     comece_tmpl = (MODELO / "vault" / "00 - Comece aqui.md.tmpl").read_text(encoding="utf-8")
     (destino / "vault" / "00 - Comece aqui.md").write_text(render(comece_tmpl, ctx), encoding="utf-8")
@@ -371,7 +419,7 @@ def montar(caminho_manifesto, opcoes):
 
     if sistema == "windows":
         for arq in list(destino.rglob("*.md")):
-            arq.write_text(arq.read_text(encoding="utf-8").replace("python3 ferramentas/", "py ferramentas/"), encoding="utf-8")
+            arq.write_text(para_windows(arq.read_text(encoding="utf-8")), encoding="utf-8")
 
     if rascunho:
         aviso = "> **RASCUNHO**: montado com portão aberto ({}). Não entregar ao cliente.\n\n".format("; ".join(portoes))

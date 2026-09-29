@@ -18,6 +18,8 @@ Abra o Claude dentro da pasta do kit e escreva do seu jeito. Estes pedidos funci
 - "vamos configurar o meu perfil" · "fala mais curto comigo" · "explica com mais detalhe"
 - "me ajuda a revisar as notas"
 - "quero trazer o meu histórico de IA"
+- "confere o meu computador" · "instala o VS Code"
+- "quero criar uma ferramenta" · "melhora a minha ferramenta de ..."
 - "preciso de ajuda com ..." (vira um pedido para a Root)
 - "fechar o dia"
 
@@ -31,14 +33,18 @@ Abra o Claude dentro da pasta do kit e escreva do seu jeito. Estes pedidos funci
 | `entregas/` | o que a frente produz (rascunhos para você revisar) |
 | `entrada/` | onde você coloca exportações e arquivos para o Claude ler; nunca vai para a Root |
 | `ajuda/` | os pedidos de ajuda que o Claude registra para a Root |
-| `.claude/` | as ferramentas do kit (skills e agentes) |
-| `ferramentas/` | a conferência dos passos |
+| `.claude/` | as ferramentas em uso (skills e agentes) |
+| `oficina/` | as ferramentas que você está criando e testando |
+| `catalogo.json` | a lista de todas as ferramentas do kit: de quem é, estado e versão |
+| `ambiente/` | o que o kit instala no seu computador e as bibliotecas do Python do kit |
+| `instalar/` | os instaladores (Mac, Windows e Linux) |
+| `ferramentas/` | a conferência dos passos, do computador e das ferramentas |
 | `.root/` | a identificação e a chave do kit (não mexa) |
 
 ## O que a Root vê
 
-A Root acompanha só o **progresso** do kit: quais passos foram feitos, quando e os pedidos de
-ajuda. Isso chega quando você fecha o dia. A pasta `entrada/` e qualquer arquivo em `_privado/`
+A Root acompanha o **progresso** do kit: quais passos foram feitos, quando, os pedidos de
+ajuda e o catálogo das ferramentas que você criou (o texto delas, nunca os seus arquivos). Isso chega quando você fecha o dia. A pasta `entrada/` e qualquer arquivo em `_privado/`
 nunca saem do seu computador.
 
 ## O Claude

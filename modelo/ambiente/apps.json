@@ -1,0 +1,96 @@
+{
+  "versao": "1.0.0",
+  "_leia": "Fonte única do que o kit instala. Os instaladores e a conferência leem daqui. perfis: obrigatorio (instala sempre), recomendado (instala por padrão no perfil), opcional (só com --com <id>). Nenhum app pede conta de fora da Root nem guarda dado fora da máquina do cliente.",
+  "apps": [
+    {
+      "id": "git",
+      "nome": "Git",
+      "para_que": "guardar o trabalho, mandar o progresso para a Root e receber as atualizações do kit",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "mac": {"checar": {"comando": "git"}, "instalar": {"tipo": "xcode-clt"}},
+      "windows": {"checar": {"comando": "git", "caminhos": ["%ProgramFiles%\\Git\\cmd\\git.exe"]}, "instalar": {"winget": "Git.Git", "admin": true}},
+      "linux": {"checar": {"comando": "git"}, "instalar": {"tipo": "pagina", "url": "https://git-scm.com/download/linux"}}
+    },
+    {
+      "id": "uv",
+      "nome": "uv",
+      "para_que": "instalar e manter o Python do kit sem pedir senha de administrador",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "mac": {"checar": {"comando": "uv", "caminhos": ["~/.local/bin/uv"]}, "instalar": {"tipo": "script", "url": "https://astral.sh/uv/install.sh"}},
+      "windows": {"checar": {"comando": "uv", "caminhos": ["%USERPROFILE%\\.local\\bin\\uv.exe"]}, "instalar": {"tipo": "script", "url": "https://astral.sh/uv/install.ps1", "winget": "astral-sh.uv"}},
+      "linux": {"checar": {"comando": "uv", "caminhos": ["~/.local/bin/uv"]}, "instalar": {"tipo": "script", "url": "https://astral.sh/uv/install.sh"}}
+    },
+    {
+      "id": "python",
+      "nome": "Python 3.12",
+      "para_que": "rodar a conferência, as ferramentas do kit e as que você criar",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "mac": {"checar": {"uv_python": "3.12"}, "instalar": {"tipo": "uv-python", "versao": "3.12"}},
+      "windows": {"checar": {"uv_python": "3.12"}, "instalar": {"tipo": "uv-python", "versao": "3.12"}},
+      "linux": {"checar": {"uv_python": "3.12"}, "instalar": {"tipo": "uv-python", "versao": "3.12"}}
+    },
+    {
+      "id": "claude-code",
+      "nome": "Claude Code",
+      "para_que": "o Claude que trabalha dentro da pasta do kit",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "mac": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude", "~/.claude/local/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}},
+      "windows": {"checar": {"comando": "claude", "caminhos": ["%USERPROFILE%\\.local\\bin\\claude.exe"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.ps1"}},
+      "linux": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}}
+    },
+    {
+      "id": "obsidian",
+      "nome": "Obsidian",
+      "para_que": "abrir e editar a sua base (o vault)",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "mac": {"checar": {"apps": ["Obsidian.app"]}, "instalar": {"tipo": "dmg-github", "repo": "obsidianmd/obsidian-releases", "app": "Obsidian.app"}},
+      "windows": {"checar": {"caminhos": ["%LOCALAPPDATA%\\Obsidian\\Obsidian.exe", "%LOCALAPPDATA%\\Programs\\Obsidian\\Obsidian.exe", "%ProgramFiles%\\Obsidian\\Obsidian.exe"]}, "instalar": {"winget": "Obsidian.Obsidian"}},
+      "linux": {"checar": {"comando": "obsidian", "caminhos": ["/var/lib/flatpak/app/md.obsidian.Obsidian"]}, "instalar": {"tipo": "pagina", "url": "https://obsidian.md/download"}}
+    },
+    {
+      "id": "claude-app",
+      "nome": "Claude (aplicativo)",
+      "para_que": "usar o Claude em janela, com a aba Code, para quem prefere não usar o terminal",
+      "perfis": {"guiado": "recomendado", "chat": "recomendado", "construtor": "opcional"},
+      "mac": {"checar": {"apps": ["Claude.app"]}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}},
+      "windows": {"checar": {"caminhos": ["%LOCALAPPDATA%\\AnthropicClaude\\claude.exe", "%LOCALAPPDATA%\\Programs\\Claude\\Claude.exe"]}, "instalar": {"winget": "Anthropic.Claude"}},
+      "linux": {"checar": {"comando": "__nao_existe_no_linux__"}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}}
+    },
+    {
+      "id": "vscode",
+      "nome": "Visual Studio Code",
+      "para_que": "ver e editar os arquivos do kit e das ferramentas que você criar",
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "recomendado"},
+      "mac": {"checar": {"comando": "code", "apps": ["Visual Studio Code.app"]}, "instalar": {"tipo": "zip-app", "url": "https://update.code.visualstudio.com/latest/darwin-universal/stable", "app": "Visual Studio Code.app"}},
+      "windows": {"checar": {"comando": "code", "caminhos": ["%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe", "%ProgramFiles%\\Microsoft VS Code\\Code.exe"]}, "instalar": {"winget": "Microsoft.VisualStudioCode", "escopo": "user"}},
+      "linux": {"checar": {"comando": "code"}, "instalar": {"tipo": "pagina", "url": "https://code.visualstudio.com/download"}}
+    },
+    {
+      "id": "node",
+      "nome": "Node.js LTS",
+      "para_que": "rodar ferramentas feitas em JavaScript e conectores que pedem Node",
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
+      "mac": {"checar": {"comando": "node"}, "instalar": {"tipo": "pagina", "url": "https://nodejs.org/en/download"}},
+      "windows": {"checar": {"comando": "node", "caminhos": ["%ProgramFiles%\\nodejs\\node.exe"]}, "instalar": {"winget": "OpenJS.NodeJS.LTS", "admin": true}},
+      "linux": {"checar": {"comando": "node"}, "instalar": {"tipo": "pagina", "url": "https://nodejs.org/en/download"}}
+    },
+    {
+      "id": "docker",
+      "nome": "Docker Desktop",
+      "para_que": "testar sistemas na própria máquina antes de colocar em uso (homologação local)",
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
+      "mac": {"checar": {"comando": "docker", "apps": ["Docker.app"]}, "instalar": {"tipo": "pagina", "url": "https://www.docker.com/products/docker-desktop/"}},
+      "windows": {"checar": {"comando": "docker", "caminhos": ["%ProgramFiles%\\Docker\\Docker\\Docker Desktop.exe"]}, "instalar": {"winget": "Docker.DockerDesktop", "admin": true}},
+      "linux": {"checar": {"comando": "docker"}, "instalar": {"tipo": "pagina", "url": "https://docs.docker.com/engine/install/"}}
+    },
+    {
+      "id": "libreoffice",
+      "nome": "LibreOffice",
+      "para_que": "converter documento em PDF quando não houver Word na máquina",
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
+      "mac": {"checar": {"comando": "soffice", "apps": ["LibreOffice.app"]}, "instalar": {"tipo": "pagina", "url": "https://www.libreoffice.org/download/download-libreoffice/"}},
+      "windows": {"checar": {"comando": "soffice", "caminhos": ["%ProgramFiles%\\LibreOffice\\program\\soffice.exe"]}, "instalar": {"winget": "TheDocumentFoundation.LibreOffice", "admin": true}},
+      "linux": {"checar": {"comando": "soffice"}, "instalar": {"tipo": "pagina", "url": "https://www.libreoffice.org/download/download-libreoffice/"}}
+    }
+  ]
+}

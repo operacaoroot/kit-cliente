@@ -102,6 +102,26 @@ def ler_do_local(pasta):
     return progresso, lista, ajuda, None
 
 
+def ler_catalogo(fonte, ent):
+    """Só as ferramentas criadas pelo cliente: é o que mostra o kit sendo desenvolvido por ele."""
+    try:
+        if fonte == "github":
+            dono, nome = ent["repo"].split("/")
+            status, corpo = api("GET", "/repos/{}/{}/contents/catalogo.json".format(dono, nome))
+            if status != 200:
+                return []
+            cat = json.loads(base64.b64decode(corpo["content"]).decode())
+        else:
+            arq = Path(ent.get("local", "")) / "catalogo.json"
+            if not arq.exists():
+                return []
+            cat = json.loads(arq.read_text(encoding="utf-8"))
+    except (ValueError, KeyError):
+        return []
+    return [{"nome": s["nome"], "estado": s.get("estado"), "versao": s.get("versao")}
+            for s in cat.get("skills", []) if s.get("origem") == "cliente"]
+
+
 # ---------------------------------------------------------------- análise
 
 def analisar(m, perfis, anterior):
@@ -155,11 +175,22 @@ def analisar(m, perfis, anterior):
     novos = [p for p in feitos if p["id"] not in feitos_antes]
     for p in novos:
         r["eventos"].append("concluiu \"{}\"".format(p["titulo"]))
+    ferramentas = ler_catalogo(fonte, ent)
+    r["ferramentas_do_cliente"] = ferramentas
+    vistas = antes.get("ferramentas", {})
+    rotulo = {"homologacao": "em teste na oficina", "ativa": "em uso", "aposentada": "aposentada"}
+    for f in ferramentas:
+        marca = "{}@{}".format(f["estado"], f["versao"])
+        if f["nome"] not in vistas:
+            r["eventos"].append("criou a ferramenta \"{}\" ({})".format(f["nome"], rotulo.get(f["estado"], f["estado"])))
+        elif vistas[f["nome"]] != marca:
+            r["eventos"].append("ferramenta \"{}\" agora {} (versão {})".format(f["nome"], rotulo.get(f["estado"], f["estado"]), f["versao"]))
     ajudas_antes = set(antes.get("ajudas", []))
     for a in abertas:
         if a["arquivo"] not in ajudas_antes:
             r["eventos"].append("novo pedido de ajuda: \"{}\"".format(a.get("assunto", "?")))
     r["_estado"] = {"feitos_ids": [p["id"] for p in feitos], "ajudas": [a["arquivo"] for a in abertas],
+                    "ferramentas": {f["nome"]: "{}@{}".format(f["estado"], f["versao"]) for f in ferramentas},
                     "visto_em": agora().isoformat(timespec="seconds")}
 
     modelos = perfis["mensagens"].get(tom, perfis["mensagens"]["direto-com-contexto"])
@@ -206,6 +237,12 @@ def relatorio_md(resultados):
             out.append("Desde a última rodada: " + "; ".join(r["eventos"]) + ".")
         for a in r["alertas"]:
             out.append("- ATENÇÃO: " + a)
+        fs = r.get("ferramentas_do_cliente", [])
+        if fs:
+            em_uso = sum(1 for f in fs if f["estado"] == "ativa")
+            em_teste = sum(1 for f in fs if f["estado"] == "homologacao")
+            out.append("- Ferramentas criadas pelo cliente: {} em uso, {} em teste ({}).".format(
+                em_uso, em_teste, ", ".join(f["nome"] for f in fs if f["estado"] != "aposentada")))
         for a in r.get("ajuda_aberta", []):
             out.append("- Pedido aberto: \"{}\" ({}, {}h)".format(a.get("assunto", "?"), a["arquivo"], a.get("horas_em_aberto", "?")))
         if r.get("mensagem_sugerida"):

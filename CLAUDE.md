@@ -24,6 +24,17 @@ Fábrica dos kits de onboarding da Root. Leia o `README.md` e `docs/ARQUITETURA.
 - Receita nova entra como semente (`receita.json` com `estado: semente`) e só vira `inteira` com
   skills, critério de saída e pedidos de exemplo.
 
+## Base das construções com o cliente (29/09/2026)
+
+- O que se instala mora em `modelo/ambiente/apps.json`; mexeu nele, rode `python3 testes/testar_base.py`.
+- Instalador de Windows (`.ps1`, `.cmd`) só em ASCII; o teste barra acento.
+- Texto de kit Windows não pode ter `python3 `: o montador troca por `.venv/Scripts/python `.
+- Skill de base nova é qualquer pasta em `modelo/.claude/skills/` com `SKILL.md`: o montador e o
+  `atualizar.py` a levam sozinhos e a registram no `catalogo.json`.
+- Mudança aqui se constrói em branch `homologacao/...` e entra na `main` depois dos 20 minutos de
+  quinta. Conserto de defeito é na hora, avisando.
+- Nada deste repositório nem dos kits sai do GitHub `operacaoroot` e da VPS da Root.
+
 ## Kit de exemplo
 
 `manifestos/exemplo-marina-duarte.json` é fictício e está publicado em

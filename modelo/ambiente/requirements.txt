@@ -1,0 +1,8 @@
+# Bibliotecas do Python do kit (.venv). Servem às ferramentas que leem e escrevem documentos.
+# Versões mínimas testadas; o instalador usa o uv, que baixa só daqui.
+python-docx>=1.1
+openpyxl>=3.1
+pypdf>=4.2
+pillow>=10.4
+requests>=2.32
+python-dotenv>=1.0

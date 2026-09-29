@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(python3 ferramentas/verificar.py:*)",
-      "Bash(py ferramentas/verificar.py:*)",
+      "Bash(python3 ferramentas/ambiente.py:*)",
+      "Bash(python3 ferramentas/skills.py:*)",
+      "Bash(.venv/Scripts/python ferramentas/verificar.py:*)",
+      "Bash(.venv/Scripts/python ferramentas/ambiente.py:*)",
+      "Bash(.venv/Scripts/python ferramentas/skills.py:*)",
       "Bash(git status:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
@@ -21,7 +25,9 @@
       "Bash(git reset --hard:*)",
       "Bash(rm -rf:*)",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Edit(./.root/**)",
+      "Write(./.root/chave*)"
     ]
   }
 }

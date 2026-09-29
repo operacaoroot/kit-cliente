@@ -11,3 +11,5 @@ vault/.obsidian/workspace*.json
 vault/.obsidian/cache
 .claude/settings.local.json
 __pycache__/
+# O Python do kit é refeito pelo instalador em cada máquina.
+.venv/

@@ -9,6 +9,8 @@
 | 3 | Pontuação do perfil | `perfis/pontuar.py` | sinais com minuto | proposta com porcentagem | sócio assina `perfil.conferido_por` |
 | 4 | Montagem | `montador/montar.py` | manifesto | kit, repositório privado, zip | recusa sem os portões acima |
 | 5 | Execução | cliente, com o Claude do kit | kit | commits de progresso | prova de cada passo em `verificar.py` |
+| 5a | Ambiente | instalador + skill `preparar-ambiente` | `ambiente/apps.json` | computador pronto, `.venv` | obrigatórios instalados (`ambiente.py --conferir`) |
+| 5b | Desenvolvimento do cliente | cliente, com a skill `criar-skill` | tarefa que se repete | ferramenta em `.claude/skills/` e no `catalogo.json` | teste aprovado + `skills.py conferir` |
 | 6 | Extração de contexto | skill `extrair-contexto` na máquina do cliente | exportações do ChatGPT e do Claude | `vault/_contexto/` com fonte | auditoria pelo agente `auditor-de-contexto` |
 | 7 | Acompanhamento | `acompanhador/acompanhar.py` 3x ao dia | progresso no GitHub | relatório e mensagem sugerida | sócio revisa antes de mandar |
 
@@ -26,12 +28,15 @@ e não chama modelo de IA: o mesmo manifesto gera o mesmo kit (fora `kit_id`, ch
 ```
 kit-<slug>/
 ├── README.md, COMECE-AQUI.md, CLAUDE.md, perfil.md   ← gerados do manifesto
-├── .claude/skills/   6 de base + até 3 receitas da frente
+├── .claude/skills/   8 de base + até 3 receitas da frente + as do cliente
+├── catalogo.json     cada ferramenta: origem (root, frente, cliente), estado, versão
+├── oficina/          ferramentas do cliente em teste; _aposentadas/ guarda o que saiu
+├── ambiente/         apps.json (o que se instala) e requirements.txt (.venv)
 ├── .claude/agents/   auditor-de-contexto
 ├── .claude/settings.json   permissões (nega ler a chave, force push, rm -rf, web)
 ├── vault/            Obsidian com as notas da conversa (revisar: sim)
-├── ferramentas/      verificar.py + passos.json
-├── instalar/         .command (Mac), .ps1 (Windows), .sh
+├── ferramentas/      verificar.py, ambiente.py, skills.py + passos.json
+├── instalar/         .command (Mac), .cmd + .ps1 (Windows), .sh
 ├── entregas/  ajuda/  (entrada/ e _privado/ nunca saem da máquina)
 └── .root/            cliente.json (selo), progresso.json, chave (fora do git)
 ```
