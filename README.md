@@ -43,3 +43,6 @@ python3 acompanhador/acompanhar.py                          # 4. acompanhamento 
 - Nenhum texto do kit cita outro cliente, projeto anterior ou quem mais a Root atende.
 - Texto para o cliente passa pelo checklist de `receitas/kit-de-contexto-e-conteudo/skills/revisar-texto`
   e não leva travessão.
+- Mudança nesta fábrica se constrói em homologação local e só entra na `main` depois dos 20 minutos
+  da quinta (decisão dos sócios de 29/09/2026, no `root-base`). Conserto de defeito é na hora, avisando.
+- Ordem dos kits em 29/09/2026: Douglas, Danilo (MaisQ), depois Lucas Rezende.

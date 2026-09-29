@@ -61,3 +61,9 @@ recebe quando fechar o dia.
   bancada do OS vai ler).
 - Calibração dos pesos: depende de 10 a 15 clientes com o comportamento medido.
 - As três receitas-semente (conciliação, painel de vendas, minuta) virarem inteiras.
+- **O cliente como colaborador do repositório, pelo e-mail dele** (mesa de 29/09/2026): o GitHub
+  passa a registrar quem baixou, quem usa e quem commita, e o Claude do cliente commita como
+  colaborador. Hoje o montador cadastra deploy key; a chave continua sendo o selo do kit.
+- **A esteira em kanban no OS** lendo o `--json` do acompanhador (29/09/2026): checklists do
+  cartão marcados pela automação, estações mudadas pelo agente, humano só onde precisar. Vem
+  depois de o kit estar completo e plug and play no Git; o OS do cliente vem depois disso.
