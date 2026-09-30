@@ -4,6 +4,8 @@
       "Bash(python3 ferramentas/verificar.py:*)",
       "Bash(python3 ferramentas/ambiente.py:*)",
       "Bash(python3 ferramentas/skills.py:*)",
+      "Bash(.venv/Scripts/python ferramentas/rotina.py:*)",
+      "Bash(python3 ferramentas/rotina.py:*)",
       "Bash(.venv/Scripts/python ferramentas/conectar.py:*)",
       "Bash(python3 ferramentas/conectar.py:*)",
       "Bash(.venv/Scripts/python ferramentas/verificar.py:*)",

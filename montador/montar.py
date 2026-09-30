@@ -200,6 +200,7 @@ def montar_contexto(m, perfis, kit_id):
         ("pedir-ajuda", "registra o pedido para a Root"),
         ("fechar-o-dia", "salva, envia o progresso e traz atualizações"),
         ("criar-skill", "cria, testa e põe em uso as ferramentas da própria pessoa"),
+        ("alimentar-vault", "três vezes ao dia, transforma o que aconteceu no kit em diário e notas do vault"),
     ]
     linhas = ["**Base (todo kit tem):**", ""]
     linhas += ["- `{}`: {}".format(n, d) for n, d in skills_base]
@@ -293,6 +294,19 @@ def escrever_vault(destino, m, receitas, ctx):
                 ctx["nome"], ctx["hoje"], pasta, descricao, itens), encoding="utf-8")
     indice = "\n".join("- [[{}/{}]] (revisar)".format(p, t) for p in PASTAS_DO_VAULT for t in por_pasta[p]) or "- Nenhuma nota ainda."
     return indice
+
+
+HORAS_DA_ROTINA = ["08:00", "12:30", "17:30"]
+
+
+def rotina_combinada(m):
+    """A rotina que alimenta o vault: ligar ou não, horários e envio, como combinado no kickoff."""
+    r = (m.get("combinado") or {}).get("rotina_do_vault") or {}
+    horas = r.get("horas") or HORAS_DA_ROTINA
+    for h in horas:
+        if not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", h):
+            raise Recusa("combinado.rotina_do_vault.horas: horário inválido {!r} (use HH:MM)".format(h))
+    return {"ligar": bool(r.get("ligar")), "horas": horas, "enviar": r.get("enviar", True) is not False}
 
 
 def assinar(dados):
@@ -468,6 +482,7 @@ def montar(caminho_manifesto, opcoes):
         "modelo": ctx["versao_modelo"], "perfil": m["perfil"]["escolhido"], "frente": m["frente"],
         "repo": "{}/kit-{}".format(DONO_GITHUB, slug), "rascunho": rascunho,
         "github": m["cliente"].get("github") or None,
+        "rotina_do_vault": rotina_combinada(m),
         "selo": assinar(ident),
         "aviso": "Kit pessoal montado pela Root para {}. A chave em .root/chave é deste kit e só dele.".format(m["cliente"]["nome"]),
     })

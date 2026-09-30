@@ -25,7 +25,7 @@ obrigatório** e o resto se adapta ao cliente. Toda adaptação vai para
 | Onde mora o trabalho | 15 min | o cliente compartilha a tela e mostra de onde vêm as coisas | `fontes` (3 prioritárias) e `dores` |
 | O kit | 20 min | mostrar os passos, a frente escolhida e as notas; ele corrige em voz alta | `frente`, `notas_iniciais`, ajuste de perfil |
 | Instalação | dentro do bloco anterior | nos primeiros clientes e em todo perfil guiado: instalar o passo 1 ao vivo | `desvios_do_roteiro` se não deu |
-| Combinado | 5 min | horário do acompanhamento, canal de ajuda, assinatura do Claude | `combinado`, `claude` |
+| Combinado | 5 min | horário do acompanhamento, canal de ajuda, assinatura do Claude e a rotina do vault (autoriza? horários? envia o reporte?) | `combinado` (inclusive `rotina_do_vault`), `claude` |
 
 ### Perguntas que costumam render sinais de perfil
 
@@ -37,6 +37,14 @@ obrigatório** e o resto se adapta ao cliente. Toda adaptação vai para
 - "Que horas do dia sobram para mexer nisso?" (ritmo e horário)
 
 Anote o minuto de cada frase que servir de sinal. Frase sem minuto não entra na pontuação.
+
+### A rotina do vault, no combinado
+
+Dizer em duas frases: "Três vezes ao dia o kit olha só o que aconteceu dentro desta pasta, as
+conversas com o Claude e os arquivos do kit, escreve o diário e as notas no seu vault e manda para o
+repositório do kit o reporte que a gente acompanha. Senha e documento saem mascarados e nada de
+`entrada/` é copiado." Perguntar se autoriza e em que horários (padrão 08:00, 12:30 e 17:30).
+Sem autorização: `ligar: false`. Detalhes em `docs/ROTINA-DO-VAULT.md`.
 
 ### O que não fazer
 

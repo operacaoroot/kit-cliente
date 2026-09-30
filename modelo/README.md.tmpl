@@ -27,6 +27,7 @@ Abra o Claude dentro da pasta do kit e escreva do seu jeito. Estes pedidos funci
 - "me ajuda a revisar as notas"
 - "quero trazer o meu histórico de IA"
 - "confere o meu computador" · "instala o VS Code"
+- "alimenta o vault" · "liga a rotina do vault" · "muda o horário da rotina" · "desliga a rotina"
 - "quero criar uma ferramenta" · "melhora a minha ferramenta de ..."
 - "preciso de ajuda com ..." (vira um pedido para a Root)
 - "fechar o dia"
@@ -39,6 +40,7 @@ Abra o Claude dentro da pasta do kit e escreva do seu jeito. Estes pedidos funci
 | `LINKS.md` | os links oficiais dos programas, das contas e da ajuda |
 | `perfil.md` | o jeito de atender que você escolheu para o Claude |
 | `vault/` | a sua base no Obsidian: o que a Root entendeu da conversa, para você corrigir e ampliar |
+| `vault/_diario/` | o diário que a rotina escreve três vezes ao dia com o que aconteceu no kit |
 | `entregas/` | o que a frente produz (rascunhos para você revisar) |
 | `entrada/` | onde você coloca exportações e arquivos para o Claude ler; nunca vai para a Root |
 | `ajuda/` | os pedidos de ajuda que o Claude registra para a Root |
@@ -61,6 +63,17 @@ A Root acompanha a **forma de trabalho**: quais passos foram feitos, quando, os 
 o catálogo das ferramentas que você criou (o texto delas, nunca os seus arquivos). Isso chega
 quando você fecha o dia. A pasta `entrada/` e qualquer arquivo em `_privado/` nunca saem do seu
 computador.
+
+## A rotina do vault
+
+Se você autorizou no kickoff, três vezes ao dia (08:00, 12:30 e 17:30, ou os horários que você
+escolher) o kit olha o que aconteceu desde a última vez: as conversas com o Claude feitas **dentro
+desta pasta**, as entregas, os pedidos de ajuda e os arquivos novos em `entrada/`. Senha, token,
+cartão, CPF e CNPJ saem mascarados antes de qualquer coisa. O Claude escreve o diário do dia em
+`vault/_diario/` e atualiza as notas que duram, sempre com a fonte e marcadas para você revisar
+("me ajuda a revisar as notas"). Depois o kit envia o vault e o progresso para o repositório do kit,
+que é o reporte que a Root acompanha. Se o computador estiver desligado ou dormindo no horário, a
+rotina roda quando ele voltar. Para ver, mudar ou desligar: "como está a rotina do vault".
 
 ## O Claude
 

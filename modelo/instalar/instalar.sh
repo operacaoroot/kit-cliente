@@ -42,6 +42,16 @@ if [ "$SISTEMA" = "Darwin" ]; then
   if [ -x "$ATALHO" ]; then echo "atalho criado na Mesa: Claude do kit"; else falha "não consegui criar o atalho na Mesa; abra o Terminal na pasta do kit e digite claude"; fi
 fi
 
+passo "Rotina que alimenta o vault"
+# Ligada só se foi combinada no kickoff (.root/cliente.json, rotina_do_vault.ligar).
+ROTINA="$(python3 -c "import json;r=json.load(open('.root/cliente.json')).get('rotina_do_vault') or {};print((','.join(r.get('horas') or [])+('' if r.get('enviar',True) else ' --sem-envio')) if r.get('ligar') else '')" 2>/dev/null)"
+if [ -n "$ROTINA" ]; then
+  HORAS="${ROTINA%% *}"
+  if [ "$ROTINA" != "$HORAS" ]; then python3 ferramentas/rotina.py --ligar --horas "$HORAS" --sem-envio; else python3 ferramentas/rotina.py --ligar --horas "$HORAS"; fi
+else
+  echo "não combinada; para ligar depois, peça ao Claude do kit: \"liga a rotina do vault\""
+fi
+
 passo "Conferência"
 python3 ferramentas/ambiente.py --conferir
 python3 ferramentas/verificar.py

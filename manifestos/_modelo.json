@@ -85,7 +85,17 @@
       "08:30",
       "13:00",
       "18:00"
-    ]
+    ],
+    "rotina_do_vault": {
+      "ligar": true,
+      "horas": [
+        "08:00",
+        "12:30",
+        "17:30"
+      ],
+      "enviar": true,
+      "_leia": "combinar no kickoff: a rotina lê só as conversas feitas dentro da pasta do kit e os arquivos do kit, escreve no vault e envia o vault e o progresso para o repositório do kit. ligar: false se a pessoa não autorizar."
+    }
   },
   "claude": {
     "plano": "assinatura individual no nome do cliente",

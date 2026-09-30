@@ -18,7 +18,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import ambiente  # noqa: E402  (mesma pasta; lê ambiente/apps.json)
+import ambiente  # noqa: E402
+import rotina  # noqa: E402  (a rotina que alimenta o vault)  (mesma pasta; lê ambiente/apps.json)
 import conectar  # noqa: E402  (mesma pasta; como o kit fala com o GitHub)
 
 KIT = Path(__file__).resolve().parent.parent
@@ -96,9 +97,11 @@ def checar_vault():
     vault = KIT / "vault"
     pendentes = []
     for nota in vault.rglob("*.md"):
-        if "_contexto" in nota.parts or ".obsidian" in nota.parts:
+        if "_contexto" in nota.parts or "_diario" in nota.parts or ".obsidian" in nota.parts:
             continue
         cab = cabecalho(nota.read_text(encoding="utf-8", errors="ignore"))
+        if any(linha.strip().lower() == "origem: rotina" for linha in cab.splitlines()):
+            continue  # nota escrita pela rotina: a revisão dela é contínua, não trava este passo
         if any(linha.strip().lower() == "revisar: sim" for linha in cab.splitlines()):
             pendentes.append(nota.relative_to(vault).as_posix())
     if pendentes:
@@ -150,12 +153,13 @@ def ultimo_envio():
     if codigo != 0 or not upstream:
         return None
     # conta só envio feito pelo kit; o commit do montador da Root não vale como "fechar o dia"
-    codigo, saida, _ = rodar(["git", "log", "-50", "--format=%ae%x09%ci", upstream])
+    # o envio automático da rotina ("Rotina: ...") também não conta: fechar o dia é gesto da pessoa
+    codigo, saida, _ = rodar(["git", "log", "-80", "--format=%ae%x09%ci%x09%s", upstream])
     if codigo != 0:
         return None
     for linha in saida.splitlines():
-        email, data = linha.split("\t", 1)
-        if email != EMAIL_DO_MONTADOR:
+        email, data, assunto = (linha.split("\t", 2) + [""])[:3]
+        if email != EMAIL_DO_MONTADOR and not assunto.startswith("Rotina:"):
             return data[:10]
     return None
 
@@ -216,6 +220,7 @@ def main(argv):
         "ultimo_envio": envio,
         "acesso": acesso_resumido(),
         "pedidos_de_ajuda_abertos": contar_ajuda_aberta(),
+        "rotina_do_vault": rotina.resumo_do_estado(),
         "passos": resultado,
     }
     ROOT_DIR.mkdir(exist_ok=True)
