@@ -3,9 +3,14 @@ const token = location.hash.slice(1) || sessionStorage.getItem('onboarding-token
 if (token) sessionStorage.setItem('onboarding-token', token);
 history.replaceState(null, '', '/');
 const $ = s => document.querySelector(s);
+const themes = ['escuro', 'papel', 'mono'];
+const savedTheme = localStorage.getItem('root-theme');
+$('#theme').value = themes.includes(savedTheme) ? savedTheme : 'escuro';
+document.documentElement.dataset.theme = $('#theme').value;
+$('#theme').onchange = () => { document.documentElement.dataset.theme = $('#theme').value; localStorage.setItem('root-theme', $('#theme').value); };
 let state, initialized = false, sourcesVersion = '', dirty = false;
 $('#profile').addEventListener('input', () => { dirty = true; });
-function notice(text, error = false) { $('#notice').textContent = text; $('#notice').classList.toggle('error', error); }
+function notice(text, error = false, kind = 'neutro') { $('#notice').textContent = text; $('#notice').classList.toggle('error', error || kind === 'erro'); $('#notice').classList.toggle('success', !error && kind === 'ok'); $('#notice').classList.toggle('attention', !error && kind === 'atencao'); }
 async function api(path, data) {
   const r = await fetch('/api/' + path, {method: data ? 'POST' : 'GET', headers: {'X-Onboarding-Token': token || '', 'Content-Type': 'application/json'}, ...(data ? {body: JSON.stringify(data)} : {})});
   const value = await r.json();
@@ -25,7 +30,7 @@ function line(parent, text, ok) { const el = document.createElement('div'); el.c
 function render(s) {
   state = s;
   if (initialized && !s.ocupado && s.perfil_confirmado && [...new FormData($('#profile'))].every(([k,v]) => (s.perfil[k] || '') === v.trim())) dirty = false;
-  notice(s.mensagem);
+  notice(s.mensagem, false, s.tipo_mensagem);
   if (!initialized) {
     Object.entries(s.perfil).forEach(([k,v]) => {if ($('#profile').elements[k]) $('#profile').elements[k].value = v;});
     dirty = false;

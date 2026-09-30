@@ -54,6 +54,7 @@ class Onboarding:
             self.estado = {'perfil': dict(inicial, nome=inicial.get('nome', cliente.get('nome', ''))), 'fontes': [], 'revisao': False, 'perfil_confirmado': False}
         # Operações interrompidas não voltam como concluídas ao reiniciar.
         self.estado['ocupado'] = False
+        self.estado['tipo_mensagem'] = 'neutro'
         self.estado['mensagem'] = 'Continue de onde parou. Seus dados salvos estão neste computador.'
         self.persistir()
 
@@ -83,13 +84,17 @@ class Onboarding:
             if acao not in ('perfil', 'coletar', 'revisar', 'instalar', 'conferir'):
                 raise ValueError('Ação desconhecida.')
             self.estado['ocupado'] = True
+            self.estado['tipo_mensagem'] = 'neutro'
             self.estado['mensagem'] = 'Executando: ' + acao
             self.persistir()
         def executar():
             try:
                 getattr(self, acao)(dados)
+                with self.lock:
+                    self.estado['tipo_mensagem'] = ('ok' if acao in ('perfil', 'revisar') else 'atencao' if acao == 'conferir' and not self.estado.get('conferencia', {}).get('pronto') else 'neutro')
             except Exception as e:
                 with self.lock:
+                    self.estado['tipo_mensagem'] = 'erro'
                     # Não devolve saída de comandos (pode conter credenciais).
                     self.estado['mensagem'] = str(e) if isinstance(e, ValueError) else 'Não foi possível concluir. Confira a conexão e tente novamente. Nenhuma conclusão foi registrada.'
             finally:
@@ -270,6 +275,8 @@ class API(BaseHTTPRequestHandler):
                 return self.enviar(403, {'erro': 'Reabra o onboarding pelo atalho.'})
             return self.enviar(200, self.server.app.snapshot())
         arquivos = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+        for nome in ('SpaceGrotesk-Regular.ttf', 'SpaceGrotesk-Bold.ttf', 'JetBrainsMono-Regular.ttf', 'root-logo.png'):
+            arquivos['/assets/' + nome] = ('assets/' + nome, 'font/ttf' if nome.endswith('.ttf') else 'image/png')
         if self.path not in arquivos:
             return self.enviar(404, {})
         nome, tipo = arquivos[self.path]

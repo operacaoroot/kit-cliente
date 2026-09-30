@@ -3,15 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Seu começo com a Root</title>
+<title>ROOT · Configure seu ambiente</title>
 <link rel="stylesheet" href="/style.css">
 <script defer src="/app.js">
 </script>
 </head>
 <body>
 <aside>
-<div class="brand">root<span> / seu kit</span>
-</div>
+<div class="brand"><img src="/assets/root-logo.png" width="160" height="68" alt="Operação ROOT"></div>
 <p>Do primeiro acesso<br>ao seu primeiro trabalho.</p>
 <nav aria-label="Etapas">
 <button data-step="0">01 · Sobre você</button>
@@ -24,13 +23,14 @@
 </aside>
 <main>
 <header>
-<span>CONFIGURAÇÃO INICIAL</span>
+<span class="header-label">CONFIGURAÇÃO INICIAL</span>
 <span id="counter">1 de 5</span>
+<label class="theme-control">Tema <select id="theme" aria-label="Tema da interface"><option value="escuro">Escuro</option><option value="papel">Papel</option><option value="mono">Mono</option></select></label>
 </header>
 <div id="notice" role="status" aria-live="polite">Carregando seu kit…</div>
 <section data-panel="0">
 <h1>Vamos começar por você.</h1>
-<p>Confira o que a Root já preencheu e conte um pouco sobre seu trabalho. Isso vai formar a primeira versão da sua base.</p>
+<p>Confira o que a ROOT já preencheu e conte um pouco sobre seu trabalho. Isso vai formar a primeira versão da sua base.</p>
 <form id="profile">
 <div class="grid">
 <label>Como você quer ser chamado?<input name="nome" required maxlength="160" autocomplete="name">
@@ -87,7 +87,7 @@
 <div id="sources">
 </div>
 <label class="check">
-<input id="review-consent" type="checkbox">Conferi meus dados e os trechos selecionados. Autorizo incluí-los no vault; eles poderão ser sincronizados com a Root ao fechar o dia.</label>
+<input id="review-consent" type="checkbox">Conferi meus dados e os trechos selecionados. Autorizo incluí-los no vault; eles poderão ser sincronizados com a ROOT ao fechar o dia.</label>
 <button id="review" class="primary">Confirmar carga inicial</button>
 <button data-next="2" class="text">Continuar para a instalação →</button>
 </section>
@@ -141,9 +141,9 @@
 <p>Depois escreva: “Vamos validar meu kit. Leia CLAUDE.md e execute a skill validar-onboarding. Não envie nada ao GitHub ainda.”</p>
 </div>
 <div class="box">
-<h2>Conexão e sincronização com a Root</h2>
+<h2>Conexão e sincronização com a ROOT</h2>
 <p id="repo">Ainda não conferida.</p>
-<p>Se o repositório não conectar, peça ao Claude: “liga o kit ao GitHub”. Ele orientará a confirmação da conta. Se a Root ainda não preparou o acesso, a etapa continuará pendente.</p>
+<p>Se o repositório não conectar, peça ao Claude: “liga o kit ao GitHub”. Ele orientará a confirmação da conta. Se a ROOT ainda não preparou o acesso, a etapa continuará pendente.</p>
 <p>Após conferir a nota no Obsidian, peça ao Claude para fechar o dia. Revise os arquivos antes do envio e depois clique em Conferir resultado.</p>
 <a id="sync" class="button">Revisar envio com o Claude</a>
 </div>
@@ -158,10 +158,10 @@
 <div class="box">
 <h2>Depois da configuração</h2>
 <p>Use o atalho “Claude do kit” para trabalhar com sua base. Peça uma tarefa, consulte suas notas ou diga “qual o próximo passo?”.</p>
-<p>Importar conversas antigas e criar ferramentas próprias são próximos passos. Ao “fechar o dia”, confira o que será enviado à Root. Salvar no computador e sincronizar com o repositório são ações diferentes.</p>
+<p>Importar conversas antigas e criar ferramentas próprias são próximos passos. Ao “fechar o dia”, confira o que será enviado à ROOT. Salvar no computador e sincronizar com o repositório são ações diferentes.</p>
 </div>
 </section>
-<footer>Root · Configuração do seu ambiente de trabalho</footer>
+<footer>ROOT · Configuração do seu ambiente de trabalho</footer>
 </main>
 </body>
 </html>

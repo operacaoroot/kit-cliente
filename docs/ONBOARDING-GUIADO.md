@@ -91,3 +91,22 @@ Abertura oficial do app: https://support.claude.com/en/articles/14729294-open-cl
 
 `claude://code/new?folder=<pasta>&q=<mensagem>` abre o compositor preenchido. O aplicativo exige
 confirmação da pasta. Não presumir que abrir esse link prova login ou execução da skill.
+
+## Identidade ROOT
+
+Referência: documento-mestre **ROOT — Fundamentos da marca e guia de expressão**, versão 2.0,
+28/09/2026, seções 03 e 04; acervo interno `Root/40-marca-e-conteudo/`.
+
+- Escuro padrão: fundo #070A08, painel #0C120D, texto #DFFFE8, ação/seleção #9BDB1F.
+- Estados separados: ciano #1FFFA8 para confirmação, âmbar #E8B90F para pendência,
+  magenta #FF1F6B para falha. Sempre acompanhados de texto, sem depender apenas da cor.
+- Temas Papel (#ECE7D8/#4D7208) e Mono mantêm hierarquia e conteúdo; preferência fica no navegador.
+- Space Grotesk 400/700 e JetBrains Mono 400 distribuídas localmente, com licenças OFL.
+- Cantos de 3 px, foco de teclado de 1 px, superfícies sólidas, sem neon, gradientes ou sombras.
+- Logo de produção já presente em `modelo/marca/root-logo.png`, sem reconstrução tipográfica.
+  O guia registra pendência entre os vetores anteriores (19,2°) e o tratamento v2 (10°);
+  esta alteração não cria nem declara aprovado um novo wordmark.
+
+Os arquivos tipográficos vêm do acervo de lançamento e do site ROOT v2. O tema mono remove
+as cores do logo por apresentação CSS. No tema papel o logo original é preservado em uma
+superfície escura, evitando uma adaptação não aprovada de seus canais.
