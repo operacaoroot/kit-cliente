@@ -34,6 +34,10 @@ Depois do cabeçalho, um `# Título`. Datas sempre absolutas (`2026-10-02`), nun
 | `70-Dados` | números de referência, com a origem |
 | `90-Metas` | o que a pessoa quer alcançar, com prazo |
 | `_contexto` | o pacote gerado pela extração de contexto (não editar à mão) |
+| `_diario` | o diário que a rotina do vault escreve; a pessoa pode corrigir à vontade |
+
+Notas com `origem: rotina` foram escritas pela rotina do vault. Na revisão, trate igual às outras:
+mostre, pergunte, corrija com as palavras da pessoa e só então troque para `revisar: não`.
 
 ## Revisar as notas com a pessoa
 

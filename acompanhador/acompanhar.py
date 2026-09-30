@@ -175,7 +175,16 @@ def analisar(m, perfis, anterior):
         "passo_atual": next((p["titulo"] for p in passos if not p["feito"]), None),
         "ultimo_envio": progresso.get("ultimo_envio"),
         "ultimo_commit": commits[0] if commits else None,
+        "rotina_do_vault": progresso.get("rotina_do_vault"),
     })
+
+    rv = progresso.get("rotina_do_vault") or {}
+    if rv.get("ligada"):
+        rodada = parse_iso(rv.get("ultima_rodada"))
+        if not rodada or (agora() - rodada).total_seconds() > 36 * 3600:
+            r["alertas"].append("rotina do vault ligada e sem rodar há mais de 36 h (computador desligado ou agendamento parado)")
+        if rv.get("coletas_pendentes"):
+            r["alertas"].append("rotina do vault com coleta sem processar: o Claude da máquina não terminou a última rodada")
 
     # selo: o kit_id que o repositório diz ter precisa ser o que a Root emitiu
     if progresso.get("kit_id") and progresso["kit_id"] != ent.get("kit_id"):
@@ -271,6 +280,14 @@ def relatorio_md(resultados):
             em_teste = sum(1 for f in fs if f["estado"] == "homologacao")
             out.append("- Ferramentas criadas pelo cliente: {} em uso, {} em teste ({}).".format(
                 em_uso, em_teste, ", ".join(f["nome"] for f in fs if f["estado"] != "aposentada")))
+        rv = r.get("rotina_do_vault")
+        if rv:
+            if rv.get("ligada"):
+                out.append("- Rotina do vault: ligada ({}); última alimentação {}; {} nota(s) esperando revisão{}.".format(
+                    ", ".join(rv.get("horas") or []), (rv.get("ultima_alimentacao") or "nenhuma")[:16].replace("T", " "),
+                    rv.get("notas_para_revisar", 0), "; coleta parada" if rv.get("coletas_pendentes") else ""))
+            else:
+                out.append("- Rotina do vault: desligada.")
         for a in r.get("ajuda_aberta", []):
             out.append("- Pedido aberto: \"{}\" ({}, {}h)".format(a.get("assunto", "?"), a["arquivo"], a.get("horas_em_aberto", "?")))
         ac = r.get("acesso")

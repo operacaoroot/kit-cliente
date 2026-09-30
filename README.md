@@ -41,7 +41,9 @@ python3 montador/acesso.py encerrar <slug> --motivo "..." --sim        # fim do 
 | `docs/CHAVE.md` | o acesso ao kit: cliente como colaborador, a chave do kit, encerramento |
 | `docs/ACOMPANHAMENTO.md` | o acompanhador, a resposta a pedidos de ajuda e o agendamento |
 | `docs/AMBIENTE.md` | o que o kit instala (Git, GitHub CLI, Python, Node, Java, Claude Code, Obsidian...), por perfil, em Mac e Windows, os links oficiais e como testar |
+| `docs/ROTINA-DO-VAULT.md` | a rotina que alimenta o vault do cliente três vezes ao dia e envia o reporte |
 | `docs/DESENVOLVIMENTO.md` | a oficina: como o cliente cria, testa e põe em uso as próprias ferramentas |
+| `testes/testar_rotina.py` | testes da rotina do vault (coleta, máscara, agendadores, rodada) |
 | `testes/testar_base.py` | testes da base (catálogo de apps, instaladores, montagem, oficina) |
 | `perfis/` | perfis, sinais, pesos, modelos de mensagem e o `pontuar.py` |
 | `manifestos/` | um JSON por cliente (`_modelo.json` e um exemplo fictício) |

@@ -102,6 +102,16 @@ $linhas = @("@echo off", ("cd /d """ + $Kit + """"), "set PATH=%USERPROFILE%\.lo
 [System.IO.File]::WriteAllText($Atalho, (($linhas -join "`r`n") + "`r`n"), (New-Object System.Text.ASCIIEncoding))
 if (Test-Path $Atalho) { Ok "atalho criado na Area de Trabalho: Claude do kit" } else { Aviso "nao consegui criar o atalho; abra a pasta do kit e rode claude" }
 
+# rotina que alimenta o vault: so se foi combinada no kickoff (cliente.json, rotina_do_vault.ligar)
+$Rotina = $Cliente.rotina_do_vault
+if ($Rotina -and $Rotina.ligar) {
+  $argsRotina = @("ferramentas\rotina.py", "--ligar", "--horas", (($Rotina.horas) -join ","))
+  if ($Rotina.enviar -eq $false) { $argsRotina += "--sem-envio" }
+  & $Py @argsRotina
+} else {
+  Ok "rotina do vault nao combinada; para ligar depois, peca ao Claude do kit: liga a rotina do vault"
+}
+
 & $Py ferramentas\ambiente.py --conferir
 & $Py ferramentas\verificar.py
 Fim 0

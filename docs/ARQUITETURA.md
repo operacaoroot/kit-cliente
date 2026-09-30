@@ -10,6 +10,7 @@
 | 4 | Montagem | `montador/montar.py` | manifesto | kit, repositório privado, convite ao cliente, zip | recusa sem os portões acima |
 | 5 | Execução | cliente, com o Claude do kit | kit | commits de progresso | prova de cada passo em `verificar.py` |
 | 5a | Ambiente | instalador + skill `preparar-ambiente` | `ambiente/apps.json` | computador pronto, `.venv`, kit ligado ao GitHub | obrigatórios instalados (`ambiente.py --conferir`) e `conectar.py --conferir` |
+| 5c | Rotina do vault | `ferramentas/rotina.py` + skill `alimentar-vault`, 3x ao dia | o que aconteceu no kit | diário e notas no vault; reporte enviado | coleta processada (`.root/rotina.json`) |
 | 5b | Desenvolvimento do cliente | cliente, com a skill `criar-skill` | tarefa que se repete | ferramenta em `.claude/skills/` e no `catalogo.json` | teste aprovado + `skills.py conferir` |
 | 6 | Extração de contexto | skill `extrair-contexto` na máquina do cliente | exportações do ChatGPT e do Claude | `vault/_contexto/` com fonte | auditoria pelo agente `auditor-de-contexto` |
 | 7 | Acompanhamento | `acompanhador/acompanhar.py` 3x ao dia | progresso no GitHub | relatório e mensagem sugerida | sócio revisa antes de mandar |

@@ -41,6 +41,8 @@ Fábrica dos kits de onboarding da Root. Leia o `README.md` e `docs/ARQUITETURA.
 - Mudança aqui se constrói em branch `homologacao/...` e entra na `main` depois dos 20 minutos de
   quinta. Conserto de defeito é na hora, avisando.
 - Nada deste repositório nem dos kits sai do GitHub `operacaoroot` e da VPS da Root.
+- A rotina do vault (`modelo/ferramentas/rotina.py`) roda na máquina do cliente em Mac, Windows e
+  Linux, 3x ao dia; mexeu nela, rode `python3 testes/testar_rotina.py` e leia `docs/ROTINA-DO-VAULT.md`.
 
 ## Kit de exemplo
 

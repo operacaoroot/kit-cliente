@@ -32,6 +32,7 @@ ARQUIVOS = [
     ("ferramentas/ambiente.py", "ferramentas/ambiente.py"),
     ("ferramentas/skills.py", "ferramentas/skills.py"),
     ("ferramentas/conectar.py", "ferramentas/conectar.py"),
+    ("ferramentas/rotina.py", "ferramentas/rotina.py"),
     ("marca/root-logo.png", "marca/root-logo.png"),
     ("vault/.obsidian/snippets/root.css", "vault/.obsidian/snippets/root.css"),
     ("ambiente/apps.json", "ambiente/apps.json"),
