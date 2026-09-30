@@ -1,57 +1,107 @@
-# Instalador do kit (Windows). Clique com o botão direito e escolha "Executar com o PowerShell".
-# Instala o que faltar, liga a chave do kit ao git e roda a conferência.
-# Pode rodar quantas vezes quiser: o que já está instalado é pulado.
+# ============================================================================
+#  instalar.ps1 - instalador do kit no Windows. ASCII puro de proposito:
+#  o PowerShell 5.1 le .ps1 sem BOM como ANSI e acento quebra o script.
+#
+#  Jeito facil: clique duas vezes em instalar\instalar.cmd.
+#  Na mao:      powershell -NoProfile -ExecutionPolicy Bypass -File instalar\instalar.ps1 [-Com vscode,docker]
+#
+#  O que faz (pode rodar quantas vezes quiser; o que ja existe e pulado):
+#    1) Git (winget; o Windows pede permissao uma vez)
+#    2) uv, que instala o Python sem senha de administrador
+#    3) Python 3.12 e o Python do kit (.venv) com as bibliotecas
+#    4) o resto do catalogo ambiente\apps.json pelo perfil do kit (Claude Code, Obsidian...)
+#    5) liga o kit ao GitHub (conta da pessoa ou chave do kit), cria o atalho e roda a conferencia
+# ============================================================================
+param([string]$Com = "")
 $ErrorActionPreference = "Continue"
 $Kit = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $Kit
 
-function Passo($t) { Write-Host "`n== $t" -ForegroundColor Cyan }
-function Falha($t) { Write-Host "`n[atenção] $t" -ForegroundColor Yellow }
-function Tem($c) { $null -ne (Get-Command $c -ErrorAction SilentlyContinue) }
+function Passo($t) { Write-Host ""; Write-Host ("== " + $t) -ForegroundColor Cyan }
+function Ok($t)    { Write-Host ("   ok  " + $t) -ForegroundColor Green }
+function Aviso($t) { Write-Host ("   !!  " + $t) -ForegroundColor Yellow }
+function Tem($c)   { $null -ne (Get-Command $c -ErrorAction SilentlyContinue) }
 function Recarregar-Path {
-  $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:USERPROFILE\.local\bin"
+  $partes = @(
+    [Environment]::GetEnvironmentVariable("Path", "Machine"),
+    [Environment]::GetEnvironmentVariable("Path", "User"),
+    (Join-Path $env:USERPROFILE ".local\bin"),
+    (Join-Path $env:ProgramFiles "Git\cmd")
+  )
+  $env:Path = ($partes | Where-Object { $_ }) -join ";"
+}
+function Fim($codigo) {
+  Write-Host ""
+  Read-Host "Tecle Enter para fechar esta janela" | Out-Null
+  exit $codigo
 }
 
-Passo "Conferindo o git, o Python e o Obsidian"
-if (-not (Tem winget)) {
-  Falha "O Windows não tem o winget. Instale o 'Instalador de Aplicativo' pela Microsoft Store e rode de novo."
-} else {
-  if (-not (Tem git)) { winget install --id Git.Git -e --silent --accept-package-agreements --accept-source-agreements }
-  if (-not (Tem py)) { winget install --id Python.Python.3.12 -e --silent --accept-package-agreements --accept-source-agreements }
-  $obs = @("$env:LOCALAPPDATA\Obsidian\Obsidian.exe", "$env:LOCALAPPDATA\Programs\Obsidian\Obsidian.exe") | Where-Object { Test-Path $_ }
-  if (-not $obs) { winget install --id Obsidian.Obsidian -e --silent --accept-package-agreements --accept-source-agreements }
+# acento vindo do Python nao pode derrubar o console (cp850)
+$env:PYTHONIOENCODING = "utf-8"
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
+Recarregar-Path
+
+# ---------- 1) Git ----------
+Passo "1/5 Git"
+if (Tem git) { Ok "Git ja instalado" }
+elseif (Tem winget) {
+  Aviso "o Windows vai pedir permissao para instalar o Git: clique em Sim"
+  winget install --id Git.Git -e --silent --accept-package-agreements --accept-source-agreements
   Recarregar-Path
+  if (Tem git) { Ok "Git instalado" } else { Aviso "o Git nao ficou disponivel. Feche esta janela, abra de novo e rode outra vez." }
 }
-if (Tem git) { Write-Host "git ok" } else { Falha "git não ficou disponível. Feche esta janela, abra de novo e rode outra vez." }
-if (Tem py) { Write-Host "Python ok" } else { Falha "Python não ficou disponível. Feche esta janela, abra de novo e rode outra vez." }
+else {
+  Aviso "este Windows nao tem o winget. Instale o 'Instalador de Aplicativo' pela Microsoft Store e rode de novo."
+  Start-Process "https://apps.microsoft.com/detail/9NBLGGH4NNS1"
+  Fim 1
+}
 
-Passo "Conferindo o Claude Code"
-if (-not (Tem claude)) {
-  Write-Host "Instalando o Claude Code pelo instalador oficial..."
-  Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression
+# ---------- 2) uv ----------
+Passo "2/5 uv (instala o Python sem administrador)"
+if (Tem uv) { Ok "uv ja instalado" }
+else {
+  Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
   Recarregar-Path
+  if (Tem uv) { Ok "uv instalado" } else { Aviso "o uv nao ficou disponivel. Feche esta janela, abra de novo e rode outra vez."; Fim 1 }
 }
-if (Tem claude) { Write-Host "Claude Code ok" } else { Falha "O Claude Code não ficou disponível. Feche esta janela, abra de novo e rode outra vez." }
 
-Passo "Ligando a chave do kit"
-$Chave = Join-Path $Kit ".root\chave"
-if (Test-Path $Chave) {
-  icacls $Chave /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
-  $ChaveGit = $Chave -replace '\\', '/'
-  git config core.sshCommand "ssh -i `"$ChaveGit`" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-  $Cliente = Get-Content (Join-Path $Kit ".root\cliente.json") -Raw | ConvertFrom-Json
-  git config user.name $Cliente.nome
-  git config user.email "kit-$($Cliente.slug)@kit.operacaoroot.com"
-  Write-Host "chave ligada"
+# ---------- 3) Python do kit ----------
+Passo "3/5 Python 3.12 e o Python do kit (.venv)"
+uv python install 3.12
+$Py = Join-Path $Kit ".venv\Scripts\python.exe"
+if (-not (Test-Path $Py)) { uv venv --python 3.12 (Join-Path $Kit ".venv") }
+if (Test-Path $Py) {
+  uv pip install --quiet --python $Py -r (Join-Path $Kit "ambiente\requirements.txt")
+  Ok "Python do kit pronto"
+} else { Aviso "nao consegui criar o Python do kit. Feche esta janela, abra de novo e rode outra vez."; Fim 1 }
+
+# ---------- 4) o resto do catalogo ----------
+Passo "4/5 Claude Code, Obsidian e o que o seu perfil pede"
+$argsAmbiente = @("ferramentas\ambiente.py", "--instalar")
+if ($Com) { $argsAmbiente += @("--com", $Com) }
+& $Py @argsAmbiente
+Recarregar-Path
+
+# ---------- 5) chave, atalho, conferencia ----------
+Passo "5/5 GitHub, atalho e conferencia"
+# Com usuario do GitHub no kit: entra com a conta da pessoa (colaborador).
+# Sem conta, ou se o login nao terminar: liga pela chave do kit.
+$Cliente = Get-Content (Join-Path $Kit ".root\cliente.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($Cliente.github) {
+  & $Py ferramentas\conectar.py --conectar
+  if ($LASTEXITCODE -ne 0) {
+    Aviso "seguindo pela chave do kit; da para entrar no GitHub depois pelo Claude do kit"
+    & $Py ferramentas\conectar.py --usar-chave
+  }
 } else {
-  Falha "A chave do kit (.root\chave) não veio junto. Fale com a Root."
+  & $Py ferramentas\conectar.py --usar-chave
 }
 
-Passo "Criando o atalho do Claude do kit"
 $Atalho = Join-Path ([Environment]::GetFolderPath("Desktop")) "Claude do kit.cmd"
-"@echo off`r`ncd /d `"$Kit`"`r`nclaude`r`n" | Set-Content -Path $Atalho -Encoding ASCII
-Write-Host "atalho criado na Área de Trabalho: Claude do kit"
+$linhas = @("@echo off", ("cd /d """ + $Kit + """"), "set PATH=%USERPROFILE%\.local\bin;%PATH%", "claude")
+[System.IO.File]::WriteAllText($Atalho, (($linhas -join "`r`n") + "`r`n"), (New-Object System.Text.ASCIIEncoding))
+if (Test-Path $Atalho) { Ok "atalho criado na Area de Trabalho: Claude do kit" } else { Aviso "nao consegui criar o atalho; abra a pasta do kit e rode claude" }
 
-Passo "Conferência"
-py ferramentas\verificar.py
-Read-Host "`nPronto. Tecle Enter para fechar esta janela"
+& $Py ferramentas\ambiente.py --conferir
+& $Py ferramentas\verificar.py
+Fim 0

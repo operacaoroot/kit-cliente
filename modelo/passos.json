@@ -1,28 +1,34 @@
 {
-  "versao": "1.0.0",
+  "versao": "1.2.0",
   "passos": [
     {
       "id": "instalar",
-      "titulo": "Instalar o kit",
-      "minutos": 20,
-      "ao_vivo_para": ["guiado", "chat"],
+      "titulo": "Preparar o computador e instalar o kit",
+      "minutos": 25,
+      "ao_vivo_para": [
+        "guiado",
+        "chat"
+      ],
       "texto": {
-        "guiado": "Este passo deixa o seu computador pronto. Você só precisa dar dois cliques no instalador e esperar. Ele confere se o Claude, o Obsidian e o git estão instalados e instala o que faltar. Se o Mac disser que não pode abrir o arquivo, vá em Ajustes do Sistema, Privacidade e Segurança, e clique em \"Abrir mesmo assim\" (na primeira vez a Root faz isso com você). No fim aparece uma lista com bolinhas verdes; se alguma ficar vermelha, tire um print e mande para a Root.",
-        "chat": "Dê dois cliques no instalador. Ele instala o que faltar (Claude Code, Obsidian, git), liga a sua chave do kit e roda a conferência. Tudo verde, passo concluído. Algo vermelho, mande o print.",
-        "construtor": "Rode o instalador. Ele instala Claude Code, Obsidian e git se faltarem, configura a chave SSH do kit no git local e roda `ferramentas/verificar.py`."
+        "guiado": "Este passo deixa o seu computador pronto e liga o kit à sua conta do GitHub. Dê dois cliques no instalador e espere: ele instala o Git, o Python, o Node.js, o Java, o Claude Code e o Obsidian se faltarem. Perto do fim aparece um código de 8 letras: tecle Enter, o navegador abre, cole o código e clique em Authorize. Se o Mac disser que não pode abrir o arquivo, vá em Ajustes do Sistema, Privacidade e Segurança, e clique em \"Abrir mesmo assim\" (na primeira vez a Root faz isso com você). No fim aparece uma lista; se algo ficar vermelho, tire um print e mande para a Root.",
+        "chat": "Dê dois cliques no instalador. Ele instala o que faltar (Git, GitHub CLI, Python, Node.js, Java, Claude Code, Obsidian e os recomendados do seu perfil), cria o Python do kit e liga o kit à sua conta do GitHub: aparece um código, você confirma no navegador e o convite do kit é aceito sozinho. Tudo verde, passo concluído. Os links oficiais estão em LINKS.md.",
+        "construtor": "Rode o instalador. `ferramentas/ambiente.py --instalar` lê `ambiente/apps.json` (Git, gh, uv, Python 3.12, Node LTS, Java 21, Claude Code, Obsidian, mais os recomendados), cria o `.venv` e `ferramentas/conectar.py --conectar` faz `gh auth login --web`, aceita o convite e troca o remoto para HTTPS. Sem conta: `--usar-chave`. Links em LINKS.md."
       },
       "comando": {
         "mac": "clique duas vezes em instalar/instalar.command",
-        "windows": "clique com o botão direito em instalar\\instalar.ps1 e escolha \"Executar com o PowerShell\"",
+        "windows": "clique duas vezes em instalar\\instalar.cmd",
         "linux": "bash instalar/instalar.sh"
       },
-      "prova": "a conferência mostra tudo verde e o kit consegue falar com a Root"
+      "prova": "a conferência mostra o computador pronto e o kit ligado ao GitHub"
     },
     {
       "id": "perfil",
       "titulo": "Dizer ao Claude como você prefere ser atendido",
       "minutos": 10,
-      "ao_vivo_para": ["guiado", "chat"],
+      "ao_vivo_para": [
+        "guiado",
+        "chat"
+      ],
       "texto": {
         "guiado": "Abra o Claude na pasta do kit (o instalador deixou um atalho) e escreva: \"vamos configurar o meu perfil\". Ele vai mostrar o que a Root entendeu de você no kickoff e fazer algumas perguntas curtas: como prefere as explicações, quanto tempo tem por dia e se quer que ele sugira coisas por conta própria. Responda do seu jeito. Dá para mudar tudo depois.",
         "chat": "No Claude, dentro da pasta do kit, escreva \"vamos configurar o meu perfil\". Ele mostra o perfil que saiu do kickoff e você ajusta tom, formato, ritmo e o quanto quer de sugestão.",
@@ -39,7 +45,9 @@
       "id": "vault",
       "titulo": "Abrir a sua base no Obsidian e corrigir o que entendemos",
       "minutos": 20,
-      "ao_vivo_para": ["guiado"],
+      "ao_vivo_para": [
+        "guiado"
+      ],
       "texto": {
         "guiado": "Abra o Obsidian, clique em \"Abrir pasta como cofre\" e escolha a pasta vault dentro do kit. Comece pela nota \"00 - Comece aqui\". As notas marcadas com revisar: sim foram escritas pela Root a partir da conversa. Leia cada uma e corrija o que estiver errado. Quando uma estiver certa, troque revisar: sim por revisar: não. Se preferir, peça ao Claude: \"me ajuda a revisar as notas\".",
         "chat": "Abra a pasta vault no Obsidian e revise as notas marcadas com revisar: sim. Elas saíram da conversa com a Root. Corrija o que precisar e troque para revisar: não. O Claude ajuda se você pedir \"me ajuda a revisar as notas\".",
@@ -73,7 +81,9 @@
       "id": "primeira-frente",
       "titulo": "Rodar a primeira frente com um caso real seu",
       "minutos": 30,
-      "ao_vivo_para": ["guiado"],
+      "ao_vivo_para": [
+        "guiado"
+      ],
       "texto": {
         "guiado": "Agora o kit trabalha para você. Escolha um caso real desta semana e peça ao Claude o que está em \"Como pedir\" no README do kit. Ele entrega um rascunho. Leia, diga o que ficou bom e o que ficou ruim. Essa conversa ensina o kit a acertar da próxima vez.",
         "chat": "Pegue um caso real desta semana e use a frente do seu kit (os pedidos prontos estão no README). Avalie o rascunho e diga ao Claude o que corrigir: ele registra o aprendizado no vault.",
@@ -85,6 +95,25 @@
         "linux": "no Claude do kit, use um dos pedidos da seção \"Como pedir\" do README"
       },
       "prova": "existe pelo menos um arquivo em entregas/ e uma avaliação em vault/40-Operacao/Resultados da frente.md"
+    },
+    {
+      "id": "primeira-skill",
+      "titulo": "Criar a sua primeira ferramenta",
+      "minutos": 45,
+      "ao_vivo_para": [
+        "guiado"
+      ],
+      "texto": {
+        "guiado": "Agora você ensina o Claude a fazer uma tarefa sua do jeito que você faz. Escolha uma tarefa que se repete toda semana e diga ao Claude \"quero criar uma ferramenta\". Ele faz algumas perguntas, escreve a ferramenta numa área de teste (a pasta oficina), testa com um caso real seu e só depois deixa ela pronta para o dia a dia. Na primeira vez a Root faz isso junto com você.",
+        "chat": "Escolha uma tarefa que você repete toda semana e diga \"quero criar uma ferramenta\". O Claude escreve a ferramenta na oficina, testa com um caso real seu, registra o teste e só então coloca em uso. Você decide se ficou boa.",
+        "construtor": "Crie uma skill sua: \"quero criar uma ferramenta\" ou `skills.py nova <nome> \"<para que>\"`. Ela nasce em `oficina/`, é testada com caso real (`TESTES.md`), passa em `skills.py conferir` e vai para `.claude/skills/` com `skills.py promover`. O catálogo fica em `catalogo.json`."
+      },
+      "comando": {
+        "mac": "no Claude do kit: \"quero criar uma ferramenta\"",
+        "windows": "no Claude do kit: \"quero criar uma ferramenta\"",
+        "linux": "no Claude do kit: \"quero criar uma ferramenta\""
+      },
+      "prova": "o catalogo.json tem uma ferramenta sua em uso, com um teste aprovado"
     },
     {
       "id": "fechar-o-dia",

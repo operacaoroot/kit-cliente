@@ -39,6 +39,23 @@ ferramentas da frente escolhida. Identificação do kit: `{{kit_id}}`.
 - **Nota nova segue o cabeçalho do vault** (veja `vault/00 - Comece aqui.md`): `kind`, `dono`,
   `valido_de`, `fonte`.
 
+## O computador de {{primeiro_nome}}
+
+O que o kit precisa instalado está em `ambiente/apps.json`. Se algo não funcionar por falta de
+programa, ou se {{primeiro_nome}} pedir para conferir o computador, use a skill `preparar-ambiente`.
+Não instale nada fora desse catálogo.
+
+## Ferramentas novas: oficina, teste, uso
+
+{{primeiro_nome}} pode criar as próprias ferramentas (skill `criar-skill`). Toda ferramenta nova nasce
+em `oficina/`, é testada com um caso real e registrada no `TESTES.md` dela, e só vai para
+`.claude/skills/` depois que {{primeiro_nome}} aprova. Quem move é `ferramentas/skills.py`, e o
+catálogo de tudo é `catalogo.json`.
+
+- **Não edite as ferramentas da Root** (origem `root` ou `frente` no catálogo): a atualização do kit
+  sobrescreve. Para mudar o jeito de uma delas, crie a de {{primeiro_nome}} a partir dela.
+- Ferramenta que ainda está na oficina só roda quando {{primeiro_nome}} pede para testar.
+
 ## As ferramentas deste kit
 
 {{lista_de_skills}}
@@ -51,6 +68,11 @@ Enquanto isso, siga com outro passo se houver.
 
 ## Sobre este kit
 
-Este kit foi montado para {{nome}} e carrega os dados de {{primeiro_nome}}. As atualizações e o
-acompanhamento chegam pela chave do kit, que é pessoal. Se alguém que não é {{primeiro_nome}}
-estiver usando este kit, avise que cada pessoa precisa do próprio kit, feito pela Root.
+Este kit foi montado para {{nome}} e carrega os dados de {{primeiro_nome}}. Ele fala com a Root
+pelo repositório privado do kit, com a conta de {{primeiro_nome}} no GitHub (ou pela chave do kit,
+se ainda não houver conta). Se o envio falhar por acesso, rode `python3 ferramentas/conectar.py --conferir`
+e, se preciso, `--conectar` numa janela de terminal. Se alguém que não é {{primeiro_nome}} estiver
+usando este kit, avise que cada pessoa precisa do próprio kit, feito pela Root.
+
+Os links oficiais de cada programa e da ajuda estão em `LINKS.md`: use-os quando precisar indicar
+um download ou uma página, nunca um link de outra fonte.

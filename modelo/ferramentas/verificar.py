@@ -6,17 +6,20 @@ Uso (na pasta do kit):
     python3 ferramentas/verificar.py --silencioso # só grava; imprime uma linha
     python3 ferramentas/verificar.py --sem-rede   # não testa a conexão com a Root
 
+No Windows, troque `python3` por `.venv/Scripts/python`.
 O progresso é o que a Root acompanha. Ele diz quais passos foram feitos e quando,
 nunca o conteúdo do trabalho. Só biblioteca padrão, compatível com Python 3.9.
 """
 import datetime as dt
 import json
-import os
 import platform
-import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ambiente  # noqa: E402  (mesma pasta; lê ambiente/apps.json)
+import conectar  # noqa: E402  (mesma pasta; como o kit fala com o GitHub)
 
 KIT = Path(__file__).resolve().parent.parent
 ROOT_DIR = KIT / ".root"
@@ -40,46 +43,37 @@ def rodar(cmd, timeout=20):
         return 1, "", str(e)
 
 
-def claude_instalado():
-    if shutil.which("claude"):
-        return True
-    casa = Path.home()
-    candidatos = [casa / ".local" / "bin" / "claude", casa / ".claude" / "local" / "claude",
-                  casa / ".local" / "bin" / "claude.exe", Path("/opt/homebrew/bin/claude"), Path("/usr/local/bin/claude")]
-    return any(c.exists() for c in candidatos)
-
-
-def obsidian_instalado():
-    sistema = platform.system()
-    if sistema == "Darwin":
-        return any(Path(p).exists() for p in ["/Applications/Obsidian.app", str(Path.home() / "Applications/Obsidian.app")])
-    if sistema == "Windows":
-        local = os.environ.get("LOCALAPPDATA", "")
-        return any(Path(p).exists() for p in [
-            os.path.join(local, "Obsidian", "Obsidian.exe"),
-            os.path.join(local, "Programs", "Obsidian", "Obsidian.exe"),
-            r"C:\Program Files\Obsidian\Obsidian.exe",
-        ])
-    return shutil.which("obsidian") is not None or Path("/var/lib/flatpak/app/md.obsidian.Obsidian").exists()
-
-
 def checar_instalar(sem_rede):
     faltas = []
-    if not shutil.which("git"):
-        faltas.append("git não encontrado")
-    if not claude_instalado():
-        faltas.append("Claude Code não encontrado (comando claude)")
-    if not obsidian_instalado():
-        faltas.append("Obsidian não encontrado")
-    if not (ROOT_DIR / "chave").exists():
-        faltas.append("chave do kit ausente em .root/chave")
+    conf = ambiente.conferir(ambiente.perfil_do_kit())
+    nomes = {a["id"]: a["nome"] for a in conf["apps"]}
+    for app_id in conf["faltam_obrigatorios"]:
+        faltas.append("{} não encontrado".format(nomes.get(app_id, app_id)))
+    if not conf["venv"]["pronto"]:
+        faltas.append(conf["venv"]["detalhe"])
+    if sem_rede:
+        if not (ROOT_DIR / "chave").exists() and acesso_resumido()["modo"] != "colaborador":
+            faltas.append("sem conta do GitHub ligada e sem a chave do kit em .root/chave")
+    elif not conectar.estado()["modo"]:
+        faltas.append("o kit ainda não está ligado ao GitHub (peça ao Claude: \"liga o kit ao GitHub\")")
     if not (KIT / ".git").exists():
         faltas.append("a pasta do kit não é um repositório git")
     if not faltas and not sem_rede:
         codigo, _, erro = rodar(["git", "ls-remote", "--exit-code", "origin", "HEAD"], timeout=25)
         if codigo != 0:
-            faltas.append("o kit não conseguiu falar com a Root ({})".format(erro.splitlines()[-1] if erro else "sem resposta"))
-    return (not faltas), "; ".join(faltas) or "tudo instalado e conectado"
+            faltas.append("o kit não conseguiu falar com a Root ({})".format(motivo_da_rede(erro)))
+    pronto = "computador pronto (conexão com a Root não testada)" if sem_rede else "computador pronto e kit conectado à Root"
+    return (not faltas), "; ".join(faltas) or pronto
+
+
+def motivo_da_rede(erro):
+    e = (erro or "").lower()
+    if "permission denied" in e or "could not read from remote" in e or "not found" in e:
+        return "a chave do kit não foi aceita ou o repositório não existe; peça ajuda à Root"
+    if "timed out" in e or "could not resolve" in e or "network" in e:
+        return "sem conexão com a internet agora; tente de novo mais tarde"
+    linhas = [l for l in (erro or "").splitlines() if l.strip()]
+    return linhas[0] if linhas else "sem resposta"
 
 
 def cabecalho(texto):
@@ -129,6 +123,28 @@ def checar_primeira_frente():
     return (not faltas), "; ".join(faltas) or "{} entrega(s) e avaliação registrada".format(len(entregas))
 
 
+def checar_primeira_skill():
+    arq = KIT / "catalogo.json"
+    if not arq.exists():
+        return False, "o kit ainda não tem catalogo.json"
+    try:
+        skills = json.loads(arq.read_text(encoding="utf-8")).get("skills", [])
+    except ValueError:
+        return False, "o catalogo.json está ilegível"
+    suas = [s for s in skills if s.get("origem") == "cliente"]
+    prontas = []
+    for s in suas:
+        testes = KIT / ".claude" / "skills" / s["nome"] / "TESTES.md"
+        if s.get("estado") == "ativa" and testes.exists() and "aprovado" in testes.read_text(encoding="utf-8", errors="ignore").lower():
+            prontas.append(s["nome"])
+    if prontas:
+        return True, "{} ferramenta(s) sua(s) em uso: {}".format(len(prontas), ", ".join(prontas))
+    em_teste = [s["nome"] for s in suas if s.get("estado") == "homologacao"]
+    if em_teste:
+        return False, "em teste na oficina: {}".format(", ".join(em_teste))
+    return False, "nenhuma ferramenta criada ainda"
+
+
 def ultimo_envio():
     codigo, upstream, _ = rodar(["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
     if codigo != 0 or not upstream:
@@ -168,6 +184,7 @@ def main(argv):
         "vault": checar_vault,
         "contexto": checar_contexto,
         "primeira-frente": checar_primeira_frente,
+        "primeira-skill": checar_primeira_skill,
     }
     resultado, envio = [], None
     for passo in passos:
@@ -197,6 +214,7 @@ def main(argv):
         "passo_atual": atual,
         "concluidos_hoje": sum(1 for p in resultado if p["feito_em"] and p["feito_em"][:10] == hoje() and p["id"] != "fechar-o-dia"),
         "ultimo_envio": envio,
+        "acesso": acesso_resumido(),
         "pedidos_de_ajuda_abertos": contar_ajuda_aberta(),
         "passos": resultado,
     }
@@ -215,6 +233,18 @@ def main(argv):
         print("{} {}. {}: {}".format(marca, i, p["titulo"], p["detalhe"]))
     print("\nPasso atual: {}".format(next((p["titulo"] for p in resultado if p["id"] == atual), "todos concluídos")))
     return 0
+
+
+def acesso_resumido():
+    """Como o kit fala com o GitHub, sem rede: lido do git local. Vai para a Root no progresso."""
+    codigo, url, _ = rodar(["git", "remote", "get-url", "origin"])
+    url = url if codigo == 0 else ""
+    codigo, email, _ = rodar(["git", "config", "user.email"])
+    modo = "colaborador" if url.startswith("https://") else ("chave" if url.startswith("git@") else None)
+    login = None
+    if modo == "colaborador" and email.endswith("@users.noreply.github.com"):
+        login = email.split("@")[0].split("+")[-1]
+    return {"modo": modo, "login": login}
 
 
 def contar_ajuda_aberta():
