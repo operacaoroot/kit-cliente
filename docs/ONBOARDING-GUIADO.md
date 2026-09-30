@@ -1,13 +1,15 @@
 # Onboarding guiado: macOS
 
-Branch baseada no PR #1, sem alterar a branch do Rodrigo. O instalador macOS abre uma página
+O instalador macOS abre uma página
 local para confirmar dados profissionais, revisar fontes públicas, preparar o computador e
 iniciar uma sessão local de Claude Code na interface do aplicativo. O chat comum não carrega
 as pastas do kit automaticamente.
 
 ## Fluxo entregue
 
-1. Instalar as ferramentas Apple, se necessário, e reabrir o instalador. Não há mensagem de
+1. Baixar o ZIP em Assets da Release no repositório privado do cliente, extrair e abrir
+   `instalar/instalar.command`. Git não é pré-requisito para obter o kit.
+   Instalar as ferramentas Apple, se necessário, e reabrir o instalador. Não há mensagem de
    sucesso nesse ponto. Após o pré-requisito, a página abre no navegador.
 2. Confirmar nome, cargo/atividade, empresa, setor, responsabilidades, público, primeira tarefa,
    preferência de explicação, sites e redes sociais pessoais e da empresa.
@@ -110,3 +112,15 @@ Referência: documento-mestre **ROOT — Fundamentos da marca e guia de express�
 Os arquivos tipográficos vêm do acervo de lançamento e do site ROOT v2. O tema mono remove
 as cores do logo por apresentação CSS. No tema papel o logo original é preservado em uma
 superfície escura, evitando uma adaptação não aprovada de seus canais.
+
+## Resultado da rodada ROOT Studio (30/09/2026)
+
+A VM recebeu o ZIP, executou o instalador após a liberação do macOS, instalou as ferramentas
+Apple e abriu automaticamente a página ROOT na segunda execução. O cadastro fictício e a carga
+inicial foram salvos. A conferência detectou os programas e o ambiente Python; Claude e Obsidian
+abriram. No Obsidian, o cofre mostrou a página inicial de Marina Duarte e as notas do kit.
+
+A conta disponível estava no plano gratuito: a área Code exibiu “Obter Claude Code” e não liberou
+uma sessão. Não foram validadas a execução das skills, a nota de teste nem a sincronização da carga
+nova. A coleta pública também não foi exercitada nesta rodada da VM. A instalação foi observada;
+a validação completa de uso continua pendente de uma conta com acesso ao Code.

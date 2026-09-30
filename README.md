@@ -11,7 +11,7 @@ Do começo ao fim: **ambiente** (instalador lê `modelo/ambiente/apps.json`) →
 **contexto** → **primeira frente** → **primeira ferramenta do cliente** (oficina, teste, uso) →
 **fechar o dia** (progresso e catálogo para a Root).
 
-Este repositório é interno. O que vai para o cliente é gerado a partir dele.
+Este repositório contém a fábrica. O que vai para o cliente é gerado a partir dele.
 
 ## Em 4 comandos
 
@@ -30,6 +30,24 @@ python3 montador/acesso.py estado <slug>                               # quem te
 python3 montador/acesso.py convidar <slug> --usuario <login>           # convidar ou trocar o usuário
 python3 montador/acesso.py encerrar <slug> --motivo "..." --sim        # fim do contrato
 ```
+
+## Download do kit pelo GitHub
+
+Publique o ZIP gerado como asset de uma Release no **repositório privado do próprio cliente**.
+Ele contém a chave exclusiva do kit e não pode ser anexado a uma Release desta fábrica pública.
+O cliente entra no GitHub, abre Releases, baixa o ZIP em Assets, extrai a pasta e abre
+`instalar/instalar.command` no Mac. Git será instalado pelo pacote; nenhum clone prévio é necessário.
+Os downloads automáticos “Source code” do GitHub não incluem a chave e não substituem esse ZIP.
+
+Exemplo para a Root, depois de montar e conferir o kit:
+
+```bash
+gh repo view operacaoroot/kit-<slug> --json visibility  # conferir PRIVATE antes de enviar
+gh release create entrega-inicial saida/<slug>.zip --repo operacaoroot/kit-<slug> --title "Kit inicial" --notes "Baixe o ZIP em Assets, extraia e siga COMECE-AQUI.md."
+```
+
+A interface nova exige conta com acesso ao Claude Code. Na homologação, o plano gratuito
+permitiu abrir o chat, mas bloqueou a execução das skills.
 
 ## Onde está cada coisa
 
