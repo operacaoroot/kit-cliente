@@ -40,6 +40,7 @@ python3 montador/acesso.py encerrar <slug> --motivo "..." --sim        # fim do 
 | `docs/PERFIS.md` | os três perfis e como a pontuação funciona |
 | `docs/CHAVE.md` | o acesso ao kit: cliente como colaborador, a chave do kit, encerramento |
 | `docs/ACOMPANHAMENTO.md` | o acompanhador, a resposta a pedidos de ajuda e o agendamento |
+| `docs/ONBOARDING-GUIADO.md` | página local de onboarding no macOS, coleta de fontes públicas e roteiro de homologação |
 | `docs/AMBIENTE.md` | o que o kit instala (Git, GitHub CLI, Python, Node, Java, Claude Code, Obsidian...), por perfil, em Mac e Windows, os links oficiais e como testar |
 | `docs/DESENVOLVIMENTO.md` | a oficina: como o cliente cria, testa e põe em uso as próprias ferramentas |
 | `testes/testar_base.py` | testes da base (catálogo de apps, instaladores, montagem, oficina) |

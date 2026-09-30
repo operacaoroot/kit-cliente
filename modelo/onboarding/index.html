@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seu começo com a Root</title>
+<link rel="stylesheet" href="/style.css">
+<script defer src="/app.js">
+</script>
+</head>
+<body>
+<aside>
+<div class="brand">root<span> / seu kit</span>
+</div>
+<p>Do primeiro acesso<br>ao seu primeiro trabalho.</p>
+<nav aria-label="Etapas">
+<button data-step="0">01 · Sobre você</button>
+<button data-step="1">02 · Sua presença pública</button>
+<button data-step="2">03 · Preparar o computador</button>
+<button data-step="3">04 · Conectar e experimentar</button>
+<button data-step="4">05 · Começar a usar</button>
+</nav>
+<small>Os dados são salvos neste computador. Você pode fechar e continuar depois pelo atalho.</small>
+</aside>
+<main>
+<header>
+<span>CONFIGURAÇÃO INICIAL</span>
+<span id="counter">1 de 5</span>
+</header>
+<div id="notice" role="status" aria-live="polite">Carregando seu kit…</div>
+<section data-panel="0">
+<h1>Vamos começar por você.</h1>
+<p>Confira o que a Root já preencheu e conte um pouco sobre seu trabalho. Isso vai formar a primeira versão da sua base.</p>
+<form id="profile">
+<div class="grid">
+<label>Como você quer ser chamado?<input name="nome" required maxlength="160" autocomplete="name">
+</label>
+<label>Cargo ou atividade profissional<input name="cargo" required maxlength="200" placeholder="Ex.: consultora comercial">
+</label>
+<label>Empresa ou atuação independente<input name="empresa" required maxlength="200">
+</label>
+<label>Setor de atuação<input name="setor" maxlength="200">
+</label>
+</div>
+<label>Quais são suas principais responsabilidades?<textarea name="responsabilidades" maxlength="3000" rows="3">
+</textarea>
+</label>
+<label>Com quem você trabalha ou quem atende?<textarea name="publico" maxlength="3000" rows="2" placeholder="Descreva os públicos, sem dados pessoais de terceiros.">
+</textarea>
+</label>
+<label>Qual tarefa você gostaria de resolver primeiro?<textarea name="objetivo" required maxlength="3000" rows="3">
+</textarea>
+</label>
+<label>Como você prefere receber explicações?<textarea name="tom" maxlength="3000" rows="2" placeholder="Ex.: passo a passo, com exemplos e sem termos técnicos.">
+</textarea>
+</label>
+<h2>Onde podemos conhecer seu trabalho</h2>
+<p>Opcional. Use links completos de páginas públicas. Não informe senhas nem links privados.</p>
+<div class="grid">
+<label>Seu site<input name="site_pessoal" type="url" placeholder="https://">
+</label>
+<label>Site da empresa<input name="site_empresa" type="url" placeholder="https://">
+</label>
+<label>Suas redes sociais<textarea name="redes_pessoais" rows="3" placeholder="Um endereço por linha (até 5)">
+</textarea>
+</label>
+<label>Redes sociais da empresa<textarea name="redes_empresa" rows="3" placeholder="Um endereço por linha (até 5)">
+</textarea>
+</label>
+</div>
+<button class="primary" type="submit">Salvar meus dados</button>
+</form>
+<button data-next="1" class="text">Continuar para as fontes →</button>
+</section>
+<section data-panel="1" hidden>
+<h1>Sua base começa com fontes.</h1>
+<p>Vamos ler somente os endereços que você informou. Você escolhe e corrige o que entra no Obsidian. Sites que exigem login podem não permitir a coleta.</p>
+<div class="box">
+<label class="check">
+<input id="consent" type="checkbox">Autorizo consultar as páginas públicas que informei.</label>
+<button id="collect">Consultar páginas</button>
+<p>Você pode seguir sem coletar. Os dados profissionais que preencheu também formam sua base.</p>
+</div>
+<h2>Seus dados para a primeira carga</h2>
+<div id="profile-review" class="box">
+</div>
+<div id="sources">
+</div>
+<label class="check">
+<input id="review-consent" type="checkbox">Conferi meus dados e os trechos selecionados. Autorizo incluí-los no vault; eles poderão ser sincronizados com a Root ao fechar o dia.</label>
+<button id="review" class="primary">Confirmar carga inicial</button>
+<button data-next="2" class="text">Continuar para a instalação →</button>
+</section>
+<section data-panel="2" hidden>
+<h1>Vamos preparar o computador.</h1>
+<p>Instalaremos os programas do kit. Se algum pedir sua confirmação, a orientação aparecerá na própria janela. Você pode repetir a instalação sem apagar seu trabalho.</p>
+<label class="check">
+<input id="install-consent" type="checkbox">Quero instalar os programas previstos no kit.</label>
+<div class="actions">
+<button id="install" class="primary">Instalar programas</button>
+<button class="refresh">Conferir ambiente</button>
+</div>
+<div id="apps">
+</div>
+<div class="box">
+<h2>Aplicativo Claude</h2>
+<p>Se ainda não estiver instalado, baixe pelo site oficial, abra o arquivo e mova o Claude para Aplicativos. Depois volte aqui e clique em Conferir ambiente.</p>
+<a href="https://claude.ai/download" target="_blank" rel="noreferrer">Baixar o Claude</a>
+</div>
+<button data-next="3" class="text">Continuar para o primeiro uso →</button>
+</section>
+<section data-panel="3" hidden>
+<h1>Conheça o seu Claude.</h1>
+<ol>
+<li>Abra o Claude abaixo e entre na sua própria conta. A conta precisa permitir o uso do Claude Code.</li>
+<li>Confirme a pasta apresentada. Você estará na área <strong>Code</strong>, com acesso ao seu kit.</li>
+<li>Envie a mensagem já preenchida. O Claude vai ler seu perfil e criar uma nota de teste.</li>
+<li>Volte aqui e confira o resultado. Abra também a nota no Obsidian.</li>
+</ol>
+<p>O modelo processa o conteúdo necessário pela sua conta Claude. Não coloque senhas ou documentos sensíveis no teste.</p>
+<div class="actions">
+<a id="probe" class="button primary">Abrir Claude para testar</a>
+<a id="vault" class="button">Abrir a nota de teste no Obsidian</a>
+<button class="refresh">Conferir resultado</button>
+</div>
+<div class="box">
+<h2>Primeira abertura do Obsidian</h2>
+<p>Uma vez só: abra o Obsidian, clique em <strong>Abrir pasta como cofre</strong> e selecione a pasta abaixo. No seletor de pastas do Mac, use ⌘⇧G para colar o caminho e pressione Enter. Depois clique em Abrir.</p>
+<code id="vault-folder">
+</code>
+<p>
+<a href="obsidian://choose-vault" class="button">Abrir o seletor do Obsidian</a>
+</p>
+<p>Depois disso, o botão “Abrir a nota de teste” leva à nota criada pelo Claude.</p>
+</div>
+<div class="box">
+<h2>Se a pasta do Claude não abrir automaticamente</h2>
+<p>No Claude, selecione Code, escolha uma sessão local e abra esta pasta:</p>
+<code id="folder">
+</code>
+<p>Depois escreva: “Vamos validar meu kit. Leia CLAUDE.md e execute a skill validar-onboarding. Não envie nada ao GitHub ainda.”</p>
+</div>
+<div class="box">
+<h2>Conexão e sincronização com a Root</h2>
+<p id="repo">Ainda não conferida.</p>
+<p>Se o repositório não conectar, peça ao Claude: “liga o kit ao GitHub”. Ele orientará a confirmação da conta. Se a Root ainda não preparou o acesso, a etapa continuará pendente.</p>
+<p>Após conferir a nota no Obsidian, peça ao Claude para fechar o dia. Revise os arquivos antes do envio e depois clique em Conferir resultado.</p>
+<a id="sync" class="button">Revisar envio com o Claude</a>
+</div>
+<button data-next="4" class="text">Ver o resultado da configuração →</button>
+</section>
+<section data-panel="4" hidden>
+<h1 id="result-title">Vamos conferir o que falta.</h1>
+<div id="results">
+</div>
+<button class="refresh">Conferir novamente</button>
+<a id="daily" class="button primary" hidden>Abrir meu Claude</a>
+<div class="box">
+<h2>Depois da configuração</h2>
+<p>Use o atalho “Claude do kit” para trabalhar com sua base. Peça uma tarefa, consulte suas notas ou diga “qual o próximo passo?”.</p>
+<p>Importar conversas antigas e criar ferramentas próprias são próximos passos. Ao “fechar o dia”, confira o que será enviado à Root. Salvar no computador e sincronizar com o repositório são ações diferentes.</p>
+</div>
+</section>
+<footer>Root · Configuração do seu ambiente de trabalho</footer>
+</main>
+</body>
+</html>
