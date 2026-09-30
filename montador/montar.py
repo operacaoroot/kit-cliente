@@ -10,7 +10,8 @@ Opções:
     --permitir-semente  aceita receita em estado de semente
     --refazer           apaga saida/<slug>/ antes de montar (só dentro de saida/)
     --github            cria o repositório privado operacaoroot/kit-<slug>, cadastra a chave do kit
-                        como deploy key com escrita e envia o primeiro commit usando a própria chave
+                        como deploy key com escrita, envia o primeiro commit usando a própria chave e
+                        convida o cliente como colaborador (cliente.github no manifesto)
     --zip               gera saida/<slug>.zip, que é o que vai para o cliente (leva a chave)
 
 O montador é determinístico: o mesmo manifesto gera o mesmo kit (a não ser pelo
@@ -132,6 +133,10 @@ def conferir_manifesto(m, perfis, rascunho, permitir_semente):
             faltas.append("cliente.%s" % campo)
     if c.get("slug") and not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", c["slug"]):
         faltas.append("cliente.slug só com minúsculas, números e hífen")
+    if c.get("github") == "usuario-do-github":
+        faltas.append("cliente.github ainda está com o texto do modelo; use o usuário real ou null")
+    if c.get("github") and not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}", c["github"]):
+        faltas.append("cliente.github deve ser o nome de usuário do GitHub (sem @ e sem e-mail)")
     if c.get("sistema") not in ("mac", "windows", "linux"):
         faltas.append("cliente.sistema deve ser mac, windows ou linux")
     p = m.get("perfil", {})
@@ -369,6 +374,34 @@ def publicar_no_github(destino, slug, nome):
     return "{}/{}".format(DONO_GITHUB, repo)
 
 
+def gerar_links(sistema, perfil):
+    """O LINKS.md do kit: cada app com o link oficial e o que o perfil pede, e as contas e ajudas."""
+    dados = ler_json(MODELO / "ambiente" / "apps.json")
+    rotulo = {"obrigatorio": "obrigatório", "recomendado": "recomendado", "opcional": "opcional"}
+    linhas = ["# Links do kit", "",
+              "Todos os endereços são oficiais. O instalador do kit já baixa e instala o que é",
+              "obrigatório; use esta página para reinstalar, conferir a versão ou ler a ajuda.", "",
+              "## Programas", "", "| Programa | Para quê | No seu kit | Download | Ajuda |", "|---|---|---|---|---|"]
+    for app in dados["apps"]:
+        l = app.get("links", {})
+        down = app.get(sistema, {}).get("instalar", {}).get("url") if app.get(sistema, {}).get("instalar", {}).get("tipo") == "pagina" else None
+        down = l.get("download") or down or l.get("site", "")
+        linhas.append("| [{}]({}) | {} | {} | [baixar]({}) | {} |".format(
+            app["nome"], l.get("site", down), app["para_que"], rotulo[app["perfis"][perfil]], down,
+            "[ajuda]({})".format(l["ajuda"]) if l.get("ajuda") else ""))
+    grupos = []
+    for s in dados.get("servicos", []):
+        if s["grupo"] not in grupos:
+            grupos.append(s["grupo"])
+    for g in grupos:
+        linhas += ["", "## " + g, ""]
+        for s in dados["servicos"]:
+            if s["grupo"] == g:
+                linhas.append("- [{}]({}): {}".format(s["nome"], s["url"], s["para_que"]))
+    linhas += ["", "Catálogo de apps versão {}.".format(dados["versao"])]
+    return "\n".join(linhas) + "\n"
+
+
 # ---------------------------------------------------------------- montagem
 
 def montar(caminho_manifesto, opcoes):
@@ -413,6 +446,7 @@ def montar(caminho_manifesto, opcoes):
     comece_tmpl = (MODELO / "vault" / "00 - Comece aqui.md.tmpl").read_text(encoding="utf-8")
     (destino / "vault" / "00 - Comece aqui.md").write_text(render(comece_tmpl, ctx), encoding="utf-8")
     (destino / "COMECE-AQUI.md").write_text(comece_aqui(ctx, sistema, m["perfil"]["escolhido"]), encoding="utf-8")
+    (destino / "LINKS.md").write_text(gerar_links(sistema, m["perfil"]["escolhido"]), encoding="utf-8")
 
     for skill_md in (destino / ".claude").rglob("*.md"):
         skill_md.write_text(skill_md.read_text(encoding="utf-8").rstrip() + "\n\n<!-- {} -->\n".format(kit_id), encoding="utf-8")
@@ -433,6 +467,7 @@ def montar(caminho_manifesto, opcoes):
     cliente.update({
         "modelo": ctx["versao_modelo"], "perfil": m["perfil"]["escolhido"], "frente": m["frente"],
         "repo": "{}/kit-{}".format(DONO_GITHUB, slug), "rascunho": rascunho,
+        "github": m["cliente"].get("github") or None,
         "selo": assinar(ident),
         "aviso": "Kit pessoal montado pela Root para {}. A chave em .root/chave é deste kit e só dele.".format(m["cliente"]["nome"]),
     })
@@ -451,9 +486,13 @@ def montar(caminho_manifesto, opcoes):
     rodar(["git", "commit", "-q", "-m", "Kit de {} montado pela Root ({})".format(m["cliente"]["nome"], kit_id)], destino)
     rodar(["git", "remote", "add", "origin", "git@github.com:{}/kit-{}.git".format(DONO_GITHUB, slug)], destino)
 
-    repo = None
+    repo, convite = None, None
     if "--github" in opcoes:
         repo = publicar_no_github(destino, slug, m["cliente"]["nome"])
+        if m["cliente"].get("github"):
+            from acesso import convidar_usuario
+            situacao, detalhe = convidar_usuario(repo, m["cliente"]["github"])
+            convite = {"usuario": m["cliente"]["github"], "situacao": situacao, "detalhe": detalhe, "em": emitido}
     zip_path = None
     if "--zip" in opcoes:
         zip_path = shutil.make_archive(str(SAIDA / slug), "zip", root_dir=str(SAIDA), base_dir=slug)
@@ -462,6 +501,8 @@ def montar(caminho_manifesto, opcoes):
     m["entrega"].update({"kit_id": kit_id, "montado_em": emitido, "local": str(destino),
                          "repo": "{}/kit-{}".format(DONO_GITHUB, slug), "publicado": bool(repo),
                          "zip": zip_path, "rascunho": rascunho})
+    if convite:
+        m["entrega"]["colaborador"] = convite
     Path(caminho_manifesto).write_text(json.dumps(m, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     print("Kit montado: {}".format(destino))
@@ -471,6 +512,10 @@ def montar(caminho_manifesto, opcoes):
         print("  RASCUNHO: " + "; ".join(portoes))
     if repo:
         print("  publicado em github.com/{} com a chave do kit".format(repo))
+    if convite:
+        print("  colaborador: " + convite["detalhe"])
+    elif repo:
+        print("  sem cliente.github: o kit fala pela chave; convide depois com montador/acesso.py convidar")
     if zip_path:
         print("  zip para o cliente: {} (leva a chave; mandar por canal privado)".format(zip_path))
     return destino

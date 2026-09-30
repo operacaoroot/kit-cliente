@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ambiente  # noqa: E402  (mesma pasta; lê ambiente/apps.json)
+import conectar  # noqa: E402  (mesma pasta; como o kit fala com o GitHub)
 
 KIT = Path(__file__).resolve().parent.parent
 ROOT_DIR = KIT / ".root"
@@ -50,8 +51,11 @@ def checar_instalar(sem_rede):
         faltas.append("{} não encontrado".format(nomes.get(app_id, app_id)))
     if not conf["venv"]["pronto"]:
         faltas.append(conf["venv"]["detalhe"])
-    if not (ROOT_DIR / "chave").exists():
-        faltas.append("chave do kit ausente em .root/chave")
+    if sem_rede:
+        if not (ROOT_DIR / "chave").exists() and acesso_resumido()["modo"] != "colaborador":
+            faltas.append("sem conta do GitHub ligada e sem a chave do kit em .root/chave")
+    elif not conectar.estado()["modo"]:
+        faltas.append("o kit ainda não está ligado ao GitHub (peça ao Claude: \"liga o kit ao GitHub\")")
     if not (KIT / ".git").exists():
         faltas.append("a pasta do kit não é um repositório git")
     if not faltas and not sem_rede:
@@ -210,6 +214,7 @@ def main(argv):
         "passo_atual": atual,
         "concluidos_hoje": sum(1 for p in resultado if p["feito_em"] and p["feito_em"][:10] == hoje() and p["id"] != "fechar-o-dia"),
         "ultimo_envio": envio,
+        "acesso": acesso_resumido(),
         "pedidos_de_ajuda_abertos": contar_ajuda_aberta(),
         "passos": resultado,
     }
@@ -228,6 +233,18 @@ def main(argv):
         print("{} {}. {}: {}".format(marca, i, p["titulo"], p["detalhe"]))
     print("\nPasso atual: {}".format(next((p["titulo"] for p in resultado if p["id"] == atual), "todos concluídos")))
     return 0
+
+
+def acesso_resumido():
+    """Como o kit fala com o GitHub, sem rede: lido do git local. Vai para a Root no progresso."""
+    codigo, url, _ = rodar(["git", "remote", "get-url", "origin"])
+    url = url if codigo == 0 else ""
+    codigo, email, _ = rodar(["git", "config", "user.email"])
+    modo = "colaborador" if url.startswith("https://") else ("chave" if url.startswith("git@") else None)
+    login = None
+    if modo == "colaborador" and email.endswith("@users.noreply.github.com"):
+        login = email.split("@")[0].split("+")[-1]
+    return {"modo": modo, "login": login}
 
 
 def contar_ajuda_aberta():

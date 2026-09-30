@@ -1,6 +1,6 @@
 #!/bin/bash
 # Instalador do kit (Mac e Linux). Prepara o computador a partir de ambiente/apps.json,
-# cria o Python do kit, liga a chave do kit ao git e roda a conferência.
+# cria o Python do kit, liga o kit ao GitHub (conta da pessoa ou chave do kit) e roda a conferência.
 # Pode rodar quantas vezes quiser: o que já está instalado é pulado.
 # Opcionais do catálogo: bash instalar/instalar.sh --com vscode,docker
 set -u
@@ -25,17 +25,13 @@ python3 ferramentas/ambiente.py --instalar "$@"
 export PATH="$HOME/.local/bin:$PATH"
 python3 ferramentas/ambiente.py --venv
 
-passo "Ligando a chave do kit"
-if [ -f "$KIT/.root/chave" ]; then
-  chmod 600 "$KIT/.root/chave"
-  git config core.sshCommand "ssh -i \"$KIT/.root/chave\" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-  NOME="$(python3 -c "import json;print(json.load(open('.root/cliente.json'))['nome'])" 2>/dev/null)"
-  SLUG="$(python3 -c "import json;print(json.load(open('.root/cliente.json'))['slug'])" 2>/dev/null)"
-  [ -n "$NOME" ] && git config user.name "$NOME"
-  [ -n "$SLUG" ] && git config user.email "kit-$SLUG@kit.operacaoroot.com"
-  echo "chave ligada"
+passo "Ligando o kit ao GitHub"
+# Com usuário do GitHub no kit: entra com a conta da pessoa (colaborador). Sem conta, ou se o
+# login não terminar: liga pela chave do kit, que é só deste repositório.
+if python3 -c "import json,sys;sys.exit(0 if json.load(open('.root/cliente.json')).get('github') else 1)" 2>/dev/null; then
+  python3 ferramentas/conectar.py --conectar || { falha "seguindo pela chave do kit; dá para entrar no GitHub depois com: python3 ferramentas/conectar.py --conectar"; python3 ferramentas/conectar.py --usar-chave; }
 else
-  falha "A chave do kit (.root/chave) não veio junto. Fale com a Root."
+  python3 ferramentas/conectar.py --usar-chave
 fi
 
 passo "Criando o atalho do Claude do kit"

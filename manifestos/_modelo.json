@@ -6,6 +6,8 @@
     "primeiro_nome": "Nome",
     "empresa": "Empresa",
     "cargo": "Cargo",
+    "github": "usuario-do-github",
+    "email": "email@do-cliente.com",
     "sistema": "mac"
   },
   "kickoff": {
@@ -15,7 +17,11 @@
     "desvios_do_roteiro": []
   },
   "reunioes": [
-    { "data": "AAAA-MM-DD", "tipo": "comercial | kickoff | alinhamento", "fonte": "granola:<id>" }
+    {
+      "data": "AAAA-MM-DD",
+      "tipo": "comercial | kickoff | alinhamento",
+      "fonte": "granola:<id>"
+    }
   ],
   "conferencia_das_reunioes": {
     "feita_por": "",
@@ -24,7 +30,11 @@
   },
   "perfil": {
     "sinais": [
-      { "id": "cita-ferramenta-de-ia", "minuto": "00:00:00", "trecho": "frase exata da ata" }
+      {
+        "id": "cita-ferramenta-de-ia",
+        "minuto": "00:00:00",
+        "trecho": "frase exata da ata"
+      }
     ],
     "proposto": {},
     "escolhido": "",
@@ -41,7 +51,10 @@
     "conferido_em": ""
   },
   "dores": [
-    { "texto": "a dor nas palavras do cliente", "minuto": "00:00:00" }
+    {
+      "texto": "a dor nas palavras do cliente",
+      "minuto": "00:00:00"
+    }
   ],
   "fontes": [
     {
@@ -52,7 +65,9 @@
       "minuto": "00:00:00"
     }
   ],
-  "frente": ["dossie-de-conta"],
+  "frente": [
+    "dossie-de-conta"
+  ],
   "notas_iniciais": [
     {
       "pasta": "10-Identidade",
@@ -66,7 +81,11 @@
     "canal_de_ajuda": "WhatsApp com a Root",
     "responsavel_root": "sócio responsável",
     "prazo_resposta_horas": 4,
-    "horarios_acompanhamento": ["08:30", "13:00", "18:00"]
+    "horarios_acompanhamento": [
+      "08:30",
+      "13:00",
+      "18:00"
+    ]
   },
   "claude": {
     "plano": "assinatura individual no nome do cliente",

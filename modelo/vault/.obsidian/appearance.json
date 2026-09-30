@@ -1,3 +1,6 @@
 {
-  "cssTheme": ""
+  "baseTheme": "dark",
+  "accentColor": "#9BDB1F",
+  "cssTheme": "",
+  "enabledCssSnippets": ["root"]
 }

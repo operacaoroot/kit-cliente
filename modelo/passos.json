@@ -1,5 +1,5 @@
 {
-  "versao": "1.1.0",
+  "versao": "1.2.0",
   "passos": [
     {
       "id": "instalar",
@@ -10,16 +10,16 @@
         "chat"
       ],
       "texto": {
-        "guiado": "Este passo deixa o seu computador pronto. Você só precisa dar dois cliques no instalador e esperar. Ele confere o que já existe e instala o que falta: o git, o Python, o Claude Code e o Obsidian, e também o que combina com o seu jeito de trabalhar. Se o computador pedir permissão, clique em Sim ou em Instalar (na primeira vez a Root faz isso com você). No fim aparece uma lista: ok é o que está pronto, falta é o que ainda precisa. Se algo ficar faltando, peça ao Claude: \"confere o meu computador\".",
-        "chat": "Dê dois cliques no instalador. Ele confere o computador e instala o que faltar (git, Python, Claude Code, Obsidian e os recomendados do seu perfil), liga a chave do kit e roda a conferência. Tudo ok, passo concluído. Se algo faltar, peça ao Claude \"confere o meu computador\" ou mande o print.",
-        "construtor": "Rode o instalador. Ele lê `ambiente/apps.json`, instala o obrigatório e o recomendado do perfil (git, uv, Python 3.12, Claude Code, Obsidian, VS Code), cria o `.venv` com as bibliotecas, liga a chave SSH do kit e roda `ferramentas/verificar.py`. Opcionais: `--com node,docker,libreoffice`."
+        "guiado": "Este passo deixa o seu computador pronto e liga o kit à sua conta do GitHub. Dê dois cliques no instalador e espere: ele instala o Git, o Python, o Node.js, o Java, o Claude Code e o Obsidian se faltarem. Perto do fim aparece um código de 8 letras: tecle Enter, o navegador abre, cole o código e clique em Authorize. Se o Mac disser que não pode abrir o arquivo, vá em Ajustes do Sistema, Privacidade e Segurança, e clique em \"Abrir mesmo assim\" (na primeira vez a Root faz isso com você). No fim aparece uma lista; se algo ficar vermelho, tire um print e mande para a Root.",
+        "chat": "Dê dois cliques no instalador. Ele instala o que faltar (Git, GitHub CLI, Python, Node.js, Java, Claude Code, Obsidian e os recomendados do seu perfil), cria o Python do kit e liga o kit à sua conta do GitHub: aparece um código, você confirma no navegador e o convite do kit é aceito sozinho. Tudo verde, passo concluído. Os links oficiais estão em LINKS.md.",
+        "construtor": "Rode o instalador. `ferramentas/ambiente.py --instalar` lê `ambiente/apps.json` (Git, gh, uv, Python 3.12, Node LTS, Java 21, Claude Code, Obsidian, mais os recomendados), cria o `.venv` e `ferramentas/conectar.py --conectar` faz `gh auth login --web`, aceita o convite e troca o remoto para HTTPS. Sem conta: `--usar-chave`. Links em LINKS.md."
       },
       "comando": {
         "mac": "clique duas vezes em instalar/instalar.command",
         "windows": "clique duas vezes em instalar\\instalar.cmd",
         "linux": "bash instalar/instalar.sh"
       },
-      "prova": "a conferência mostra o computador pronto e o kit conectado à Root"
+      "prova": "a conferência mostra o computador pronto e o kit ligado ao GitHub"
     },
     {
       "id": "perfil",

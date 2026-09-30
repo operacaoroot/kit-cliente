@@ -4,6 +4,8 @@
       "Bash(python3 ferramentas/verificar.py:*)",
       "Bash(python3 ferramentas/ambiente.py:*)",
       "Bash(python3 ferramentas/skills.py:*)",
+      "Bash(.venv/Scripts/python ferramentas/conectar.py:*)",
+      "Bash(python3 ferramentas/conectar.py:*)",
       "Bash(.venv/Scripts/python ferramentas/verificar.py:*)",
       "Bash(.venv/Scripts/python ferramentas/ambiente.py:*)",
       "Bash(.venv/Scripts/python ferramentas/skills.py:*)",
@@ -14,7 +16,10 @@
       "Bash(git pull --rebase --autostash)",
       "Bash(git push)",
       "Bash(git log:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh api user:*)",
+      "Bash(git remote get-url:*)"
     ],
     "deny": [
       "Read(./.root/chave)",

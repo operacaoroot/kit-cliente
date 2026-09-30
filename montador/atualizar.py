@@ -25,12 +25,15 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "montador"))
-from montar import MODELO, RECEITAS, Recusa, montar_catalogo, para_windows, rodar, skills_de_base, token_github  # noqa: E402
+from montar import MODELO, RECEITAS, Recusa, gerar_links, montar_catalogo, para_windows, rodar, skills_de_base, token_github  # noqa: E402
 
 ARQUIVOS = [
     ("ferramentas/verificar.py", "ferramentas/verificar.py"),
     ("ferramentas/ambiente.py", "ferramentas/ambiente.py"),
     ("ferramentas/skills.py", "ferramentas/skills.py"),
+    ("ferramentas/conectar.py", "ferramentas/conectar.py"),
+    ("marca/root-logo.png", "marca/root-logo.png"),
+    ("vault/.obsidian/snippets/root.css", "vault/.obsidian/snippets/root.css"),
     ("ambiente/apps.json", "ambiente/apps.json"),
     ("ambiente/requirements.txt", "ambiente/requirements.txt"),
     ("oficina/LEIA-ME.md", "oficina/LEIA-ME.md"),
@@ -64,6 +67,7 @@ def atualizar(slug, motivo):
             if alvo.exists():
                 shutil.rmtree(alvo)
             shutil.copytree(MODELO / ".claude" / "skills" / s, alvo)
+        (kit / "LINKS.md").write_text(gerar_links(m["cliente"]["sistema"], m["perfil"]["escolhido"]), encoding="utf-8")
         versao = json.loads((MODELO / "passos.json").read_text(encoding="utf-8"))["versao"]
         arq_cat = kit / "catalogo.json"
         existente = json.loads(arq_cat.read_text(encoding="utf-8")) if arq_cat.exists() else None

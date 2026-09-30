@@ -7,9 +7,9 @@
 | 1 | Conferência das reuniões | sócio (depois o leitor de ata do OS) | atas do Granola | manifesto com dores, fontes e notas, tudo com minuto | `conferencia_das_reunioes.feita_por` |
 | 2 | Kickoff | sócio em rodízio | rascunho do kit | sinais de perfil, fontes prioritárias, frente | roteiro mínimo cumprido |
 | 3 | Pontuação do perfil | `perfis/pontuar.py` | sinais com minuto | proposta com porcentagem | sócio assina `perfil.conferido_por` |
-| 4 | Montagem | `montador/montar.py` | manifesto | kit, repositório privado, zip | recusa sem os portões acima |
+| 4 | Montagem | `montador/montar.py` | manifesto | kit, repositório privado, convite ao cliente, zip | recusa sem os portões acima |
 | 5 | Execução | cliente, com o Claude do kit | kit | commits de progresso | prova de cada passo em `verificar.py` |
-| 5a | Ambiente | instalador + skill `preparar-ambiente` | `ambiente/apps.json` | computador pronto, `.venv` | obrigatórios instalados (`ambiente.py --conferir`) |
+| 5a | Ambiente | instalador + skill `preparar-ambiente` | `ambiente/apps.json` | computador pronto, `.venv`, kit ligado ao GitHub | obrigatórios instalados (`ambiente.py --conferir`) e `conectar.py --conferir` |
 | 5b | Desenvolvimento do cliente | cliente, com a skill `criar-skill` | tarefa que se repete | ferramenta em `.claude/skills/` e no `catalogo.json` | teste aprovado + `skills.py conferir` |
 | 6 | Extração de contexto | skill `extrair-contexto` na máquina do cliente | exportações do ChatGPT e do Claude | `vault/_contexto/` com fonte | auditoria pelo agente `auditor-de-contexto` |
 | 7 | Acompanhamento | `acompanhador/acompanhar.py` 3x ao dia | progresso no GitHub | relatório e mensagem sugerida | sócio revisa antes de mandar |
@@ -35,8 +35,10 @@ kit-<slug>/
 ├── .claude/agents/   auditor-de-contexto
 ├── .claude/settings.json   permissões (nega ler a chave, force push, rm -rf, web)
 ├── vault/            Obsidian com as notas da conversa (revisar: sim)
-├── ferramentas/      verificar.py, ambiente.py, skills.py + passos.json
+├── ferramentas/      verificar.py, ambiente.py, skills.py, conectar.py + passos.json
 ├── instalar/         .command (Mac), .cmd + .ps1 (Windows), .sh
+├── LINKS.md          links oficiais dos programas, das contas e da ajuda (gerado do catálogo)
+├── marca/            o logo da Root; o vault abre com o tema da Root (snippet do Obsidian)
 ├── entregas/  ajuda/  (entrada/ e _privado/ nunca saem da máquina)
 └── .root/            cliente.json (selo), progresso.json, chave (fora do git)
 ```
@@ -66,9 +68,6 @@ recebe quando fechar o dia.
   bancada do OS vai ler).
 - Calibração dos pesos: depende de 10 a 15 clientes com o comportamento medido.
 - As três receitas-semente (conciliação, painel de vendas, minuta) virarem inteiras.
-- **O cliente como colaborador do repositório, pelo e-mail dele** (mesa de 29/09/2026): o GitHub
-  passa a registrar quem baixou, quem usa e quem commita, e o Claude do cliente commita como
-  colaborador. Hoje o montador cadastra deploy key; a chave continua sendo o selo do kit.
 - **A esteira em kanban no OS** lendo o `--json` do acompanhador (29/09/2026): checklists do
   cartão marcados pela automação, estações mudadas pelo agente, humano só onde precisar. Vem
   depois de o kit estar completo e plug and play no Git; o OS do cliente vem depois disso.

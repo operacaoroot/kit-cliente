@@ -10,7 +10,7 @@
 #    2) uv, que instala o Python sem senha de administrador
 #    3) Python 3.12 e o Python do kit (.venv) com as bibliotecas
 #    4) o resto do catalogo ambiente\apps.json pelo perfil do kit (Claude Code, Obsidian...)
-#    5) liga a chave do kit ao git, cria o atalho e roda a conferencia
+#    5) liga o kit ao GitHub (conta da pessoa ou chave do kit), cria o atalho e roda a conferencia
 # ============================================================================
 param([string]$Com = "")
 $ErrorActionPreference = "Continue"
@@ -83,17 +83,19 @@ if ($Com) { $argsAmbiente += @("--com", $Com) }
 Recarregar-Path
 
 # ---------- 5) chave, atalho, conferencia ----------
-Passo "5/5 Chave do kit, atalho e conferencia"
-$Chave = Join-Path $Kit ".root\chave"
-if (Test-Path $Chave) {
-  icacls $Chave /inheritance:r /grant:r ($env:USERNAME + ":(R)") | Out-Null
-  $ChaveGit = $Chave -replace '\\', '/'
-  git config core.sshCommand ("ssh -i """ + $ChaveGit + """ -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new")
-  $Cliente = Get-Content (Join-Path $Kit ".root\cliente.json") -Raw -Encoding UTF8 | ConvertFrom-Json
-  git config user.name $Cliente.nome
-  git config user.email ("kit-" + $Cliente.slug + "@kit.operacaoroot.com")
-  Ok "chave ligada"
-} else { Aviso "a chave do kit (.root\chave) nao veio junto. Fale com a Root." }
+Passo "5/5 GitHub, atalho e conferencia"
+# Com usuario do GitHub no kit: entra com a conta da pessoa (colaborador).
+# Sem conta, ou se o login nao terminar: liga pela chave do kit.
+$Cliente = Get-Content (Join-Path $Kit ".root\cliente.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($Cliente.github) {
+  & $Py ferramentas\conectar.py --conectar
+  if ($LASTEXITCODE -ne 0) {
+    Aviso "seguindo pela chave do kit; da para entrar no GitHub depois pelo Claude do kit"
+    & $Py ferramentas\conectar.py --usar-chave
+  }
+} else {
+  & $Py ferramentas\conectar.py --usar-chave
+}
 
 $Atalho = Join-Path ([Environment]::GetFolderPath("Desktop")) "Claude do kit.cmd"
 $linhas = @("@echo off", ("cd /d """ + $Kit + """"), "set PATH=%USERPROFILE%\.local\bin;%PATH%", "claude")

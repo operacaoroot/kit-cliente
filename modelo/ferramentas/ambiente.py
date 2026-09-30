@@ -9,6 +9,7 @@ Uso (na pasta do kit):
     python3 ferramentas/ambiente.py --instalar --so obsidian         # só estes
     python3 ferramentas/ambiente.py --venv                # cria o Python do kit (.venv) com as bibliotecas
     python3 ferramentas/ambiente.py --listar              # o catálogo, por perfil
+    python3 ferramentas/ambiente.py --links               # os links oficiais de cada app e serviço
 
 No Windows, troque `python3` por `.venv/Scripts/python` (o instalador cria o .venv antes de chamar
 este script). O perfil vem de .root/cliente.json; --perfil guiado|chat|construtor sobrescreve.
@@ -20,11 +21,14 @@ Só biblioteca padrão, compatível com Python 3.9.
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import urllib.request
+import zipfile
 from pathlib import Path
 
 KIT = Path(__file__).resolve().parent.parent
@@ -75,11 +79,23 @@ def expandir(caminho):
     return os.path.expanduser(os.path.expandvars(caminho))
 
 
+LOCAL_BIN = Path.home() / ".local" / "bin"
+LOCAL_APPS = Path.home() / ".local" / "share" / "kit-root"
+
+
+def arquitetura():
+    m = platform.machine().lower()
+    if m in ("arm64", "aarch64"):
+        return "arm64" if SISTEMA == "mac" else "aarch64"
+    return "x86_64"
+
+
 def garantir_path():
-    """Os instaladores oficiais põem os binários em ~/.local/bin; o processo atual ainda não sabe."""
-    extras = [str(Path.home() / ".local" / "bin")]
+    """Os instaladores põem os binários em ~/.local/bin; o processo atual ainda não sabe."""
+    extras = [str(LOCAL_BIN)]
     if SISTEMA == "windows":
-        extras += [expandir(r"%ProgramFiles%\Git\cmd")]
+        extras += [expandir(r"%ProgramFiles%\Git\cmd"), expandir(r"%ProgramFiles%\nodejs"),
+                   expandir(r"%ProgramFiles%\GitHub CLI")]
     atual = os.environ.get("PATH", "").split(os.pathsep)
     for e in extras:
         if e not in atual:
@@ -116,10 +132,36 @@ def winget_disponivel():
     return SISTEMA == "windows" and shutil.which("winget") is not None
 
 
+def executa(cmd, versao_minima=None):
+    """Roda o programa de verdade: no Mac o /usr/bin/java existe mesmo sem Java instalado,
+    e pode haver um Java antigo (8) que responde mas não serve. Com versao_minima, lê a versão
+    principal da saída ("1.8.0" vale 8, "21.0.4" vale 21)."""
+    if not shutil.which(cmd[0]):
+        return False
+    try:
+        r = subprocess.run(cmd, cwd=str(KIT), capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    if r.returncode != 0:
+        return False
+    if not versao_minima:
+        return True
+    achado = re.search(r'version "?(\d+)(?:\.(\d+))?', (r.stdout or "") + (r.stderr or ""))
+    if not achado:
+        return False
+    principal = int(achado.group(1))
+    if principal == 1 and achado.group(2):
+        principal = int(achado.group(2))
+    return principal >= int(versao_minima)
+
+
 def checar(app):
     spec = app.get(SISTEMA, {}).get("checar", {})
     garantir_path()
-    if spec.get("comando") and shutil.which(spec["comando"]):
+    if spec.get("executa"):
+        if executa(spec["executa"], spec.get("versao_minima")):
+            return True
+    elif spec.get("comando") and shutil.which(spec["comando"]):
         return True
     for c in spec.get("caminhos", []):
         if Path(expandir(c)).exists():
@@ -172,12 +214,21 @@ def conferir(perfil):
 # ---------------------------------------------------------------- instalar
 
 def baixar(url, destino):
-    """Download grande em rede lenta: o curl retoma e repete sozinho; o urllib é a reserva."""
+    """Download grande em rede lenta: o curl retoma e repete sozinho; o urllib é a reserva.
+
+    Conexão que para no meio não dá erro: sem limite, o curl espera para sempre (visto em
+    2026-09-29, Node parado em 12 MB por quase duas horas). Abaixo de 1 KB/s por 60 s ele
+    desiste da conexão e a próxima volta retoma do ponto em que parou (-C -).
+    """
     if shutil.which("curl"):
-        codigo, _ = rodar(["curl", "-fL", "--retry", "5", "--retry-delay", "5", "--retry-all-errors",
-                           "--connect-timeout", "30", "-C", "-", "-sS", "-o", str(destino), url])
-        if codigo == 0 and Path(destino).exists() and Path(destino).stat().st_size > 0:
-            return
+        for _ in range(4):
+            codigo, _ = rodar(["curl", "-fL", "--retry", "3", "--retry-delay", "5", "--retry-all-errors",
+                               "--connect-timeout", "30", "--speed-limit", "1024", "--speed-time", "60",
+                               "-C", "-", "-sS", "-o", str(destino), url])
+            if codigo == 0 and Path(destino).exists() and Path(destino).stat().st_size > 0:
+                return
+            if codigo not in (18, 28, 56, 92):  # parcial, tempo, conexão caída: vale retomar
+                break
     req = urllib.request.Request(url, headers={"User-Agent": "kit-root/1.0"})
     with urllib.request.urlopen(req, timeout=120) as r, open(destino, "wb") as f:
         shutil.copyfileobj(r, f, length=1024 * 1024)
@@ -243,6 +294,95 @@ def instalar_zip_app(inst):
         return copiar_app_mac(pasta / inst["app"], inst["app"])
 
 
+def ligar_binarios(pasta, nomes):
+    """Liga os executáveis de uma instalação em ~/.local/share ao ~/.local/bin."""
+    LOCAL_BIN.mkdir(parents=True, exist_ok=True)
+    ligados = []
+    for nome in nomes:
+        achados = [p for p in Path(pasta).rglob(nome) if p.is_file() and os.access(str(p), os.X_OK) and p.parent.name == "bin"]
+        if not achados:
+            raise RuntimeError("não achei o executável {} no pacote".format(nome))
+        alvo = LOCAL_BIN / nome
+        if alvo.is_symlink() or alvo.exists():
+            alvo.unlink()
+        alvo.symlink_to(achados[0])
+        ligados.append(nome)
+    return ligados
+
+
+def extrair(arquivo, destino):
+    destino = Path(destino)
+    if destino.exists():
+        shutil.rmtree(destino)
+    destino.mkdir(parents=True)
+    nome = str(arquivo)
+    if nome.endswith(".zip"):
+        if SISTEMA == "mac":
+            codigo, _ = rodar(["ditto", "-x", "-k", nome, str(destino)])
+            if codigo != 0:
+                raise RuntimeError("não consegui abrir o pacote")
+        else:
+            with zipfile.ZipFile(nome) as z:
+                z.extractall(str(destino))
+    else:
+        with tarfile.open(nome) as t:
+            t.extractall(str(destino))
+    return destino
+
+
+def instalar_node_dist(inst):
+    """Node LTS oficial (nodejs.org) na pasta do usuário, sem administrador."""
+    req = urllib.request.Request(inst["indice"], headers={"User-Agent": "kit-root/1.0"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        versoes = json.loads(r.read().decode())
+    lts = next(v for v in versoes if v.get("lts"))
+    so = "darwin" if SISTEMA == "mac" else "linux"
+    arq_arch = {"arm64": "arm64", "aarch64": "arm64", "x86_64": "x64"}[arquitetura()]
+    ext = "tar.gz" if SISTEMA == "mac" else "tar.xz"
+    nome = "node-{}-{}-{}.{}".format(lts["version"], so, arq_arch, ext)
+    url = "https://nodejs.org/dist/{}/{}".format(lts["version"], nome)
+    print("   baixando Node.js {} ({})...".format(lts["version"], lts["lts"]), flush=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        pacote = Path(tmp) / nome
+        baixar(url, pacote)
+        pasta = extrair(pacote, LOCAL_APPS / "node")
+    return ligar_binarios(pasta, ["node", "npm", "npx"])
+
+
+def instalar_adoptium(inst):
+    """Java (Eclipse Temurin, a distribuição aberta da Adoptium) na pasta do usuário."""
+    so = "mac" if SISTEMA == "mac" else "linux"
+    arch = {"arm64": "aarch64", "aarch64": "aarch64", "x86_64": "x64"}[arquitetura()]
+    url = "https://api.adoptium.net/v3/binary/latest/{}/ga/{}/{}/jdk/hotspot/normal/eclipse".format(inst["versao"], so, arch)
+    print("   baixando o Java {} (Temurin)...".format(inst["versao"]), flush=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        pacote = Path(tmp) / "jdk.tar.gz"
+        baixar(url, pacote)
+        pasta = extrair(pacote, LOCAL_APPS / "java")
+    return ligar_binarios(pasta, ["java", "javac", "jar"])
+
+
+def instalar_github_asset(inst):
+    """Programa publicado em versões do GitHub (ex.: GitHub CLI), na pasta do usuário."""
+    arch = arquitetura()
+    sufixo = inst["arquivos"].get(arch)
+    if not sufixo:
+        raise RuntimeError("não há versão para este processador ({})".format(arch))
+    url = "https://api.github.com/repos/{}/releases/latest".format(inst["repo"])
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "kit-root/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        rel = json.loads(r.read().decode())
+    asset = next((a for a in rel.get("assets", []) if a["name"].endswith(sufixo)), None)
+    if not asset:
+        raise RuntimeError("a versão {} não tem o arquivo {}".format(rel.get("tag_name"), sufixo))
+    print("   baixando {} {}...".format(inst["repo"], rel.get("tag_name", "")), flush=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        pacote = Path(tmp) / asset["name"]
+        baixar(asset["browser_download_url"], pacote)
+        pasta = extrair(pacote, LOCAL_APPS / inst["repo"].replace("/", "-"))
+    return ligar_binarios(pasta, inst["binarios"])
+
+
 def abrir_pagina(url):
     try:
         if SISTEMA == "windows":
@@ -284,6 +424,12 @@ def executar(app, inst, tipo):
         instalar_dmg_github(inst)
     elif tipo == "zip-app":
         instalar_zip_app(inst)
+    elif tipo == "node-dist":
+        instalar_node_dist(inst)
+    elif tipo == "adoptium":
+        instalar_adoptium(inst)
+    elif tipo == "github-asset":
+        instalar_github_asset(inst)
     elif tipo == "pagina" or (SISTEMA == "windows" and inst.get("winget")):
         url = inst.get("url") or "https://apps.microsoft.com/detail/9NBLGGH4NNS1"
         abrir_pagina(url)
@@ -394,6 +540,16 @@ def listar():
         print("{:<12} {} ({})\n             {}".format(app["id"], app["nome"], niveis, app["para_que"]))
 
 
+def links():
+    dados = json.loads(CATALOGO.read_text(encoding="utf-8"))
+    for app in dados["apps"]:
+        l = app.get("links", {})
+        print("{}: {}".format(app["nome"], "  ".join("{} {}".format(k, v) for k, v in l.items())))
+    print()
+    for s in dados.get("servicos", []):
+        print("{}: {}".format(s["nome"], s["url"]))
+
+
 def valor(argv, nome):
     if nome in argv:
         i = argv.index(nome)
@@ -407,6 +563,9 @@ def main(argv):
     perfil = perfil_do_kit(forcado)
     if "--listar" in argv:
         listar()
+        return 0
+    if "--links" in argv:
+        links()
         return 0
     if "--venv" in argv:
         return criar_venv()

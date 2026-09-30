@@ -28,7 +28,7 @@ MODELO = RAIZ / "modelo"
 PERFIS = ("guiado", "chat", "construtor")
 SISTEMAS = ("mac", "windows", "linux")
 NIVEIS = ("obrigatorio", "recomendado", "opcional")
-TIPOS_MAC = {"xcode-clt", "script", "uv-python", "dmg-github", "zip-app", "pagina"}
+TIPOS_MAC = {"xcode-clt", "script", "uv-python", "dmg-github", "zip-app", "pagina", "node-dist", "adoptium", "github-asset"}
 
 
 def py(kit, *args, check=False):
@@ -99,7 +99,17 @@ class CatalogoDeApps(unittest.TestCase):
             if "obrigatorio" in a["perfis"].values():
                 self.assertEqual(set(a["perfis"].values()), {"obrigatorio"}, a["id"])
         obrig = {a["id"] for a in self.apps if a["perfis"]["chat"] == "obrigatorio"}
-        self.assertEqual(obrig, {"git", "uv", "python", "claude-code", "obsidian"})
+        self.assertEqual(obrig, {"git", "gh", "uv", "python", "node", "java", "claude-code", "obsidian"})
+
+    def test_todo_app_tem_links_oficiais(self):
+        for a in self.apps:
+            self.assertTrue(a.get("links", {}).get("site", "").startswith("https://"), a["id"])
+            self.assertTrue(a["links"].get("download", "").startswith("https://"), a["id"])
+        dados = json.loads((MODELO / "ambiente" / "apps.json").read_text(encoding="utf-8"))
+        grupos = {s["grupo"] for s in dados["servicos"]}
+        self.assertTrue({"Contas", "Seus dados de IA", "Ajuda"} <= grupos)
+        for s in dados["servicos"]:
+            self.assertTrue(s["url"].startswith("https://"), s["nome"])
 
     def test_todo_app_se_instala_no_windows_e_no_mac(self):
         for a in self.apps:
@@ -142,7 +152,9 @@ class KitMontado(unittest.TestCase):
     def test_pecas_da_base(self):
         for rel in ("catalogo.json", "ambiente/apps.json", "ambiente/requirements.txt", "ferramentas/ambiente.py",
                     "ferramentas/skills.py", "oficina/LEIA-ME.md", "instalar/instalar.cmd",
-                    ".claude/skills/preparar-ambiente/SKILL.md", ".claude/skills/criar-skill/SKILL.md"):
+                    ".claude/skills/preparar-ambiente/SKILL.md", ".claude/skills/criar-skill/SKILL.md",
+                    "ferramentas/conectar.py", "LINKS.md", "marca/root-logo.png",
+                    "vault/.obsidian/snippets/root.css"):
             self.assertTrue((self.kit / rel).exists(), rel)
 
     def test_catalogo_bate_com_as_pastas(self):
@@ -168,7 +180,36 @@ class KitMontado(unittest.TestCase):
         r = py(self.kit, "ferramentas/ambiente.py", "--conferir", "--json")
         conf = json.loads(r.stdout)
         self.assertEqual(conf["perfil"], "chat")
-        self.assertEqual(len(conf["apps"]), 10)
+        self.assertEqual(len(conf["apps"]), 12)
+
+    def test_links_do_kit_tem_todos_os_programas(self):
+        links = (self.kit / "LINKS.md").read_text(encoding="utf-8")
+        apps = json.loads((self.kit / "ambiente" / "apps.json").read_text(encoding="utf-8"))["apps"]
+        for a in apps:
+            self.assertIn("[{}](".format(a["nome"]), links)
+        for palavra in ("Node.js", "Java", "Obsidian", "GitHub CLI", "exportar o histórico"):
+            self.assertIn(palavra, links)
+        self.assertNotIn("—", links)
+
+    def test_conectar_sem_ligacao_responde(self):
+        r = py(self.kit, "ferramentas/conectar.py", "--conferir", "--json")
+        e = json.loads(r.stdout)
+        self.assertEqual(e["repo"], "operacaoroot/kit-teste-base-mac")
+        self.assertTrue(e["chave_presente"])
+        self.assertIn(e["modo"], (None, "chave", "colaborador"))
+
+    def test_obsidian_com_a_identidade_da_root(self):
+        ap = json.loads((self.kit / "vault" / ".obsidian" / "appearance.json").read_text(encoding="utf-8"))
+        self.assertIn("root", ap["enabledCssSnippets"])
+        css = (self.kit / "vault" / ".obsidian" / "snippets" / "root.css").read_text(encoding="utf-8")
+        for cor in ("#070A08", "#9BDB1F", "#FF1F6B", "#1FFFA8"):
+            self.assertIn(cor, css)
+
+    def test_progresso_registra_o_acesso(self):
+        py(self.kit, "ferramentas/verificar.py", "--silencioso", "--sem-rede", check=True)
+        prog = json.loads((self.kit / ".root" / "progresso.json").read_text(encoding="utf-8"))
+        self.assertIn("acesso", prog)
+        self.assertEqual(prog["acesso"]["modo"], "chave")
 
     def test_chave_e_venv_fora_do_git(self):
         ignorado = (self.kit / ".gitignore").read_text(encoding="utf-8")
@@ -177,7 +218,7 @@ class KitMontado(unittest.TestCase):
         self.assertFalse([l for l in r.stdout.splitlines() if l.startswith((".root/chave", ".venv/"))])
 
     def test_texto_novo_sem_travessao(self):
-        for rel in (".claude/skills/preparar-ambiente/SKILL.md", ".claude/skills/criar-skill/SKILL.md",
+        for rel in (".claude/skills/preparar-ambiente/SKILL.md", ".claude/skills/criar-skill/SKILL.md", "LINKS.md",
                     "oficina/LEIA-ME.md", "README.md", "CLAUDE.md", "COMECE-AQUI.md"):
             self.assertNotIn("—", (self.kit / rel).read_text(encoding="utf-8"), rel)
 
@@ -194,7 +235,7 @@ class KitWindows(unittest.TestCase):
 
     def test_permissoes_cobrem_o_python_do_windows(self):
         cfg = json.loads((Kits.kits["windows"] / ".claude" / "settings.json").read_text(encoding="utf-8"))
-        for ferramenta in ("verificar", "ambiente", "skills"):
+        for ferramenta in ("verificar", "ambiente", "skills", "conectar"):
             self.assertIn("Bash(.venv/Scripts/python ferramentas/{}.py:*)".format(ferramenta), cfg["permissions"]["allow"])
 
 
@@ -288,6 +329,31 @@ class AtualizacaoDoCatalogo(unittest.TestCase):
         self.assertEqual(por_nome["proximo-passo"]["desde"], "2026-09-27")
         self.assertNotIn("skill-que-saiu", por_nome)
         self.assertIn("criar-skill", por_nome)
+
+
+
+class Manifesto(unittest.TestCase):
+    def conferir(self, **cliente):
+        m = json.loads((RAIZ / "manifestos" / "exemplo-marina-duarte.json").read_text(encoding="utf-8"))
+        m["cliente"].update(cliente)
+        perfis = json.loads((RAIZ / "perfis" / "perfis.json").read_text(encoding="utf-8"))
+        return montar.conferir_manifesto(m, perfis, rascunho=True, permitir_semente=True)
+
+    def test_usuario_do_github_valido(self):
+        self.conferir(github="marina-duarte")
+        self.conferir(github=None)
+
+    def test_usuario_do_github_invalido(self):
+        for errado in ("marina@empresa.com", "@marina", "usuario-do-github", "-comeca-com-hifen"):
+            with self.assertRaises(montar.Recusa, msg=errado):
+                self.conferir(github=errado)
+
+
+class Acesso(unittest.TestCase):
+    def test_ajuda_e_sintaxe(self):
+        r = subprocess.run([sys.executable, str(RAIZ / "montador" / "acesso.py")], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("encerrar", r.stdout)
 
 
 if __name__ == "__main__":

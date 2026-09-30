@@ -1,21 +1,33 @@
 {
-  "versao": "1.0.0",
-  "_leia": "Fonte única do que o kit instala. Os instaladores e a conferência leem daqui. perfis: obrigatorio (instala sempre), recomendado (instala por padrão no perfil), opcional (só com --com <id>). Nenhum app pede conta de fora da Root nem guarda dado fora da máquina do cliente.",
+  "versao": "1.1.0",
+  "_leia": "Fonte única do que o kit instala e dos links que o cliente usa. Os instaladores, a conferência, a skill preparar-ambiente e o LINKS.md do kit leem daqui. perfis: obrigatorio (instala sempre), recomendado (instala por padrão no perfil), opcional (só com --com <id>). No Mac, Node, Java e GitHub CLI vão para a pasta do usuário (~/.local), sem senha de administrador. Nenhum app guarda dado do cliente fora da máquina dele.",
   "apps": [
     {
       "id": "git",
       "nome": "Git",
       "para_que": "guardar o trabalho, mandar o progresso para a Root e receber as atualizações do kit",
       "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://git-scm.com/", "download": "https://git-scm.com/downloads"},
       "mac": {"checar": {"comando": "git"}, "instalar": {"tipo": "xcode-clt"}},
       "windows": {"checar": {"comando": "git", "caminhos": ["%ProgramFiles%\\Git\\cmd\\git.exe"]}, "instalar": {"winget": "Git.Git", "admin": true}},
       "linux": {"checar": {"comando": "git"}, "instalar": {"tipo": "pagina", "url": "https://git-scm.com/download/linux"}}
+    },
+    {
+      "id": "gh",
+      "nome": "GitHub CLI",
+      "para_que": "entrar no GitHub com a sua conta, aceitar o convite do kit e enviar o progresso no seu nome",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://cli.github.com/", "download": "https://github.com/cli/cli/releases/latest", "ajuda": "https://cli.github.com/manual/"},
+      "mac": {"checar": {"comando": "gh", "caminhos": ["~/.local/bin/gh"]}, "instalar": {"tipo": "github-asset", "repo": "cli/cli", "binarios": ["gh"], "arquivos": {"arm64": "_macOS_arm64.zip", "x86_64": "_macOS_amd64.zip"}}},
+      "windows": {"checar": {"comando": "gh", "caminhos": ["%ProgramFiles%\\GitHub CLI\\gh.exe"]}, "instalar": {"winget": "GitHub.cli", "admin": true}},
+      "linux": {"checar": {"comando": "gh", "caminhos": ["~/.local/bin/gh"]}, "instalar": {"tipo": "github-asset", "repo": "cli/cli", "binarios": ["gh"], "arquivos": {"x86_64": "_linux_amd64.tar.gz", "aarch64": "_linux_arm64.tar.gz"}}}
     },
     {
       "id": "uv",
       "nome": "uv",
       "para_que": "instalar e manter o Python do kit sem pedir senha de administrador",
       "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://docs.astral.sh/uv/", "download": "https://docs.astral.sh/uv/getting-started/installation/"},
       "mac": {"checar": {"comando": "uv", "caminhos": ["~/.local/bin/uv"]}, "instalar": {"tipo": "script", "url": "https://astral.sh/uv/install.sh"}},
       "windows": {"checar": {"comando": "uv", "caminhos": ["%USERPROFILE%\\.local\\bin\\uv.exe"]}, "instalar": {"tipo": "script", "url": "https://astral.sh/uv/install.ps1", "winget": "astral-sh.uv"}},
       "linux": {"checar": {"comando": "uv", "caminhos": ["~/.local/bin/uv"]}, "instalar": {"tipo": "script", "url": "https://astral.sh/uv/install.sh"}}
@@ -25,15 +37,37 @@
       "nome": "Python 3.12",
       "para_que": "rodar a conferência, as ferramentas do kit e as que você criar",
       "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://www.python.org/", "download": "https://www.python.org/downloads/"},
       "mac": {"checar": {"uv_python": "3.12"}, "instalar": {"tipo": "uv-python", "versao": "3.12"}},
       "windows": {"checar": {"uv_python": "3.12"}, "instalar": {"tipo": "uv-python", "versao": "3.12"}},
       "linux": {"checar": {"uv_python": "3.12"}, "instalar": {"tipo": "uv-python", "versao": "3.12"}}
+    },
+    {
+      "id": "node",
+      "nome": "Node.js LTS",
+      "para_que": "rodar conectores do Claude (MCP) e ferramentas feitas em JavaScript",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://nodejs.org/", "download": "https://nodejs.org/en/download"},
+      "mac": {"checar": {"comando": "node", "caminhos": ["~/.local/bin/node"]}, "instalar": {"tipo": "node-dist", "indice": "https://nodejs.org/dist/index.json"}},
+      "windows": {"checar": {"comando": "node", "caminhos": ["%ProgramFiles%\\nodejs\\node.exe"]}, "instalar": {"winget": "OpenJS.NodeJS.LTS", "admin": true}},
+      "linux": {"checar": {"comando": "node", "caminhos": ["~/.local/bin/node"]}, "instalar": {"tipo": "node-dist", "indice": "https://nodejs.org/dist/index.json"}}
+    },
+    {
+      "id": "java",
+      "nome": "Java 21 (Temurin)",
+      "para_que": "rodar ferramentas e conectores feitos em Java",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://adoptium.net/", "download": "https://adoptium.net/temurin/releases/"},
+      "mac": {"checar": {"executa": ["java", "-version"], "versao_minima": 21}, "instalar": {"tipo": "adoptium", "versao": "21"}},
+      "windows": {"checar": {"executa": ["java", "-version"], "versao_minima": 21, "caminhos": ["%ProgramFiles%\\Eclipse Adoptium"]}, "instalar": {"winget": "EclipseAdoptium.Temurin.21.JDK", "admin": true}},
+      "linux": {"checar": {"executa": ["java", "-version"], "versao_minima": 21}, "instalar": {"tipo": "adoptium", "versao": "21"}}
     },
     {
       "id": "claude-code",
       "nome": "Claude Code",
       "para_que": "o Claude que trabalha dentro da pasta do kit",
       "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://www.claude.com/product/claude-code", "download": "https://claude.ai/download", "ajuda": "https://code.claude.com/docs"},
       "mac": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude", "~/.claude/local/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}},
       "windows": {"checar": {"comando": "claude", "caminhos": ["%USERPROFILE%\\.local\\bin\\claude.exe"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.ps1"}},
       "linux": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}}
@@ -43,6 +77,7 @@
       "nome": "Obsidian",
       "para_que": "abrir e editar a sua base (o vault)",
       "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://obsidian.md/", "download": "https://obsidian.md/download", "ajuda": "https://help.obsidian.md/"},
       "mac": {"checar": {"apps": ["Obsidian.app"]}, "instalar": {"tipo": "dmg-github", "repo": "obsidianmd/obsidian-releases", "app": "Obsidian.app"}},
       "windows": {"checar": {"caminhos": ["%LOCALAPPDATA%\\Obsidian\\Obsidian.exe", "%LOCALAPPDATA%\\Programs\\Obsidian\\Obsidian.exe", "%ProgramFiles%\\Obsidian\\Obsidian.exe"]}, "instalar": {"winget": "Obsidian.Obsidian"}},
       "linux": {"checar": {"comando": "obsidian", "caminhos": ["/var/lib/flatpak/app/md.obsidian.Obsidian"]}, "instalar": {"tipo": "pagina", "url": "https://obsidian.md/download"}}
@@ -52,6 +87,7 @@
       "nome": "Claude (aplicativo)",
       "para_que": "usar o Claude em janela, com a aba Code, para quem prefere não usar o terminal",
       "perfis": {"guiado": "recomendado", "chat": "recomendado", "construtor": "opcional"},
+      "links": {"site": "https://claude.ai/", "download": "https://claude.ai/download"},
       "mac": {"checar": {"apps": ["Claude.app"]}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}},
       "windows": {"checar": {"caminhos": ["%LOCALAPPDATA%\\AnthropicClaude\\claude.exe", "%LOCALAPPDATA%\\Programs\\Claude\\Claude.exe"]}, "instalar": {"winget": "Anthropic.Claude"}},
       "linux": {"checar": {"comando": "__nao_existe_no_linux__"}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}}
@@ -60,25 +96,18 @@
       "id": "vscode",
       "nome": "Visual Studio Code",
       "para_que": "ver e editar os arquivos do kit e das ferramentas que você criar",
-      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "recomendado"},
+      "perfis": {"guiado": "opcional", "chat": "recomendado", "construtor": "recomendado"},
+      "links": {"site": "https://code.visualstudio.com/", "download": "https://code.visualstudio.com/download"},
       "mac": {"checar": {"comando": "code", "apps": ["Visual Studio Code.app"]}, "instalar": {"tipo": "zip-app", "url": "https://update.code.visualstudio.com/latest/darwin-universal/stable", "app": "Visual Studio Code.app"}},
       "windows": {"checar": {"comando": "code", "caminhos": ["%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe", "%ProgramFiles%\\Microsoft VS Code\\Code.exe"]}, "instalar": {"winget": "Microsoft.VisualStudioCode", "escopo": "user"}},
       "linux": {"checar": {"comando": "code"}, "instalar": {"tipo": "pagina", "url": "https://code.visualstudio.com/download"}}
     },
     {
-      "id": "node",
-      "nome": "Node.js LTS",
-      "para_que": "rodar ferramentas feitas em JavaScript e conectores que pedem Node",
-      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
-      "mac": {"checar": {"comando": "node"}, "instalar": {"tipo": "pagina", "url": "https://nodejs.org/en/download"}},
-      "windows": {"checar": {"comando": "node", "caminhos": ["%ProgramFiles%\\nodejs\\node.exe"]}, "instalar": {"winget": "OpenJS.NodeJS.LTS", "admin": true}},
-      "linux": {"checar": {"comando": "node"}, "instalar": {"tipo": "pagina", "url": "https://nodejs.org/en/download"}}
-    },
-    {
       "id": "docker",
       "nome": "Docker Desktop",
       "para_que": "testar sistemas na própria máquina antes de colocar em uso (homologação local)",
-      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "recomendado"},
+      "links": {"site": "https://www.docker.com/", "download": "https://www.docker.com/products/docker-desktop/"},
       "mac": {"checar": {"comando": "docker", "apps": ["Docker.app"]}, "instalar": {"tipo": "pagina", "url": "https://www.docker.com/products/docker-desktop/"}},
       "windows": {"checar": {"comando": "docker", "caminhos": ["%ProgramFiles%\\Docker\\Docker\\Docker Desktop.exe"]}, "instalar": {"winget": "Docker.DockerDesktop", "admin": true}},
       "linux": {"checar": {"comando": "docker"}, "instalar": {"tipo": "pagina", "url": "https://docs.docker.com/engine/install/"}}
@@ -88,9 +117,21 @@
       "nome": "LibreOffice",
       "para_que": "converter documento em PDF quando não houver Word na máquina",
       "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
+      "links": {"site": "https://www.libreoffice.org/", "download": "https://www.libreoffice.org/download/download-libreoffice/"},
       "mac": {"checar": {"comando": "soffice", "apps": ["LibreOffice.app"]}, "instalar": {"tipo": "pagina", "url": "https://www.libreoffice.org/download/download-libreoffice/"}},
       "windows": {"checar": {"comando": "soffice", "caminhos": ["%ProgramFiles%\\LibreOffice\\program\\soffice.exe"]}, "instalar": {"winget": "TheDocumentFoundation.LibreOffice", "admin": true}},
       "linux": {"checar": {"comando": "soffice"}, "instalar": {"tipo": "pagina", "url": "https://www.libreoffice.org/download/download-libreoffice/"}}
     }
+  ],
+  "servicos": [
+    {"grupo": "Contas", "nome": "Claude: assinar o plano individual", "url": "https://claude.ai/upgrade", "para_que": "a conta do Claude é sua desde o primeiro dia; a Root reembolsa o primeiro mês contra o comprovante"},
+    {"grupo": "Contas", "nome": "Claude: entrar", "url": "https://claude.ai/login", "para_que": "o Claude Code usa esta mesma conta"},
+    {"grupo": "Contas", "nome": "GitHub: criar a sua conta", "url": "https://github.com/signup", "para_que": "é pela sua conta que você recebe o kit e envia o progresso; passe o nome de usuário para a Root"},
+    {"grupo": "Contas", "nome": "GitHub: convites pendentes", "url": "https://github.com/notifications", "para_que": "onde aparece o convite do repositório do kit, se o instalador não aceitar sozinho"},
+    {"grupo": "Seus dados de IA", "nome": "ChatGPT: exportar o histórico", "url": "https://help.openai.com/en/articles/7260999-how-do-i-export-my-chatgpt-history-and-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina"},
+    {"grupo": "Seus dados de IA", "nome": "Claude: exportar o histórico", "url": "https://support.anthropic.com/en/articles/9450526-how-can-i-export-my-claude-ai-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina"},
+    {"grupo": "Ajuda", "nome": "Claude Code: documentação", "url": "https://code.claude.com/docs", "para_que": "comandos e atalhos do Claude que roda no kit"},
+    {"grupo": "Ajuda", "nome": "Obsidian: ajuda", "url": "https://help.obsidian.md/", "para_que": "como abrir o vault, criar notas e links"},
+    {"grupo": "Ajuda", "nome": "GitHub: colaborar num repositório", "url": "https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository", "para_que": "o que significa ser colaborador do repositório do kit"}
   ]
 }

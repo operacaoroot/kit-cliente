@@ -1,0 +1,35 @@
+/* Identidade da Root (brand guide v1) no vault do kit.
+   Ligado em appearance.json; a pessoa desliga em Configurações > Aparência > Snippets de CSS. */
+.theme-dark {
+  --background-primary: #070A08;
+  --background-primary-alt: #0C120D;
+  --background-secondary: #0C120D;
+  --background-secondary-alt: #070A08;
+  --background-modifier-border: #1C3010;
+  --text-normal: #DFFFE8;
+  --text-muted: #94AE9A;
+  --text-faint: #62796A;
+  --text-accent: #9BDB1F;
+  --text-accent-hover: #C4FF2E;
+  --interactive-accent: #9BDB1F;
+  --interactive-accent-hover: #C4FF2E;
+  --text-on-accent: #070A08;
+  --link-color: #1FFFA8;
+  --link-color-hover: #9BDB1F;
+  --link-unresolved-color: #FF1F6B;
+  --tag-color: #FF1F6B;
+  --tag-background: rgba(255, 31, 107, 0.12);
+  --h1-color: #9BDB1F;
+  --h2-color: #DFFFE8;
+  --h3-color: #DFFFE8;
+  --graph-node: #9BDB1F;
+  --graph-node-unresolved: #FF1F6B;
+  --graph-line: #1C3010;
+  --font-text-theme: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-monospace-theme: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+.theme-dark .markdown-rendered h1,
+.theme-dark .HyperMD-header-1 {
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  letter-spacing: -0.02em;
+}
