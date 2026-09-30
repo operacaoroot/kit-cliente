@@ -200,6 +200,7 @@ def montar_contexto(m, perfis, kit_id):
         ("pedir-ajuda", "registra o pedido para a Root"),
         ("fechar-o-dia", "salva, envia o progresso e traz atualizações"),
         ("criar-skill", "cria, testa e põe em uso as ferramentas da própria pessoa"),
+        ("validar-onboarding", "testa o perfil e a escrita no vault pela interface do Claude"),
     ]
     linhas = ["**Base (todo kit tem):**", ""]
     linhas += ["- `{}`: {}".format(n, d) for n, d in skills_base]
@@ -446,6 +447,10 @@ def montar(caminho_manifesto, opcoes):
     comece_tmpl = (MODELO / "vault" / "00 - Comece aqui.md.tmpl").read_text(encoding="utf-8")
     (destino / "vault" / "00 - Comece aqui.md").write_text(render(comece_tmpl, ctx), encoding="utf-8")
     (destino / "COMECE-AQUI.md").write_text(comece_aqui(ctx, sistema, m["perfil"]["escolhido"]), encoding="utf-8")
+    if sistema == "mac":
+        guia = destino / "COMECE-AQUI.md"
+        abertura = "## Começar pela página guiada\n\nNo repositório privado que a Root compartilhou com você, abra Releases e baixe o ZIP do kit em Assets. Não use os arquivos chamados Source code: eles não incluem o acesso preparado pela Root. Abra o ZIP para extrair a pasta e mantenha todos os arquivos juntos. Não é necessário instalar Git nem executar um clone antes de começar.\n\nAbra `instalar/instalar.command`. A página permite confirmar seus dados profissionais, revisar fontes públicas, instalar os programas e abrir o Claude com seu kit. Se o macOS bloquear o arquivo, confira com a Root a origem do kit e use Ajustes do Sistema > Privacidade e Segurança > Abrir Mesmo Assim. Se as ferramentas da Apple forem solicitadas, termine a instalação e abra o arquivo novamente.\n\nPara retomar, use o atalho **Continuar onboarding** na Mesa. Para trabalhar depois, use **Claude do kit**, na interface Code com a pasta deste kit. O chat comum não carrega esta pasta automaticamente.\n\nAs etapas abaixo continuam disponíveis para aprofundar o uso após a configuração inicial.\n\n"
+        guia.write_text(abertura + guia.read_text(encoding="utf-8"), encoding="utf-8")
     (destino / "LINKS.md").write_text(gerar_links(sistema, m["perfil"]["escolhido"]), encoding="utf-8")
 
     for skill_md in (destino / ".claude").rglob("*.md"):
@@ -472,6 +477,8 @@ def montar(caminho_manifesto, opcoes):
         "aviso": "Kit pessoal montado pela Root para {}. A chave em .root/chave é deste kit e só dele.".format(m["cliente"]["nome"]),
     })
     (destino / ".root").mkdir(exist_ok=True)
+    inicial = {"nome": m["cliente"]["nome"], "cargo": ctx["cargo"], "empresa": ctx["empresa"]}
+    (destino / ".root/onboarding-inicial.json").write_text(json.dumps(inicial, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (destino / ".root" / "cliente.json").write_text(json.dumps(cliente, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     rodar(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "{} ({})".format(kit_id, slug), "-f", str(destino / ".root" / "chave")], destino)
