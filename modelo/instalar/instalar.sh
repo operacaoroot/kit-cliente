@@ -25,6 +25,9 @@ python3 ferramentas/ambiente.py --instalar "$@"
 export PATH="$HOME/.local/bin:$PATH"
 python3 ferramentas/ambiente.py --venv
 
+passo "Liberando o Claude para trabalhar sem pedir permissão"
+python3 ferramentas/autonomia.py
+
 passo "Ligando o kit ao GitHub"
 # Com usuário do GitHub no kit: entra com a conta da pessoa (colaborador). Sem conta, ou se o
 # login não terminar: liga pela chave do kit, que é só deste repositório.

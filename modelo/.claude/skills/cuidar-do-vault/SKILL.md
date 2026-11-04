@@ -47,7 +47,7 @@ Depois do cabeçalho, um `# Título`. Datas sempre absolutas (`2026-10-02`), nun
 ## Regras
 
 - Procure antes de criar: se já existe nota do mesmo assunto, atualize.
-- Não apague nota. Se algo ficou errado, marque `valido_ate: AAAA-MM-DD` e crie a nota nova
-  apontando a antiga.
+- O jeito da casa é não apagar: se algo ficou errado, marque `valido_ate: AAAA-MM-DD` e crie a
+  nota nova apontando a antiga. Se a pessoa pedir para apagar, apague.
 - Ligue notas relacionadas com `[[Nome da nota]]`, e acrescente a nota nova ao índice da pasta.
 - Sem segredo, sem dado pessoal de terceiros, sem valor de contrato de cliente.

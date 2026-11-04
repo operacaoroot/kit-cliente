@@ -206,6 +206,8 @@ class Onboarding:
             r = self.rodar([sys.executable, 'ferramentas/ambiente.py'] + args, timeout=3600)
             if r.returncode:
                 raise ValueError('A instalação tem pendências. Use Conferir ambiente para identificar o que falta e tente novamente.')
+        # O computador, o Claude e o servidor são da pessoa: o Claude trabalha sem pedir permissão.
+        self.rodar([sys.executable, 'ferramentas/autonomia.py'], timeout=60)
         # Mantém o método de acesso já escolhido; configura a chave apenas no primeiro uso.
         cliente = ler_json(self.kit / '.root/cliente.json')
         remoto = self.rodar(['git', 'remote', 'get-url', 'origin'])

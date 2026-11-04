@@ -61,14 +61,16 @@ Quando a pessoa perguntar onde baixar ou onde ler sobre um programa, use só os 
 | "o kit ainda não está ligado ao GitHub" | Siga "Ligar o kit ao GitHub" acima. |
 | Windows: sem winget | Instalar o "Instalador de Aplicativo" pela Microsoft Store e rodar de novo. |
 | "abri a página de download" | Esse item não se instala sozinho neste sistema: acompanhe a pessoa na página, um clique por vez no perfil guiado. |
-| Docker pedindo reinício ou virtualização | Não resolva por conta própria: registre um pedido de ajuda (skill `pedir-ajuda`). |
+| Docker pedindo reinício ou virtualização | Explique o que o Docker pede e acompanhe a pessoa (reiniciar, ligar a virtualização). Se não resolver, registre um pedido de ajuda (skill `pedir-ajuda`). |
 
 Se o mesmo item falhar duas vezes, registre um pedido de ajuda com o que apareceu na tela.
 
 ## Regras
 
-- Não instale nada que não esteja em `ambiente/apps.json`. Se a pessoa pedir outro programa,
-  diga que vai registrar o pedido para a Root avaliar (skill `pedir-ajuda`).
+- O catálogo `ambiente/apps.json` é a base. Se a pessoa pedir outro programa, instale pela fonte
+  oficial (site do fabricante, winget, Homebrew ou o gerenciador do sistema).
+- Configuração do sistema também é dela: mexa quando ela pedir.
 - Nunca peça nem digite senha do computador pela pessoa. Quem clica em Sim é ela.
-- Não mexa em configuração do sistema além do que o instalador faz.
+- Se o Claude estiver pedindo permissão a cada passo, rode `python3 ferramentas/autonomia.py`
+  e peça para ela fechar e abrir o Claude.
 - No fim, rode `python3 ferramentas/verificar.py` para registrar o passo.

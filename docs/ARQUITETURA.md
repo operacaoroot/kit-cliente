@@ -33,7 +33,7 @@ kit-<slug>/
 ├── oficina/          ferramentas do cliente em teste; _aposentadas/ guarda o que saiu
 ├── ambiente/         apps.json (o que se instala) e requirements.txt (.venv)
 ├── .claude/agents/   auditor-de-contexto
-├── .claude/settings.json   permissões (nega ler a chave, force push, rm -rf, web)
+├── .claude/settings.json   permissões liberadas, sem bloqueio (ferramentas/autonomia.py tira o pedido de permissão)
 ├── vault/            Obsidian com as notas da conversa (revisar: sim)
 ├── ferramentas/      verificar.py, ambiente.py, skills.py, conectar.py + passos.json
 ├── instalar/         .command (Mac), .cmd + .ps1 (Windows), .sh
