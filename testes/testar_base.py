@@ -233,10 +233,14 @@ class KitWindows(unittest.TestCase):
         comece = (kit / "COMECE-AQUI.md").read_text(encoding="utf-8")
         self.assertIn("instalar\\instalar.cmd", comece)
 
-    def test_permissoes_cobrem_o_python_do_windows(self):
-        cfg = json.loads((Kits.kits["windows"] / ".claude" / "settings.json").read_text(encoding="utf-8"))
-        for ferramenta in ("verificar", "ambiente", "skills", "conectar"):
-            self.assertIn("Bash(.venv/Scripts/python ferramentas/{}.py:*)".format(ferramenta), cfg["permissions"]["allow"])
+    def test_permissoes_liberadas_sem_bloqueio(self):
+        for sistema in ("mac", "windows"):
+            cfg = json.loads((Kits.kits[sistema] / ".claude" / "settings.json").read_text(encoding="utf-8"))
+            perm = cfg["permissions"]
+            self.assertEqual(perm.get("deny"), [], sistema)
+            self.assertNotIn("ask", perm, sistema)
+            for ferramenta in ("Bash", "Read", "Edit", "Write", "WebFetch", "WebSearch"):
+                self.assertIn(ferramenta, perm["allow"], sistema)
 
 
 class Oficina(unittest.TestCase):
@@ -354,6 +358,54 @@ class Acesso(unittest.TestCase):
         r = subprocess.run([sys.executable, str(RAIZ / "montador" / "acesso.py")], capture_output=True, text=True)
         self.assertEqual(r.returncode, 2)
         self.assertIn("encerrar", r.stdout)
+
+
+class Autonomia(unittest.TestCase):
+    """ferramentas/autonomia.py libera o Claude da pessoa sem perder o resto da configuração."""
+
+    def setUp(self):
+        self.pasta = Path(tempfile.mkdtemp(prefix="kit-autonomia-"))
+        self.arq = self.pasta / "settings.json"
+        self.env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.pasta))
+
+    def tearDown(self):
+        shutil.rmtree(self.pasta, ignore_errors=True)
+
+    def rodar(self, *args):
+        return subprocess.run([sys.executable, str(MODELO / "ferramentas" / "autonomia.py")] + list(args),
+                              env=self.env, capture_output=True, text=True)
+
+    def test_tira_bloqueios_e_guarda_o_resto(self):
+        antes = {"model": "opus", "hooks": {"Stop": []}, "disableBypassPermissionsMode": "disable",
+                 "permissions": {"allow": ["Bash(ls:*)"], "deny": ["Bash(ssh:*)"], "ask": ["Bash(rm:*)"],
+                                 "defaultMode": "default", "disableBypassPermissionsMode": "disable"}}
+        self.arq.write_text(json.dumps(antes), encoding="utf-8")
+        self.assertEqual(self.rodar("--conferir").returncode, 1)
+        self.assertEqual(self.rodar().returncode, 0)
+        cfg = json.loads(self.arq.read_text(encoding="utf-8"))
+        self.assertEqual(cfg["permissions"], {"allow": ["Bash(ls:*)"], "deny": [], "defaultMode": "bypassPermissions"})
+        self.assertTrue(cfg["skipDangerousModePermissionPrompt"])
+        self.assertNotIn("disableBypassPermissionsMode", cfg)
+        self.assertEqual((cfg["model"], cfg["hooks"]), ("opus", {"Stop": []}))
+        copias = list(self.pasta.glob("settings.json.antes-do-kit-*"))
+        self.assertEqual(len(copias), 1)
+        self.assertEqual(json.loads(copias[0].read_text(encoding="utf-8")), antes)
+
+    def test_sem_arquivo_cria_e_segunda_vez_nao_mexe(self):
+        self.assertEqual(self.rodar().returncode, 0)
+        self.assertEqual(json.loads(self.arq.read_text(encoding="utf-8"))["permissions"]["defaultMode"], "bypassPermissions")
+        self.assertIn("já estava liberado", self.rodar().stdout)
+        self.assertEqual(list(self.pasta.glob("settings.json.antes-do-kit-*")), [])
+
+    def test_json_quebrado_nao_e_sobrescrito(self):
+        self.arq.write_text("{ quebrado", encoding="utf-8")
+        self.assertEqual(self.rodar().returncode, 1)
+        self.assertEqual(self.arq.read_text(encoding="utf-8"), "{ quebrado")
+
+    def test_instaladores_chamam_a_autonomia(self):
+        for nome in ("instalar.sh", "instalar.ps1"):
+            self.assertIn("autonomia.py", (MODELO / "instalar" / nome).read_text(encoding="utf-8"), nome)
+        self.assertIn("autonomia.py", (MODELO / "ferramentas" / "onboarding.py").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

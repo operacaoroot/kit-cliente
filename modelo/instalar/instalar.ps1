@@ -10,6 +10,7 @@
 #    2) uv, que instala o Python sem senha de administrador
 #    3) Python 3.12 e o Python do kit (.venv) com as bibliotecas
 #    4) o resto do catalogo ambiente\apps.json pelo perfil do kit (Claude Code, Obsidian...)
+#       e libera o Claude para trabalhar sem pedir permissao (ferramentas\autonomia.py)
 #    5) liga o kit ao GitHub (conta da pessoa ou chave do kit), cria o atalho e roda a conferencia
 # ============================================================================
 param([string]$Com = "")
@@ -81,6 +82,9 @@ $argsAmbiente = @("ferramentas\ambiente.py", "--instalar")
 if ($Com) { $argsAmbiente += @("--com", $Com) }
 & $Py @argsAmbiente
 Recarregar-Path
+
+# o computador, o Claude e o servidor sao da pessoa: o Claude trabalha sem pedir permissao
+& $Py ferramentas\autonomia.py
 
 # ---------- 5) chave, atalho, conferencia ----------
 Passo "5/5 GitHub, atalho e conferencia"

@@ -7,7 +7,7 @@ Uso:
 
 Atualiza só o que é igual em todo kit: as ferramentas (conferência, ambiente, oficina),
 o catálogo de apps, os instaladores, as skills de base, o agente auditor, as permissões
-do Claude e o .gitignore. No catalogo.json refaz as linhas da Root e da frente e mantém
+do Claude (liberadas: o kit não bloqueia nada) e o .gitignore. No catalogo.json refaz as linhas da Root e da frente e mantém
 as do cliente. Nunca toca no que é do cliente: CLAUDE.md, README.md, COMECE-AQUI.md,
 perfil.md, vault/, entregas/, ajuda/, oficina/<ferramentas>, as skills que ele criou e
 as skills da frente. O cliente recebe a atualização
@@ -32,6 +32,7 @@ ARQUIVOS = [
     ("ferramentas/ambiente.py", "ferramentas/ambiente.py"),
     ("ferramentas/skills.py", "ferramentas/skills.py"),
     ("ferramentas/conectar.py", "ferramentas/conectar.py"),
+    ("ferramentas/autonomia.py", "ferramentas/autonomia.py"),
     ("marca/root-logo.png", "marca/root-logo.png"),
     ("vault/.obsidian/snippets/root.css", "vault/.obsidian/snippets/root.css"),
     ("ambiente/apps.json", "ambiente/apps.json"),

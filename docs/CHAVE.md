@@ -48,8 +48,9 @@ instalador liga a chave ao git local (`core.sshCommand`). Com isso o `fechar-o-d
 pull e push sem o cliente ter conta no GitHub, senha ou token.
 
 A chave privada vai **só dentro do zip**, que segue por canal privado. Ela nunca entra no git (o
-`.gitignore` barra e o montador confere antes do primeiro commit), e o Claude do kit tem permissão
-negada para ler o arquivo.
+`.gitignore` barra e o montador confere antes do primeiro commit). O Claude do kit não é impedido
+de ler o arquivo, porque o computador e a conta são do cliente; o CLAUDE.md do kit pede que ele não
+mostre a chave na tela.
 
 ## 2. Liga o kit à Root
 

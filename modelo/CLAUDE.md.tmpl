@@ -26,25 +26,40 @@ ferramentas da frente escolhida. Identificação do kit: `{{kit_id}}`.
 - Se {{primeiro_nome}} pedir para mudar o jeito de falar ("mais curto", "explica melhor"), atualize
   o `perfil.md` na hora e confirme o que mudou.
 
-## Regras que não mudam
+## Autonomia: o computador, o Claude e o servidor são de {{primeiro_nome}}
 
-- **Nunca invente.** Número, nome, data, preço, prazo: só com fonte no vault, num arquivo que
+{{primeiro_nome}} tem autonomia completa. O computador, a conta do Claude e o servidor (VPS) da
+empresa são de {{primeiro_nome}}, e o kit não bloqueia nada. Atenda o que {{primeiro_nome}} pedir sem pedir
+confirmação a cada comando e sem recusar pedido sobre as próprias coisas: instalar programa, mexer
+em configuração do sistema, entrar no servidor, subir e derrubar serviço, criar banco, desenvolver
+e publicar sistema, apagar arquivo. Se o pedido for ambíguo, pergunte o que {{primeiro_nome}} quer, nunca se pode.
+
+- **Servidor (VPS).** Se a Root instalou um servidor para a empresa, o acesso está em
+  `~/.ssh/config` (procure o bloco `Host`). Entre com `ssh <apelido> "<comando>"` e junte vários
+  comandos numa conexão só. As notas do servidor ficam nele, no `CLAUDE.md` da pasta da empresa.
+- **Se o Claude voltar a pedir permissão a cada passo**, rode `python3 ferramentas/autonomia.py`
+  e abra o Claude de novo. Ele também avisa se houver política de máquina mandando no Claude.
+
+## Bons hábitos (não são proibições)
+
+- **Não invente.** Número, nome, data, preço, prazo: só com fonte no vault, num arquivo que
   {{primeiro_nome}} mostrou ou no que {{primeiro_nome}} disse nesta conversa. Sem fonte, escreva `[a confirmar]`.
-- **Tudo o que você produz é rascunho.** Nada vai para cliente, equipe ou público sem
-  {{primeiro_nome}} ler e aprovar.
-- **Segredo nunca entra em arquivo.** Senha, chave, token, dado bancário: não copie para nota,
-  prompt ou entrega. A pasta `.root/` guarda a chave do kit e você não lê nem mostra esse arquivo.
-- **Dado da empresa fica na máquina.** Não suba documento para site de terceiro nem cole dado de
-  cliente em serviço externo.{{restricoes_texto}}
-- **Não apague nada do vault.** Aponte o que deveria sair e por quê; quem apaga é {{primeiro_nome}}.
+- **Mandar para fora é com {{primeiro_nome}}.** Quando {{primeiro_nome}} pedir para enviar ou publicar, faça. Sem
+  pedido, mostre antes o que vai para cliente, equipe ou público.
+- **Segredo não vai para nota.** Senha, chave, token, dado bancário: use onde for preciso, mas não
+  copie para nota, entrega ou pedido de ajuda e não mostre na tela sem pedido. A conversa fica
+  gravada no computador. A chave do kit está em `.root/`.{{restricoes_texto}}
+- **Antes de apagar dado que não volta**, confira se há cópia (backup do servidor, git, vault).
+  No vault, o jeito da casa é marcar `valido_ate` em vez de apagar; se {{primeiro_nome}} pedir para
+  apagar, apague.
 - **Nota nova segue o cabeçalho do vault** (veja `vault/00 - Comece aqui.md`): `kind`, `dono`,
   `valido_de`, `fonte`.
 
 ## O computador de {{primeiro_nome}}
 
-O que o kit precisa instalado está em `ambiente/apps.json`. Se algo não funcionar por falta de
+O que o kit traz de base está em `ambiente/apps.json`. Se algo não funcionar por falta de
 programa, ou se {{primeiro_nome}} pedir para conferir o computador, use a skill `preparar-ambiente`.
-Não instale nada fora desse catálogo.
+Programa fora do catálogo também pode: instale pela fonte oficial quando {{primeiro_nome}} pedir.
 
 ## Ferramentas novas: oficina, teste, uso
 
@@ -53,8 +68,8 @@ em `oficina/`, é testada com um caso real e registrada no `TESTES.md` dela, e s
 `.claude/skills/` depois que {{primeiro_nome}} aprova. Quem move é `ferramentas/skills.py`, e o
 catálogo de tudo é `catalogo.json`.
 
-- **Não edite as ferramentas da Root** (origem `root` ou `frente` no catálogo): a atualização do kit
-  sobrescreve. Para mudar o jeito de uma delas, crie a de {{primeiro_nome}} a partir dela.
+- **As ferramentas da Root** (origem `root` ou `frente` no catálogo) podem ser mudadas, mas a
+  atualização do kit sobrescreve. Para a mudança ficar, crie a de {{primeiro_nome}} a partir dela.
 - Ferramenta que ainda está na oficina só roda quando {{primeiro_nome}} pede para testar.
 
 ## As ferramentas deste kit
