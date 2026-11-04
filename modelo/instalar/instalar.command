@@ -13,4 +13,11 @@ if ! /usr/bin/python3 --version >/dev/null 2>&1; then
   read -r -p "Tecle Enter para fechar esta janela." _
   exit 1
 fi
-exec /usr/bin/python3 "$DIR/../ferramentas/onboarding.py"
+# O agente do kit (agente em .root/cliente.json) decide a entrada: com a página guiada
+# (ferramentas/onboarding.py, só no kit com agente claude) ou direto pelo instalador de terminal.
+AGENTE="$(KIT_DIR="$DIR/.." /usr/bin/python3 -c "import json,os;print(json.load(open(os.path.join(os.environ['KIT_DIR'],'.root','cliente.json'))).get('agente') or 'claude')" 2>/dev/null || echo claude)"
+if [ "$AGENTE" = "claude" ] && [ -f "$DIR/../ferramentas/onboarding.py" ]; then
+  exec /usr/bin/python3 "$DIR/../ferramentas/onboarding.py"
+fi
+bash "$DIR/instalar.sh"
+read -r -p "Tecle Enter para fechar esta janela." _

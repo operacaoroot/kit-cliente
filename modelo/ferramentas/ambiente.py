@@ -31,6 +31,9 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import agente  # noqa: E402  (mesma pasta; qual agente trabalha neste kit)
+
 KIT = Path(__file__).resolve().parent.parent
 CATALOGO = KIT / "ambiente" / "apps.json"
 REQUISITOS = KIT / "ambiente" / "requirements.txt"
@@ -530,8 +533,8 @@ def imprimir(conf):
         print()
     print(("[ok]    " if conf["venv"]["pronto"] else "[falta] ") + conf["venv"]["detalhe"])
     if conf["faltam_obrigatorios"]:
-        print("\nFalta instalar: {}. Rode o instalador do kit ou peça ao Claude: \"confere o meu computador\".".format(
-            ", ".join(conf["faltam_obrigatorios"])))
+        print("\nFalta instalar: {}. Rode o instalador do kit ou peça ao {}: \"confere o meu computador\".".format(
+            ", ".join(conf["faltam_obrigatorios"]), agente.NOME))
 
 
 def listar():

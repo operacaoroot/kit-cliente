@@ -101,6 +101,8 @@ A pontuação propõe um perfil; um sócio confere e assina `perfil.escolhido` e
 
 Consulte o [roteiro de kickoff](docs/KICKOFF.md), os [perfis](docs/PERFIS.md) e o [manifesto de exemplo](manifestos/exemplo-marina-duarte.json).
 
+Se o agente do computador da pessoa for o **Codex do ChatGPT** em vez do Claude, ponha `"agente": "codex"` no manifesto (e o bloco `mcp` quando a empresa tiver servidor MCP). O kit sai com o Codex CLI, `AGENTS.md`, as skills em `.agents/skills` e o registro do servidor por `codex mcp add` na instalação. Critérios, testes e validação real em [Kit em versão Codex](docs/KIT-CODEX.md); exemplo fictício em `manifestos/exemplo-codex-helena-prado.json`.
+
 ### 2. Gerar o kit e o repositório privado
 
 ```bash
@@ -146,6 +148,7 @@ O agendamento de três execuções diárias é configurado separadamente; execut
 |---|---|
 | Entender etapas, responsabilidades e estrutura do kit | [Arquitetura](docs/ARQUITETURA.md) |
 | Conferir a página guiada, a coleta e os critérios de conclusão | [Onboarding no macOS](docs/ONBOARDING-GUIADO.md) |
+| Montar o kit com o Codex no lugar do Claude | [Kit em versão Codex](docs/KIT-CODEX.md) |
 | Ver programas, instalação por sistema e links oficiais | [Ambiente](docs/AMBIENTE.md) |
 | Criar ferramentas com o cliente | [Desenvolvimento](docs/DESENVOLVIMENTO.md) |
 | Alterar textos, página, cofre ou skills de base | [`modelo/`](modelo/) |
@@ -163,6 +166,7 @@ Os testes de API do onboarding precisam poder abrir uma porta local. Para os tes
 ```bash
 python3 testes/testar_onboarding.py -v
 KIT_SELO_SEGREDO=teste-local-descartavel python3 testes/testar_base.py -v
+KIT_SELO_SEGREDO=teste-local-descartavel python3 testes/testar_codex.py -v
 python3 -m compileall -q modelo/ferramentas montador
 bash -n modelo/instalar/instalar.command
 ```

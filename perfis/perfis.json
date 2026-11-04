@@ -47,7 +47,7 @@
   "sinais": [
     {
       "id": "cita-ferramenta-de-ia",
-      "descricao": "Cita pelo nome uma ferramenta de IA que usa (ChatGPT, Claude, Gemini, Copilot).",
+      "descricao": "Cita pelo nome uma ferramenta de IA que usa (ChatGPT, Gemini, Copilot ou outra).",
       "pesos": { "guiado": 0, "chat": 3, "construtor": 2 }
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "id": "tem-prompt-ou-projeto-salvo",
-      "descricao": "Já tem prompt salvo, GPT próprio, projeto no Claude ou instrução personalizada.",
+      "descricao": "Já tem prompt salvo, GPT próprio, projeto numa ferramenta de IA ou instrução personalizada.",
       "pesos": { "guiado": 0, "chat": 2, "construtor": 2 }
     },
     {

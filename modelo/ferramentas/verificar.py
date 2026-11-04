@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import agente  # noqa: E402  (mesma pasta; qual agente trabalha neste kit)
 import ambiente  # noqa: E402  (mesma pasta; lê ambiente/apps.json)
 import conectar  # noqa: E402  (mesma pasta; como o kit fala com o GitHub)
 
@@ -55,9 +56,14 @@ def checar_instalar(sem_rede):
         if not (ROOT_DIR / "chave").exists() and acesso_resumido()["modo"] != "colaborador":
             faltas.append("sem conta do GitHub ligada e sem a chave do kit em .root/chave")
     elif not conectar.estado()["modo"]:
-        faltas.append("o kit ainda não está ligado ao GitHub (peça ao Claude: \"liga o kit ao GitHub\")")
+        faltas.append("o kit ainda não está ligado ao GitHub (peça ao {}: \"liga o kit ao GitHub\")".format(agente.NOME))
     if not (KIT / ".git").exists():
         faltas.append("a pasta do kit não é um repositório git")
+    if cliente_do_kit().get("mcp"):
+        import mcp as servidor_mcp  # noqa: E402  (mesma pasta; o servidor da empresa, só no kit Codex)
+        e = servidor_mcp.estado()
+        if not e["pronto"]:
+            faltas.append("o {} ainda não está ligado ao servidor da empresa (rode python3 ferramentas/mcp.py --registrar)".format(agente.NOME))
     if not faltas and not sem_rede:
         codigo, _, erro = rodar(["git", "ls-remote", "--exit-code", "origin", "HEAD"], timeout=25)
         if codigo != 0:
@@ -134,7 +140,7 @@ def checar_primeira_skill():
     suas = [s for s in skills if s.get("origem") == "cliente"]
     prontas = []
     for s in suas:
-        testes = KIT / ".claude" / "skills" / s["nome"] / "TESTES.md"
+        testes = agente.PASTA_SKILLS / s["nome"] / "TESTES.md"
         if s.get("estado") == "ativa" and testes.exists() and "aprovado" in testes.read_text(encoding="utf-8", errors="ignore").lower():
             prontas.append(s["nome"])
     if prontas:
@@ -233,6 +239,14 @@ def main(argv):
         print("{} {}. {}: {}".format(marca, i, p["titulo"], p["detalhe"]))
     print("\nPasso atual: {}".format(next((p["titulo"] for p in resultado if p["id"] == atual), "todos concluídos")))
     return 0
+
+
+def cliente_do_kit():
+    arq = ROOT_DIR / "cliente.json"
+    try:
+        return json.loads(arq.read_text(encoding="utf-8")) if arq.exists() else {}
+    except ValueError:
+        return {}
 
 
 def acesso_resumido():

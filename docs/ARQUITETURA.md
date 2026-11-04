@@ -27,8 +27,8 @@ e não chama modelo de IA: o mesmo manifesto gera o mesmo kit (fora `kit_id`, ch
 
 ```
 kit-<slug>/
-├── README.md, COMECE-AQUI.md, CLAUDE.md, perfil.md   ← gerados do manifesto
-├── .claude/skills/   8 de base + até 3 receitas da frente + as do cliente
+├── README.md, COMECE-AQUI.md, CLAUDE.md, perfil.md   ← gerados do manifesto (no kit Codex: AGENTS.md)
+├── .claude/skills/   8 de base + até 3 receitas da frente + as do cliente (no kit Codex: .agents/skills/)
 ├── catalogo.json     cada ferramenta: origem (root, frente, cliente), estado, versão
 ├── oficina/          ferramentas do cliente em teste; _aposentadas/ guarda o que saiu
 ├── ambiente/         apps.json (o que se instala) e requirements.txt (.venv)
@@ -40,8 +40,11 @@ kit-<slug>/
 ├── LINKS.md          links oficiais dos programas, das contas e da ajuda (gerado do catálogo)
 ├── marca/            o logo da Root; o vault abre com o tema da Root (snippet do Obsidian)
 ├── entregas/  ajuda/  (entrada/ e _privado/ nunca saem da máquina)
-└── .root/            cliente.json (selo), progresso.json, chave (fora do git)
+└── .root/            cliente.json (selo), progresso.json, chave (fora do git); no kit Codex, mcp.env (token do servidor, fora do git)
 ```
+
+O campo `agente` do manifesto escolhe entre o kit Claude (padrão) e o kit Codex; o que muda está em
+[Kit em versão Codex](KIT-CODEX.md).
 
 ## O que fica na Root
 

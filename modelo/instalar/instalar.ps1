@@ -9,14 +9,16 @@
 #    1) Git (winget; o Windows pede permissao uma vez)
 #    2) uv, que instala o Python sem senha de administrador
 #    3) Python 3.12 e o Python do kit (.venv) com as bibliotecas
-#    4) o resto do catalogo ambiente\apps.json pelo perfil do kit (Claude Code, Obsidian...)
-#       e libera o Claude para trabalhar sem pedir permissao (ferramentas\autonomia.py)
-#    5) liga o kit ao GitHub (conta da pessoa ou chave do kit), cria o atalho e roda a conferencia
+#    4) o resto do catalogo ambiente\apps.json pelo perfil do kit (o agente do kit, Obsidian...)
+#       e o que o agente do kit pede (instalar\agente.ps1: Agente-Preparar)
+#    5) liga o kit ao GitHub (conta da pessoa ou chave do kit), faz a ligacao do agente
+#       (Agente-Ligar), cria o atalho (Agente-Atalho) e roda a conferencia
 # ============================================================================
 param([string]$Com = "")
 $ErrorActionPreference = "Continue"
 $Kit = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $Kit
+$Cliente = Get-Content (Join-Path $Kit ".root\cliente.json") -Raw -Encoding UTF8 | ConvertFrom-Json
 
 function Passo($t) { Write-Host ""; Write-Host ("== " + $t) -ForegroundColor Cyan }
 function Ok($t)    { Write-Host ("   ok  " + $t) -ForegroundColor Green }
@@ -36,6 +38,9 @@ function Fim($codigo) {
   Read-Host "Tecle Enter para fechar esta janela" | Out-Null
   exit $codigo
 }
+# A parte que muda com o agente do kit mora em instalar\agente.ps1 (Agente-Preparar, Agente-Ligar,
+# Agente-Atalho). O montador poe ali so a versao do agente deste kit.
+. (Join-Path $PSScriptRoot "agente.ps1")
 
 # acento vindo do Python nao pode derrubar o console (cp850)
 $env:PYTHONIOENCODING = "utf-8"
@@ -77,34 +82,30 @@ if (Test-Path $Py) {
 } else { Aviso "nao consegui criar o Python do kit. Feche esta janela, abra de novo e rode outra vez."; Fim 1 }
 
 # ---------- 4) o resto do catalogo ----------
-Passo "4/5 Claude Code, Obsidian e o que o seu perfil pede"
+Passo "4/5 Programas do kit (o agente, Obsidian e o que o seu perfil pede)"
 $argsAmbiente = @("ferramentas\ambiente.py", "--instalar")
 if ($Com) { $argsAmbiente += @("--com", $Com) }
 & $Py @argsAmbiente
 Recarregar-Path
 
-# o computador, o Claude e o servidor sao da pessoa: o Claude trabalha sem pedir permissao
-& $Py ferramentas\autonomia.py
+Agente-Preparar
 
 # ---------- 5) chave, atalho, conferencia ----------
 Passo "5/5 GitHub, atalho e conferencia"
 # Com usuario do GitHub no kit: entra com a conta da pessoa (colaborador).
 # Sem conta, ou se o login nao terminar: liga pela chave do kit.
-$Cliente = Get-Content (Join-Path $Kit ".root\cliente.json") -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($Cliente.github) {
   & $Py ferramentas\conectar.py --conectar
   if ($LASTEXITCODE -ne 0) {
-    Aviso "seguindo pela chave do kit; da para entrar no GitHub depois pelo Claude do kit"
+    Aviso "seguindo pela chave do kit; da para entrar no GitHub depois pelo agente do kit"
     & $Py ferramentas\conectar.py --usar-chave
   }
 } else {
   & $Py ferramentas\conectar.py --usar-chave
 }
 
-$Atalho = Join-Path ([Environment]::GetFolderPath("Desktop")) "Claude do kit.cmd"
-$linhas = @("@echo off", ("cd /d """ + $Kit + """"), "set PATH=%USERPROFILE%\.local\bin;%PATH%", "claude")
-[System.IO.File]::WriteAllText($Atalho, (($linhas -join "`r`n") + "`r`n"), (New-Object System.Text.ASCIIEncoding))
-if (Test-Path $Atalho) { Ok "atalho criado na Area de Trabalho: Claude do kit" } else { Aviso "nao consegui criar o atalho; abra a pasta do kit e rode claude" }
+Agente-Ligar
+Agente-Atalho
 
 & $Py ferramentas\ambiente.py --conferir
 & $Py ferramentas\verificar.py

@@ -27,6 +27,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import agente  # noqa: E402  (mesma pasta; qual agente trabalha neste kit)
+
 KIT = Path(__file__).resolve().parent.parent
 ROOT_DIR = KIT / ".root"
 CHAVE = ROOT_DIR / "chave"
@@ -137,7 +140,7 @@ def conectar():
         print("Falta .root/cliente.json. Fale com a Root.")
         return 1
     if not shutil.which("gh"):
-        print("O GitHub CLI não está instalado. Rode o instalador do kit ou peça ao Claude: \"confere o meu computador\".")
+        print("O GitHub CLI não está instalado. Rode o instalador do kit ou peça ao {}: \"confere o meu computador\".".format(agente.NOME))
         return 1
     codigo, _ = gh("auth", "status", "--hostname", "github.com")
     if codigo != 0:

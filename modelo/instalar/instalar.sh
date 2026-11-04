@@ -1,6 +1,7 @@
 #!/bin/bash
 # Instalador do kit (Mac e Linux). Prepara o computador a partir de ambiente/apps.json,
-# cria o Python do kit, liga o kit ao GitHub (conta da pessoa ou chave do kit) e roda a conferência.
+# cria o Python do kit, liga o kit ao GitHub (conta da pessoa ou chave do kit), faz o que o agente
+# do kit pede (instalar/agente.sh: liberação, servidor da empresa, atalho) e roda a conferência.
 # Pode rodar quantas vezes quiser: o que já está instalado é pulado.
 # Opcionais do catálogo: bash instalar/instalar.sh --com vscode,docker
 set -u
@@ -10,6 +11,9 @@ SISTEMA="$(uname -s)"
 
 passo() { printf '\n== %s\n' "$1"; }
 falha() { printf '\n[atenção] %s\n' "$1"; }
+# A parte que muda com o agente do kit (claude ou codex) mora em instalar/agente.sh:
+# agente_preparar, agente_ligar e agente_atalho. O montador põe ali só a versão do agente deste kit.
+. "$KIT/instalar/agente.sh"
 
 passo "Conferindo as ferramentas básicas"
 if [ "$SISTEMA" = "Darwin" ] && ! xcode-select -p >/dev/null 2>&1; then
@@ -25,8 +29,7 @@ python3 ferramentas/ambiente.py --instalar "$@"
 export PATH="$HOME/.local/bin:$PATH"
 python3 ferramentas/ambiente.py --venv
 
-passo "Liberando o Claude para trabalhar sem pedir permissão"
-python3 ferramentas/autonomia.py
+agente_preparar
 
 passo "Ligando o kit ao GitHub"
 # Com usuário do GitHub no kit: entra com a conta da pessoa (colaborador). Sem conta, ou se o
@@ -37,12 +40,11 @@ else
   python3 ferramentas/conectar.py --usar-chave
 fi
 
-passo "Criando o atalho do Claude do kit"
+agente_ligar
+
 if [ "$SISTEMA" = "Darwin" ]; then
   mkdir -p "$HOME/Desktop"
-  ATALHO="$HOME/Desktop/Claude do kit.command"
-  printf '#!/bin/bash\nexport PATH="$HOME/.local/bin:$PATH"\ncd "%s" && exec claude\n' "$KIT" > "$ATALHO" && chmod +x "$ATALHO"
-  if [ -x "$ATALHO" ]; then echo "atalho criado na Mesa: Claude do kit"; else falha "não consegui criar o atalho na Mesa; abra o Terminal na pasta do kit e digite claude"; fi
+  agente_atalho
 fi
 
 passo "Conferência"

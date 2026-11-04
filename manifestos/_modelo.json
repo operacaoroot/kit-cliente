@@ -10,6 +10,10 @@
     "email": "email@do-cliente.com",
     "sistema": "mac"
   },
+  "agente": "claude",
+  "_agente": "claude (padrão) ou codex. No codex, o kit sai com o Codex CLI, AGENTS.md e .agents/skills (docs/KIT-CODEX.md).",
+  "mcp": null,
+  "_mcp": "só no kit Codex, quando a empresa tem servidor MCP: {\"nome\": \"empresa-os\", \"url\": \"https://mcp.empresa.com.br/mcp\", \"perfil\": \"leitura | equipe | full\", \"variavel\": \"EMPRESA_MCP_TOKEN\"}. O token NUNCA entra aqui: é digitado na instalação.",
   "kickoff": {
     "data": "AAAA-MM-DD",
     "conduzido_por": "sócio que conduziu",

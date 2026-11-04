@@ -98,8 +98,10 @@ class CatalogoDeApps(unittest.TestCase):
         for a in self.apps:
             if "obrigatorio" in a["perfis"].values():
                 self.assertEqual(set(a["perfis"].values()), {"obrigatorio"}, a["id"])
-        obrig = {a["id"] for a in self.apps if a["perfis"]["chat"] == "obrigatorio"}
+        obrig = {a["id"] for a in self.apps if a["perfis"]["chat"] == "obrigatorio" and a.get("agente", "claude") == "claude"}
         self.assertEqual(obrig, {"git", "gh", "uv", "python", "node", "java", "claude-code", "obsidian"})
+        obrig_codex = {a["id"] for a in self.apps if a["perfis"]["chat"] == "obrigatorio" and a.get("agente", "codex") == "codex"}
+        self.assertEqual(obrig_codex, {"git", "gh", "uv", "python", "node", "java", "codex", "obsidian"})
 
     def test_todo_app_tem_links_oficiais(self):
         for a in self.apps:
@@ -403,9 +405,16 @@ class Autonomia(unittest.TestCase):
         self.assertEqual(self.arq.read_text(encoding="utf-8"), "{ quebrado")
 
     def test_instaladores_chamam_a_autonomia(self):
-        for nome in ("instalar.sh", "instalar.ps1"):
+        # A parte do instalador que é do agente mora em instalar/agente-<agente>.{sh,ps1}; o kit recebe só a sua.
+        for nome in ("agente-claude.sh", "agente-claude.ps1"):
             self.assertIn("autonomia.py", (MODELO / "instalar" / nome).read_text(encoding="utf-8"), nome)
+        self.assertIn('. "$KIT/instalar/agente.sh"', (MODELO / "instalar" / "instalar.sh").read_text(encoding="utf-8"))
+        self.assertIn('. (Join-Path $PSScriptRoot "agente.ps1")', (MODELO / "instalar" / "instalar.ps1").read_text(encoding="ascii"))
         self.assertIn("autonomia.py", (MODELO / "ferramentas" / "onboarding.py").read_text(encoding="utf-8"))
+        kit = Kits.kits["mac"]
+        self.assertIn("autonomia.py", (kit / "instalar" / "agente.sh").read_text(encoding="utf-8"))
+        self.assertIn("Claude do kit", (kit / "instalar" / "agente.sh").read_text(encoding="utf-8"))
+        self.assertFalse((kit / "instalar" / "agente-claude.sh").exists())
 
 
 if __name__ == "__main__":

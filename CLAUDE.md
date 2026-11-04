@@ -37,7 +37,12 @@ Fábrica dos kits de onboarding da Root. Leia o `README.md` e `docs/ARQUITETURA.
   `modelo/marca/` e tema do Obsidian em `modelo/vault/.obsidian/snippets/root.css`.
 - Texto de kit Windows não pode ter `python3 `: o montador troca por `.venv/Scripts/python `.
 - Skill de base nova é qualquer pasta em `modelo/.claude/skills/` com `SKILL.md`: o montador e o
-  `atualizar.py` a levam sozinhos e a registram no `catalogo.json`.
+  `atualizar.py` a levam sozinhos e a registram no `catalogo.json`. No kit Codex ela vai convertida
+  para `.agents/skills/` por `para_codex` (montar.py): texto novo que cite o Claude como agente
+  precisa passar nessa conversão (`testes/testar_codex.py`).
+- `agente: codex` no manifesto monta o kit com o Codex (docs/KIT-CODEX.md). Peça só de um agente
+  entra em `SO_DO_CLAUDE` ou `SO_DO_CODEX` no montar.py e na lista do atualizar.py; app ou serviço
+  só de um agente leva `agente` no `apps.json`.
 - Mudança aqui se constrói em branch `homologacao/...` e entra na `main` depois dos 20 minutos de
   quinta. Conserto de defeito é na hora, avisando.
 - Nada deste repositório nem dos kits sai do GitHub `operacaoroot` e da VPS da Root.
