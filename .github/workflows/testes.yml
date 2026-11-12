@@ -35,3 +35,11 @@ jobs:
         env:
           KIT_SELO_SEGREDO: ci-descartavel
         run: python testes/testar_codex.py -v
+      - name: Sistemas de trabalho e conversa conduzida
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_sistemas.py -v
+      - name: Roteiro de revisão dos sistemas e kit de revisão
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_revisao.py -v

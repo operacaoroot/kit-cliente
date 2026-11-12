@@ -109,4 +109,6 @@ Agente-Atalho
 
 & $Py ferramentas\ambiente.py --conferir
 & $Py ferramentas\verificar.py
+# o agente do kit pode abrir a conversa ja na pasta do kit (instalar\agente.ps1)
+if (Get-Command Agente-Abrir -ErrorAction SilentlyContinue) { Agente-Abrir }
 Fim 0

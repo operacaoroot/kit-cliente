@@ -623,7 +623,9 @@ class Atualizacao(unittest.TestCase):
             self.assertIn(comum, codex.values(), comum)
         self.assertEqual(codex["instalar/agente-codex.sh"], "instalar/agente.sh")
         self.assertEqual(claude["instalar/agente-claude.sh"], "instalar/agente.sh")
-        self.assertIn(".claude/settings.json", claude.values())
+        # as permissões do kit Claude saem do manifesto (settings_do_kit), não de cópia do modelo
+        self.assertNotIn(".claude/settings.json", claude.values())
+        self.assertIs(atualizar.settings_do_kit, montar.settings_do_kit)
         self.assertIn("ferramentas/autonomia.py", claude.values())
         self.assertNotIn("ferramentas/mcp.py", claude.values())
         self.assertIn("ferramentas/agente.py", claude.values())
