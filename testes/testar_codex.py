@@ -43,10 +43,13 @@ DUBLE_DO_CODEX = """#!/bin/bash
 # Dublê do codex para os testes: registra os argumentos e finge o registro do servidor.
 echo "$*" >> "$CODEX_DUBLE_LOG"
 case "$1 $2" in
-  "mcp add") touch "$CODEX_DUBLE_LOG.add"; exit 0 ;;
+  "mcp add") [ "${CODEX_DUBLE_FALHAR_ADD:-0}" = 1 ] && exit 1; touch "$CODEX_DUBLE_LOG.add"; exit 0 ;;
   "mcp remove") rm -f "$CODEX_DUBLE_LOG.add"; exit 0 ;;
   "mcp get")
-    if [ -f "$CODEX_DUBLE_LOG.add" ]; then echo "$3"; echo "  url: $CODEX_DUBLE_URL"; exit 0; fi
+    if [ -f "$CODEX_DUBLE_LOG.add" ]; then
+      printf '{"name":"%s","enabled":true,"transport":{"type":"streamable_http","url":"%s","bearer_token_env_var":"%s"}}\\n' "$3" "$CODEX_DUBLE_URL" "${CODEX_DUBLE_VAR:-EXEMPLO_OS_MCP_TOKEN}"
+      exit 0
+    fi
     echo "No MCP server named $3" >&2; exit 1 ;;
 esac
 exit 0
@@ -431,7 +434,7 @@ class Mcp(unittest.TestCase):
         py(self.kit, "ferramentas/mcp.py", "--registrar", env=self.env(), check=True)
         chamadas = self.log.read_text(encoding="utf-8").splitlines()
         self.assertEqual(sum(1 for c in chamadas if c.startswith("mcp add ")), 2)
-        self.assertIn("mcp remove {}".format(MCP_TESTE["nome"]), chamadas)
+        self.assertNotIn("mcp remove {}".format(MCP_TESTE["nome"]), chamadas)
         self.assertTrue(self.conferir()["pronto"])
 
     def test_sem_token_e_sem_terminal_falha_sem_gravar(self):
@@ -446,18 +449,47 @@ class Mcp(unittest.TestCase):
         self.assertTrue((self.kit / ".root" / "mcp.env").exists())
         self.assertIn("codex", (r.stdout + r.stderr).lower())
 
+    def test_falha_de_registro_preserva_token_e_servidor(self):
+        py(self.kit, "ferramentas/mcp.py", "--registrar", env=self.env(), check=True)
+        anterior = (self.kit / ".root/mcp.env").read_bytes()
+        e = self.env()
+        e.update(KIT_MCP_TOKEN="outro-token", CODEX_DUBLE_FALHAR_ADD="1")
+        r = py(self.kit, "ferramentas/mcp.py", "--registrar", env=e)
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual((self.kit / ".root/mcp.env").read_bytes(), anterior)
+        self.assertTrue(self.conferir()["pronto"])
+
+    def test_registro_com_variavel_errada_nao_esta_pronto(self):
+        py(self.kit, "ferramentas/mcp.py", "--registrar", env=self.env(), check=True)
+        env = self.env()
+        env["CODEX_DUBLE_VAR"] = "OUTRO_TOKEN"
+        r = py(self.kit, "ferramentas/mcp.py", "--conferir", "--json", env=env)
+        self.assertEqual(r.returncode, 1)
+        self.assertFalse(json.loads(r.stdout)["pronto"])
+
     def test_testar_contrato_http(self):
         token = self.token
+        resposta = {"codigo": 200, "valida": True, "sse": False}
 
         class Servidor(http.server.BaseHTTPRequestHandler):
-            def _responder(self):
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get("Content-Length", 0)))
                 if self.headers.get("Authorization") != "Bearer " + token:
                     self.send_response(401)
-                else:
-                    self.send_response(406)
+                    self.end_headers()
+                    return
+                self.send_response(resposta["codigo"])
+                self.send_header("Content-Type", "text/event-stream" if resposta["sse"] else "application/json")
                 self.end_headers()
+                resultado = {"jsonrpc": "2.0", "id": "kit-health", "result": {
+                    "protocolVersion": "2025-03-26", "capabilities": {},
+                    "serverInfo": {"name": "teste", "version": "1"}}}
+                corpo = json.dumps(resultado) if resposta["valida"] else '<html>erro</html>'
+                if resposta["sse"]:
+                    corpo = 'event: message\ndata: ' + corpo + '\n\n'
+                self.wfile.write(corpo.encode())
 
-            do_GET = do_POST = _responder
+            do_GET = do_POST
 
             def log_message(self, *a):
                 pass
@@ -471,9 +503,15 @@ class Mcp(unittest.TestCase):
             cliente["mcp"]["url"] = "http://127.0.0.1:{}/mcp".format(srv.server_port)
             cliente_arq.write_text(json.dumps(cliente, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             (self.kit / ".root" / "mcp.env").write_text("export {}={}\n".format(MCP_TESTE["variavel"], token), encoding="utf-8")
-            r = py(self.kit, "ferramentas/mcp.py", "--testar", env=self.env(token=False))
-            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-            self.assertIn("401", r.stdout)
+            for codigo, valida, sse, esperado in [(200, True, False, 0), (200, True, True, 0),
+                    (200, False, False, 1), (400, True, False, 1), (404, True, False, 1),
+                    (406, True, False, 1), (500, True, False, 1), (503, True, False, 1)]:
+                with self.subTest(codigo=codigo, valida=valida, sse=sse):
+                    resposta.update(codigo=codigo, valida=valida, sse=sse)
+                    r = py(self.kit, "ferramentas/mcp.py", "--testar", env=self.env(token=False))
+                    self.assertEqual(r.returncode, esperado, r.stdout + r.stderr)
+                    self.assertIn("401", r.stdout)
+            resposta.update(codigo=200, valida=True, sse=False)
             (self.kit / ".root" / "mcp.env").write_text("export {}=errado\n".format(MCP_TESTE["variavel"]), encoding="utf-8")
             r = py(self.kit, "ferramentas/mcp.py", "--testar", env=self.env(token=False))
             self.assertEqual(r.returncode, 1, r.stdout + r.stderr)

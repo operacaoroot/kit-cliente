@@ -54,7 +54,7 @@ elseif (Tem winget) {
   Aviso "o Windows vai pedir permissao para instalar o Git: clique em Sim"
   winget install --id Git.Git -e --silent --accept-package-agreements --accept-source-agreements
   Recarregar-Path
-  if (Tem git) { Ok "Git instalado" } else { Aviso "o Git nao ficou disponivel. Feche esta janela, abra de novo e rode outra vez." }
+  if (Tem git) { Ok "Git instalado" } else { Aviso "o Git nao ficou disponivel. Feche esta janela, abra de novo e rode outra vez."; Fim 1 }
 }
 else {
   Aviso "este Windows nao tem o winget. Instale o 'Instalador de Aplicativo' pela Microsoft Store e rode de novo."
@@ -74,10 +74,12 @@ else {
 # ---------- 3) Python do kit ----------
 Passo "3/5 Python 3.12 e o Python do kit (.venv)"
 uv python install 3.12
+if ($LASTEXITCODE -ne 0) { Aviso "nao consegui preparar o Python 3.12."; Fim 1 }
 $Py = Join-Path $Kit ".venv\Scripts\python.exe"
 if (-not (Test-Path $Py)) { uv venv --python 3.12 (Join-Path $Kit ".venv") }
 if (Test-Path $Py) {
   uv pip install --quiet --python $Py -r (Join-Path $Kit "ambiente\requirements.txt")
+  if ($LASTEXITCODE -ne 0) { Aviso "as bibliotecas do Python do kit nao ficaram prontas."; Fim 1 }
   Ok "Python do kit pronto"
 } else { Aviso "nao consegui criar o Python do kit. Feche esta janela, abra de novo e rode outra vez."; Fim 1 }
 
@@ -86,9 +88,12 @@ Passo "4/5 Programas do kit (o agente, Obsidian e o que o seu perfil pede)"
 $argsAmbiente = @("ferramentas\ambiente.py", "--instalar")
 if ($Com) { $argsAmbiente += @("--com", $Com) }
 & $Py @argsAmbiente
+if ($LASTEXITCODE -ne 0) { Aviso "faltam programas obrigatorios; corrija o aviso acima e rode de novo."; Fim 1 }
 Recarregar-Path
 
+$global:LASTEXITCODE = 0
 Agente-Preparar
+if ($LASTEXITCODE -ne 0) { Aviso "a preparacao do agente nao terminou."; Fim 1 }
 
 # ---------- 5) chave, atalho, conferencia ----------
 Passo "5/5 GitHub, atalho e conferencia"
@@ -99,14 +104,27 @@ if ($Cliente.github) {
   if ($LASTEXITCODE -ne 0) {
     Aviso "seguindo pela chave do kit; da para entrar no GitHub depois pelo agente do kit"
     & $Py ferramentas\conectar.py --usar-chave
+    if ($LASTEXITCODE -ne 0) { Fim 1 }
   }
 } else {
   & $Py ferramentas\conectar.py --usar-chave
+  if ($LASTEXITCODE -ne 0) { Fim 1 }
 }
 
 Agente-Ligar
 Agente-Atalho
 
 & $Py ferramentas\ambiente.py --conferir
+if ($LASTEXITCODE -ne 0) { Fim 1 }
 & $Py ferramentas\verificar.py
+if ($LASTEXITCODE -ne 0) { Fim 1 }
+# Os demais passos do onboarding podem ficar pendentes; a instalacao precisa estar pronta.
+try {
+  $Progresso = Get-Content (Join-Path $Kit ".root\progresso.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+  $Instalacao = @($Progresso.passos | Where-Object { $_.id -eq "instalar" -and $_.feito -eq $true })
+  if ($Instalacao.Count -eq 0) { Aviso "a instalacao ainda tem pendencias; corrija a conferencia e rode de novo."; Fim 1 }
+} catch {
+  Aviso "nao consegui conferir o resultado da instalacao."
+  Fim 1
+}
 Fim 0

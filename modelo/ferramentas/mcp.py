@@ -93,8 +93,18 @@ def gravar_token(variavel, token):
 
 
 def registrado(cfg):
-    codigo, saida = rodar_codex("mcp", "get", cfg["nome"])
-    return codigo == 0 and cfg["url"] in saida
+    codigo, saida = rodar_codex("mcp", "get", cfg["nome"], "--json")
+    if codigo != 0:
+        return False
+    try:
+        servidor = json.loads(saida)
+        transporte = servidor.get("transport", {})
+        return (servidor.get("enabled", True) is True
+                and transporte.get("type") == "streamable_http"
+                and transporte.get("url") == cfg["url"]
+                and transporte.get("bearer_token_env_var") == cfg["variavel"])
+    except (ValueError, AttributeError):
+        return False
 
 
 def estado():
@@ -133,18 +143,18 @@ def registrar():
     if not token:
         print("Sem token. Rode de novo numa janela de terminal para digitá-lo, ou passe pela variável KIT_MCP_TOKEN.")
         return 1
-    gravar_token(cfg["variavel"], token)
-    print("Token guardado em .root/mcp.env ({}), fora do git.".format(origem))
     if not codex_bin():
+        gravar_token(cfg["variavel"], token)
+        print("Token guardado em .root/mcp.env ({}), fora do git.".format(origem))
         print("O codex ainda não está instalado neste computador: rode o instalador do kit e depois "
               "python3 ferramentas/mcp.py --registrar de novo.")
         return 1
-    if registrado(cfg):
-        rodar_codex("mcp", "remove", cfg["nome"])
     codigo, saida = rodar_codex("mcp", "add", cfg["nome"], "--url", cfg["url"], "--bearer-token-env-var", cfg["variavel"])
     if codigo != 0:
         print("O codex não registrou o servidor {}:\n{}".format(cfg["nome"], saida.strip()))
         return 1
+    gravar_token(cfg["variavel"], token)
+    print("Token guardado em .root/mcp.env ({}), fora do git.".format(origem))
     e = estado()
     print("Servidor {} registrado no Codex ({}), perfil {}. Token pela variável {}.".format(
         cfg["nome"], cfg["url"], cfg.get("perfil", "?"), cfg["variavel"]))
@@ -156,16 +166,45 @@ def registrar():
 
 
 def status_http(url, token):
-    req = urllib.request.Request(url, headers={"Accept": "application/json, text/event-stream", "User-Agent": "kit-root/1.0"})
+    """Testa initialize: um HTTP de erro ou uma página HTML não provam um MCP disponível."""
+    dados = json.dumps({"jsonrpc": "2.0", "id": "kit-health", "method": "initialize",
+                       "params": {"protocolVersion": "2025-03-26", "capabilities": {},
+                                  "clientInfo": {"name": "kit-root", "version": "1.0"}}}).encode()
+    req = urllib.request.Request(url, data=dados, headers={
+        "Accept": "application/json, text/event-stream", "Content-Type": "application/json",
+        "User-Agent": "kit-root/1.0"})
     if token:
         req.add_header("Authorization", "Bearer " + token)
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
-            return r.status
+            if r.status != 200:
+                return r.status, False
+            if "text/event-stream" in r.headers.get("Content-Type", ""):
+                partes = []
+                for _ in range(128):
+                    linha = r.readline(65537).decode("utf-8").rstrip("\r\n")
+                    if linha.startswith("data:"):
+                        partes.append(linha[5:].lstrip())
+                    elif not linha and partes:
+                        break
+                corpo = "\n".join(partes)
+            else:
+                corpo = r.read(65537).decode("utf-8")
+            try:
+                resposta = json.loads(corpo)
+                resultado = resposta.get("result", {})
+                valido = (resposta.get("jsonrpc") == "2.0" and resposta.get("id") == "kit-health"
+                          and not resposta.get("error") and isinstance(resultado, dict)
+                          and bool(resultado.get("protocolVersion"))
+                          and isinstance(resultado.get("capabilities"), dict)
+                          and isinstance(resultado.get("serverInfo"), dict))
+                return r.status, valido
+            except (ValueError, AttributeError):
+                return r.status, False
     except urllib.error.HTTPError as e:
-        return e.code
-    except (urllib.error.URLError, OSError):
-        return None
+        return e.code, False
+    except (urllib.error.URLError, OSError, UnicodeError):
+        return None, False
 
 
 def testar():
@@ -177,19 +216,18 @@ def testar():
     if not token:
         print("Sem token em .root/mcp.env: rode python3 ferramentas/mcp.py --registrar antes.")
         return 1
-    sem = status_http(cfg["url"], None)
-    com = status_http(cfg["url"], token)
+    sem, _ = status_http(cfg["url"], None)
+    com, aceito = status_http(cfg["url"], token)
     print("Servidor {} em {}".format(cfg["nome"], cfg["url"]))
     print("  sem token: {} (esperado 401)".format("HTTP {}".format(sem) if sem else "sem resposta"))
-    aceito = com is not None and com not in (401, 403)
-    print("  com token: {} ({})".format("HTTP {}".format(com) if com else "sem resposta", "aceito" if aceito else "recusado"))
+    print("  com token: {} ({})".format("HTTP {}".format(com) if com else "sem resposta", "initialize válido" if aceito else "initialize falhou"))
     if sem != 401:
         print("O servidor deveria recusar sem token. Avise a Root.")
         return 1
     if not aceito:
-        print("O token deste kit foi recusado. Confira com a Root se ele continua válido.")
+        print("O servidor não completou initialize. Confira o endereço, a disponibilidade e o token com a Root.")
         return 1
-    print("Contrato ok: o servidor exige token e aceita o seu.")
+    print("Contrato ok: o servidor exige token e completou initialize com o seu.")
     return 0
 
 

@@ -20,4 +20,6 @@ if [ "$AGENTE" = "claude" ] && [ -f "$DIR/../ferramentas/onboarding.py" ]; then
   exec /usr/bin/python3 "$DIR/../ferramentas/onboarding.py"
 fi
 bash "$DIR/instalar.sh"
+CODIGO=$?
 read -r -p "Tecle Enter para fechar esta janela." _
+exit "$CODIGO"

@@ -1,0 +1,121 @@
+{
+  "versao_do_manifesto": "1",
+  "_aviso": "Rascunho da Juma. Sistema operacional, perfil e acesso precisam de conferência. Não é pacote liberado para instalação.",
+  "cliente": {
+    "slug": "juma-tarcilla",
+    "nome": "Tarcilla Valtuille de Castro Guimarães",
+    "primeiro_nome": "Tarcilla",
+    "empresa": "Juma Consultoria Ambiental",
+    "cargo": "Sócia-administradora",
+    "github": null,
+    "email": "",
+    "sistema": null
+  },
+  "agente": "codex",
+  "kickoff": {
+    "data": "2026-11-03",
+    "conduzido_por": "Pedro",
+    "gravacao": "granola:d2b5603b-aedc-43ab-93fa-1d06fa1c4b25",
+    "desvios_do_roteiro": [
+      "Discovery comercial; sistema operacional e perfil de uso ainda sem conferência final."
+    ]
+  },
+  "reunioes": [
+    {
+      "data": "2026-11-03",
+      "tipo": "discovery",
+      "fonte": "granola:d2b5603b-aedc-43ab-93fa-1d06fa1c4b25"
+    }
+  ],
+  "conferencia_das_reunioes": {
+    "feita_por": null,
+    "feita_em": null,
+    "divergencias_em_aberto": [
+      "Conferir o fluxo atual com Tarcilla; leitura SharePoint em validação pela coordenação."
+    ]
+  },
+  "perfil": {
+    "sinais": [
+      {
+        "id": "cita-ferramenta-de-ia",
+        "minuto": "00:11:34",
+        "trecho": "Usa ChatGPT para adaptar o modelo Word de propostas."
+      },
+      {
+        "id": "tem-prompt-ou-projeto-salvo",
+        "minuto": "00:11:34",
+        "trecho": "Projeto Organização comercial no ChatGPT."
+      }
+    ],
+    "escolhido": "chat",
+    "conferido_por": null,
+    "conferido_em": null,
+    "ajustes": {
+      "passos_por_dia": 1,
+      "horario": "a combinar",
+      "como_aprende": "a confirmar"
+    },
+    "restricoes": [
+      "Tarcilla revisa escopo, dimensionamento e preço antes de uso comercial",
+      "SharePoint é a fonte central; leitura inicial, sem alterar originais",
+      "Não alterar Monday, Omie, regras de e-mail ou permissões do SharePoint"
+    ]
+  },
+  "dores": [
+    {
+      "texto": "Adapta conteúdo no ChatGPT e recompõe a proposta Word.",
+      "minuto": "00:11:34"
+    },
+    {
+      "texto": "Acervo comercial em pastas por ano e número; cada proposta possui planilha, Word e PDF.",
+      "minuto": "00:17:38"
+    }
+  ],
+  "fontes": [
+    {
+      "tipo": "sharepoint",
+      "descricao": "Acervo comercial da Juma, pastas por ano e proposta; acesso de leitura em validação.",
+      "prioridade": 1,
+      "acesso": "Validar com Daniel e Tarcilla",
+      "minuto": "00:17:38"
+    }
+  ],
+  "frente": [
+    "dossie-de-conta",
+    "kit-de-contexto-e-conteudo"
+  ],
+  "notas_iniciais": [
+    {
+      "pasta": "10-Identidade",
+      "titulo": "Quem é a Tarcilla",
+      "kind": "fato",
+      "corpo": "Sócia-administradora da Juma e responsável pelo comercial. Primeira usuária desta fase.",
+      "fonte": "Discovery 03/11/2026; PRD 05/11, seção 2."
+    },
+    {
+      "pasta": "40-Operacao",
+      "titulo": "SharePoint como fonte central",
+      "kind": "decisao",
+      "corpo": "O primeiro uso parte de um convite ou TR disponível no SharePoint comercial e localiza uma proposta de referência no mesmo acervo. E-mail e servidor não são pré-requisitos para este ensaio de leitura.",
+      "fonte": "Orientação de Pedro 19/11/2026 e card ROOT OS 10c22726-852e-42be-9829-4182206cf36b."
+    }
+  ],
+  "combinado": {
+    "canal_de_ajuda": "Grupo ROOT | Juma, com envio humano",
+    "responsavel_root": "Leandro",
+    "prazo_resposta_horas": null,
+    "horarios_acompanhamento": []
+  },
+  "conta_de_ia": {
+    "plano": "ChatGPT Business existente, segundo discovery 03/11",
+    "reembolso": "não definido neste manifesto",
+    "observacao": "Confirmar acesso ao Codex na conta da Juma durante primeiro uso."
+  },
+  "_pendencias": [
+    "Confirmar sistema operacional e permissão de instalação da Tarcilla",
+    "Conferir perfil proposto chat com Tarcilla",
+    "Validar leitura de um TR e dos três arquivos de uma proposta no SharePoint",
+    "Confirmar usuário GitHub se houver entrega por repositório; não usar e-mail como login",
+    "Servidor MCP não configurado; SharePoint é a fonte central por orientação de Pedro em 19/11"
+  ]
+}
