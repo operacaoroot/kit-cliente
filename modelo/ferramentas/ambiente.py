@@ -43,16 +43,37 @@ BIBLIOTECAS_DE_PROVA = ("docx", "openpyxl", "pypdf")
 
 # ---------------------------------------------------------------- saída
 
+try:
+    import painel  # mesma pasta: a página que mostra à pessoa o que está acontecendo no computador
+except Exception:  # o painel é só vitrine; sem ele a instalação segue igual
+    painel = None
+
+
+def mostrar(texto, tipo="info"):
+    """Repete a linha no painel, se o instalador abriu um. Nunca derruba nada."""
+    if painel is not None:
+        painel.evento(texto.strip(), tipo)
+
+
 def passo(t):
     print("\n== " + t, flush=True)
+    mostrar(t)
 
 
 def ok(t):
     print("   ok  " + t, flush=True)
+    mostrar(t, "ok")
 
 
 def aviso(t):
     print("   !!  " + t, flush=True)
+    mostrar(t, "aviso")
+
+
+def contar(t):
+    """Linha de andamento (baixando, instalando): vai para a tela e para o painel."""
+    print("   " + t, flush=True)
+    mostrar(t.lstrip(". "))
 
 
 # ---------------------------------------------------------------- leitura
@@ -268,7 +289,7 @@ def dmg_do_github(repo):
 
 def instalar_dmg_github(inst):
     url, versao = dmg_do_github(inst["repo"])
-    print("   baixando {} {}...".format(inst["app"], versao), flush=True)
+    contar("baixando {} {}...".format(inst["app"], versao))
     with tempfile.TemporaryDirectory() as tmp:
         dmg = Path(tmp) / "instalador.dmg"
         montagem = Path(tmp) / "volume"
@@ -283,7 +304,7 @@ def instalar_dmg_github(inst):
 
 
 def instalar_zip_app(inst):
-    print("   baixando {}...".format(inst["app"]), flush=True)
+    contar("baixando {}...".format(inst["app"]))
     with tempfile.TemporaryDirectory() as tmp:
         arq = Path(tmp) / "app.zip"
         baixar(inst["url"], arq)
@@ -341,7 +362,7 @@ def instalar_node_dist(inst):
     ext = "tar.gz" if SISTEMA == "mac" else "tar.xz"
     nome = "node-{}-{}-{}.{}".format(lts["version"], so, arq_arch, ext)
     url = "https://nodejs.org/dist/{}/{}".format(lts["version"], nome)
-    print("   baixando Node.js {} ({})...".format(lts["version"], lts["lts"]), flush=True)
+    contar("baixando Node.js {} ({})...".format(lts["version"], lts["lts"]))
     with tempfile.TemporaryDirectory() as tmp:
         pacote = Path(tmp) / nome
         baixar(url, pacote)
@@ -354,7 +375,7 @@ def instalar_adoptium(inst):
     so = "mac" if SISTEMA == "mac" else "linux"
     arch = {"arm64": "aarch64", "aarch64": "aarch64", "x86_64": "x64"}[arquitetura()]
     url = "https://api.adoptium.net/v3/binary/latest/{}/ga/{}/{}/jdk/hotspot/normal/eclipse".format(inst["versao"], so, arch)
-    print("   baixando o Java {} (Temurin)...".format(inst["versao"]), flush=True)
+    contar("baixando o Java {} (Temurin)...".format(inst["versao"]))
     with tempfile.TemporaryDirectory() as tmp:
         pacote = Path(tmp) / "jdk.tar.gz"
         baixar(url, pacote)
@@ -375,7 +396,7 @@ def instalar_github_asset(inst):
     asset = next((a for a in rel.get("assets", []) if a["name"].endswith(sufixo)), None)
     if not asset:
         raise RuntimeError("a versão {} não tem o arquivo {}".format(rel.get("tag_name"), sufixo))
-    print("   baixando {} {}...".format(inst["repo"], rel.get("tag_name", "")), flush=True)
+    contar("baixando {} {}...".format(inst["repo"], rel.get("tag_name", "")))
     with tempfile.TemporaryDirectory() as tmp:
         pacote = Path(tmp) / asset["name"]
         baixar(asset["browser_download_url"], pacote)
@@ -485,7 +506,7 @@ def instalar(perfil, com, so):
             ok("{} já está instalado".format(app["nome"]))
             resultado[app["id"]] = "instalado"
             continue
-        print("   ..  instalando {}: {}".format(app["nome"], app["para_que"]), flush=True)
+        contar("..  instalando {}: {}".format(app["nome"], app["para_que"]))
         estado = instalar_app(app)
         resultado[app["id"]] = estado
         if estado == "instalado":

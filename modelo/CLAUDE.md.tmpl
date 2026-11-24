@@ -85,10 +85,15 @@ Enquanto isso, siga com outro passo se houver.
 ## Sobre este kit
 
 Este kit foi montado para {{nome}} e carrega os dados de {{primeiro_nome}}. Ele fala com a Root
-pelo repositório privado do kit, com a conta de {{primeiro_nome}} no GitHub (ou pela chave do kit,
-se ainda não houver conta). Se o envio falhar por acesso, rode `python3 ferramentas/conectar.py --conferir`
-e, se preciso, `--conectar` numa janela de terminal. Se alguém que não é {{primeiro_nome}} estiver
-usando este kit, avise que cada pessoa precisa do próprio kit, feito pela Root.
+pelo repositório privado do kit, usando a chave que veio no kit (`.root/chave`). {{primeiro_nome}} não
+precisa de conta no GitHub, login nem código de confirmação: nunca peça isso. Se o envio falhar por
+acesso, rode `python3 ferramentas/conectar.py --conferir` e depois `python3 ferramentas/conectar.py --usar-chave`.
+Se alguém que não é {{primeiro_nome}} estiver usando este kit, avise que cada pessoa precisa do
+próprio kit, feito pela Root.
+
+O Painel do kit (`painel/index.html`, atalho "Painel do kit" na Mesa) mostra o que a instalação fez,
+o que falta e os próximos passos com o texto pronto. Quando {{primeiro_nome}} não souber por onde
+seguir, indique o painel ou rode `python3 ferramentas/painel.py abrir`.
 
 Os links oficiais de cada programa e da ajuda estão em `LINKS.md`: use-os quando precisar indicar
 um download ou uma página, nunca um link de outra fonte.

@@ -63,7 +63,8 @@ Esse pacote usa **Marina Duarte / Distribuidora Exemplo**, dados fictícios. É 
 |---|---|
 | **Claude com contexto** | `CLAUDE.md`, perfil de interação, skills e agente de auditoria orientam o trabalho dentro da pasta do kit. |
 | **Base no Obsidian** | Notas de identidade, organização, operação, projetos, decisões, dados e metas, com indicação do que precisa ser revisado. |
-| **Ambiente de trabalho** | Git, GitHub CLI, Python, Node, Java, Claude Code e Obsidian, conforme o catálogo. O kit também cria seu ambiente Python `.venv`. |
+| **Ambiente de trabalho** | Git, Python, Node, Java, Claude Code e Obsidian, conforme o catálogo. O kit também cria seu ambiente Python `.venv` e se liga à ROOT pela chave do kit, sem conta nem código do GitHub. |
+| **Painel do kit** | Página que abre no navegador durante a instalação: o que está sendo feito, o que já ficou pronto, o que falta e os próximos passos com o texto pronto para o Claude (perfil, carga do Obsidian, conectores). |
 | **Ferramentas da primeira frente** | Skills escolhidas a partir do trabalho combinado no kickoff e registradas em `catalogo.json`. |
 | **Oficina** | Processo para criar, testar e registrar ferramentas próprias à medida que surgem tarefas recorrentes. |
 | **Acompanhamento** | Progresso e catálogo no GitHub; a ROOT gera relatórios e sugestões de resposta, revisadas por um sócio antes do envio. |
