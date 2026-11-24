@@ -43,6 +43,16 @@ Fábrica dos kits de onboarding da Root. Leia o `README.md` e `docs/ARQUITETURA.
   `atualizar.py` a levam sozinhos e a registram no `catalogo.json`. No kit Codex ela vai convertida
   para `.agents/skills/` por `para_codex` (montar.py): texto novo que cite o Claude como agente
   precisa passar nessa conversão (`testes/testar_codex.py`).
+- `sistemas` no manifesto (kit Claude) liga plugins, conectores da conta do Claude e credenciais
+  locais, com passo próprio, skill `ligar-sistemas` e gravação em `ask` (docs/SISTEMAS.md). O que é
+  de uma empresa (repositório do plugin, e-mail, chave pública) mora só no manifesto, nunca em
+  `modelo/`. Mexeu nisso, rode `python3 testes/testar_sistemas.py`.
+- A revisão dos sistemas (`ferramentas/revisar_sistemas.py`, skill `revisar-sistemas`) só lê e nunca
+  mostra valor de credencial. O que cada erro significa é da empresa e mora em `sistemas.erros` do
+  manifesto, nunca em `modelo/`. Quem já tem o Claude recebe o kit de revisão
+  (`montador/revisao.py`), sem chave e sem repositório. Mexeu nisso, rode `python3 testes/testar_revisao.py`.
+- Todo kit Claude conduz pela conversa (skill `comecar`), e o `.claude/settings.json` do kit sai de
+  `settings_do_kit` (montar.py), não de cópia do modelo.
 - `agente: codex` no manifesto monta o kit com o Codex (docs/KIT-CODEX.md). Peça só de um agente
   entra em `SO_DO_CLAUDE` ou `SO_DO_CODEX` no montar.py e na lista do atualizar.py; app ou serviço
   só de um agente leva `agente` no `apps.json`.

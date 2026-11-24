@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from urllib.parse import parse_qs, urlparse
 import venv
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -79,7 +80,15 @@ WRAPPER = r'''
 $ErrorActionPreference = 'Stop'
 function global:Read-Host { return '' }
 function global:Invoke-RestMethod { throw 'Download inesperado no teste isolado' }
-function global:Start-Process { param($FilePath) }
+function global:Start-Process {
+    param($FilePath)
+    $FilePath | ConvertTo-Json -Compress | Add-Content -Encoding UTF8 (Join-Path $env:KIT_TEST_ROOT 'aplicativo.jsonl')
+}
+function global:Test-Path {
+    param($Path)
+    if ($Path -eq 'Registry::HKEY_CLASSES_ROOT\claude') { return $env:KIT_TEST_CLAUDE_APP -eq '1' }
+    Microsoft.PowerShell.Management\Test-Path $Path
+}
 function global:uv {
     if (($args[0] -eq 'python' -and $env:KIT_TEST_FALHA -eq 'uv:python') -or
         ($args[0] -eq 'pip' -and $env:KIT_TEST_FALHA -eq 'uv:pip')) {
@@ -100,7 +109,7 @@ class InstaladorWindows(unittest.TestCase):
         self.desktop = Path(desktop)
         self.atalhos_antes = {self.desktop / nome:
             (self.desktop / nome).read_bytes() if (self.desktop / nome).exists() else None
-            for nome in ('Claude do kit.cmd', 'Codex do kit.cmd', 'Painel do kit.url')}
+            for nome in ('Claude do kit.cmd', 'Claude do kit.url', 'Codex do kit.cmd', 'Painel do kit.url')}
         self.addCleanup(self.restaurar_atalhos)
 
     def restaurar_atalhos(self):
@@ -110,7 +119,7 @@ class InstaladorWindows(unittest.TestCase):
             elif caminho.exists():
                 caminho.unlink()
 
-    def executar(self, agente='codex', falha=''):
+    def executar(self, agente='codex', falha='', app=False):
         pasta = tempfile.TemporaryDirectory(prefix='kit-windows-')
         self.addCleanup(pasta.cleanup)
         kit = Path(pasta.name) / 'kit com espacos'
@@ -139,7 +148,7 @@ class InstaladorWindows(unittest.TestCase):
                         ['git', 'remote', 'add', 'origin', 'https://github.com/operacaoroot/kit-teste-windows.git']):
             subprocess.run(comando, cwd=kit, check=True, capture_output=True)
         env = dict(os.environ, KIT_TEST_ROOT=str(kit), KIT_TEST_FALHA=falha,
-                   PYTHONPATH=str(kit / 'hooks'), PYTHONUTF8='1')
+                   PYTHONPATH=str(kit / 'hooks'), PYTHONUTF8='1', KIT_TEST_CLAUDE_APP='1' if app else '0')
         processo = subprocess.run([SHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy',
                                   'Bypass', '-File', str(kit / 'executar.ps1')],
                                  env=env, capture_output=True, text=True, encoding='utf-8',
@@ -150,6 +159,8 @@ class InstaladorWindows(unittest.TestCase):
             destino = Path(os.environ['KIT_TEST_REPORT'])
             destino.mkdir(exist_ok=True)
             nome = agente + '-' + (falha or 'sucesso').replace(':', '-')
+            if app:
+                nome += '-app'
             (destino / (nome + '.json')).write_text(json.dumps(
                 {'agente': agente, 'cenario': falha or 'sucesso', 'exit_code': processo.returncode,
                  'painel': estado, 'dependencias': 'simuladas'}, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -182,6 +193,20 @@ class InstaladorWindows(unittest.TestCase):
                 self.assertIn('.root/chave', subprocess.check_output(
                     ['git', 'config', 'core.sshCommand'], cwd=kit, text=True).replace('\\', '/'))
                 self.conferir_atalhos(kit, agente)
+
+    def test_claude_com_aplicativo_abre_a_conversa_na_pasta_do_kit(self):
+        kit, r, estado = self.executar(agente='claude', app=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(estado['fase'], 'pronto')
+        atalho = (self.desktop / 'Claude do kit.url').read_text(encoding='ascii')
+        link = next(linha[4:] for linha in atalho.splitlines() if linha.startswith('URL='))
+        self.assertTrue(link.startswith('claude://code/new?'))
+        parametros = parse_qs(urlparse(link).query)
+        self.assertEqual(parametros['folder'], [str(kit)])
+        self.assertIn('acabei de instalar', parametros['q'][0])
+        self.assertFalse((self.desktop / 'Claude do kit.cmd').exists())
+        abertas = (kit / 'aplicativo.jsonl').read_text(encoding='utf-8-sig').splitlines()
+        self.assertEqual([json.loads(linha) for linha in abertas], [link])
 
     def conferir_atalhos(self, kit, agente):
         pasta = self.desktop

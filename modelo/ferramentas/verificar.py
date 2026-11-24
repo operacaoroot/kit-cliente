@@ -98,6 +98,11 @@ def checar_perfil():
     return ok, "perfil confirmado" if ok else "perfil ainda não confirmado"
 
 
+def checar_sistemas():
+    import sistemas  # noqa: E402  (mesma pasta; plugins, conectores e credenciais, só no kit Claude)
+    return sistemas.pronto()
+
+
 def checar_vault():
     vault = KIT / "vault"
     pendentes = []
@@ -187,6 +192,7 @@ def main(argv):
     checagens = {
         "instalar": lambda: checar_instalar(sem_rede),
         "perfil": checar_perfil,
+        "sistemas": checar_sistemas,
         "vault": checar_vault,
         "contexto": checar_contexto,
         "primeira-frente": checar_primeira_frente,

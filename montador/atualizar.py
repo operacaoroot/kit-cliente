@@ -7,7 +7,8 @@ Uso:
 
 Atualiza só o que é igual em todo kit: as ferramentas (conferência, ambiente, oficina),
 o catálogo de apps, os instaladores, as skills de base, o agente auditor, as permissões
-do Claude (liberadas: o kit não bloqueia nada) e o .gitignore. Num kit Codex (agente: codex no
+do Claude (liberadas, menos a gravação em sistema, que pergunta), os sistemas de
+trabalho do manifesto (`.root/sistemas.json`) e o .gitignore. Num kit Codex (agente: codex no
 manifesto) leva as peças do Codex (mcp.py, skills convertidas em .agents/skills) e nada do Claude. No catalogo.json refaz as linhas da Root e da frente e mantém
 as do cliente. Nunca toca no que é do cliente: CLAUDE.md, README.md, COMECE-AQUI.md,
 perfil.md, vault/, entregas/, ajuda/, oficina/<ferramentas>, as skills que ele criou e
@@ -27,7 +28,8 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "montador"))
 from montar import (MODELO, RECEITAS, Recusa, agente_do, catalogo_de_apps, gerar_links, montar_catalogo,  # noqa: E402
-                    para_codex, para_windows, raiz_das_skills, rodar, skills_de_base, texto_da_skill_de_base, token_github)
+                    para_codex, para_windows, passos_do_kit, raiz_das_skills, rodar, settings_do_kit, sistemas_do_kit,
+                    skills_de_base, texto_da_skill_de_base, token_github)
 
 # (origem em modelo/, destino no kit). O catálogo de apps e os passos saem à parte, porque mudam
 # por agente. Peças de um agente só vão para o kit daquele agente.
@@ -57,7 +59,9 @@ SO_CLAUDE = [
     ("ferramentas/autonomia.py", "ferramentas/autonomia.py"),
     ("ferramentas/onboarding.py", "ferramentas/onboarding.py"),
     ("ferramentas/fontes_publicas.py", "ferramentas/fontes_publicas.py"),
-    (".claude/settings.json", ".claude/settings.json"),
+    ("ferramentas/sistemas.py", "ferramentas/sistemas.py"),
+    ("ferramentas/revisar_sistemas.py", "ferramentas/revisar_sistemas.py"),
+    ("instalar/pedir-segredo.ps1", "instalar/pedir-segredo.ps1"),
     (".claude/agents/auditor-de-contexto.md", ".claude/agents/auditor-de-contexto.md"),
 ]
 SO_CODEX = [
@@ -88,9 +92,14 @@ def atualizar(slug, motivo):
             alvo.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(MODELO / origem, alvo)
         (kit / "ambiente" / "apps.json").write_text(json.dumps(catalogo_de_apps(agente), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        passos = json.loads((MODELO / "passos.json").read_text(encoding="utf-8"))
+        passos = passos_do_kit(m)
         if agente == "codex":
             passos = json.loads(para_codex(json.dumps(passos, ensure_ascii=False)))
+        else:
+            # as permissões saem do manifesto: leitura dos plugins liberada, gravação em sistema com pergunta
+            (kit / ".claude" / "settings.json").write_text(json.dumps(settings_do_kit(m), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            if m.get("sistemas"):
+                (kit / ".root" / "sistemas.json").write_text(json.dumps(sistemas_do_kit(m), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         (kit / "ferramentas" / "passos.json").write_text(json.dumps(passos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         leia_me = (MODELO / "oficina" / "LEIA-ME.md").read_text(encoding="utf-8")
         (kit / "oficina").mkdir(exist_ok=True)

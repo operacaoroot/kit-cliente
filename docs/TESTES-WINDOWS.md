@@ -13,12 +13,15 @@ do repositorio. Nao recebe credenciais nem manifestos de clientes.
   arquivos de atalho sao reais; o caminho do kit inclui espacos.
 - Os dois agentes concluem a instalacao sem exigir perfil ou carga de contexto
   ja completos. O painel abre uma vez e identifica o agente correto.
+- O atalho do Claude funciona nos dois caminhos: terminal ou link do aplicativo,
+  com pasta e mensagem inicial codificadas no link.
 - Falhas no Python, programas, preparacao do agente, chave e conferencia saem com
   erro. Depois de aberto, o painel termina com pendencias, sem anunciar sucesso.
 - Nenhum caminho testado chama o GitHub CLI para autenticar o cliente.
 
-Downloads, instalacao dos aplicativos, registro MCP e resposta de rede sao
-simulados. A chave e apenas texto ficticio, sem acesso a qualquer repositorio.
+Downloads, instalacao dos aplicativos, presenca do protocolo Claude, abertura das
+janelas, registro MCP e resposta de rede sao simulados. A chave e apenas texto
+ficticio, sem acesso a qualquer repositorio.
 Os artefatos `windows-powershell` e `windows-pwsh` guardam somente relatorios JSON
 e saida dos testes por sete dias. Nao publicar o kit temporario nem chaves nos
 artefatos.
@@ -53,14 +56,15 @@ $env:KIT_TEST_SHELL = 'pwsh'
 python testes/testar_instalador_windows.py -v
 ```
 
-O teste preserva e restaura os tres atalhos do kit na Area de Trabalho. Em Linux
+O teste preserva e restaura os quatro atalhos do kit na Area de Trabalho. Em Linux
 ou macOS o comando termina com erro, sem apresentar testes ignorados como prova
 de validacao Windows.
 
-Os testes estao preparados sobre a linha do PR #8. A fabrica 1.6.0 precisa ser
-recuperada e receber as mudancas antes de gerar uma entrega. Nao executar
-`montador/atualizar.py --todos` a partir desta linha anterior.
+A fabrica 1.6.0 foi recuperada do commit `b57ccc1`, da branch local
+`homologacao/kit-sistemas-e-chat`. Esta linha integra o PR #8 e os testes Windows
+nessa base, com versao 1.6.1. Preserva os sistemas de trabalho, a conversa conduzida
+e o kit de revisao da 1.6.0. Corrige tambem o painel: uma interrupcao nao pode
+aparecer como sucesso quando programas e chave ja estao prontos.
 
-A versao 1.4.3 identifica apenas a correcao do painel nesta linha de homologacao:
-uma interrupcao nao pode aparecer como sucesso quando programas e chave ja estao
-prontos. Ela nao substitui a fabrica 1.6.0 nem autoriza atualizar kits entregues.
+Nao executar `montador/atualizar.py --todos` antes da homologacao Windows e da
+revisao desta integracao. Os kits entregues nao foram alterados nesta preparacao.

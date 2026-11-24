@@ -175,4 +175,6 @@ Painel concluir
 Write-Host ""
 Write-Host "   O Painel do kit (no navegador e no atalho da Area de Trabalho) mostra o que ficou pronto," -ForegroundColor Cyan
 Write-Host "   o que falta e os proximos passos com o texto para o agente do kit." -ForegroundColor Cyan
+# o agente do kit pode abrir a conversa ja na pasta do kit (instalar\agente.ps1)
+if (Get-Command Agente-Abrir -ErrorAction SilentlyContinue) { Agente-Abrir }
 Fim 0

@@ -150,6 +150,8 @@ O agendamento de três execuções diárias é configurado separadamente; execut
 | Entender etapas, responsabilidades e estrutura do kit | [Arquitetura](docs/ARQUITETURA.md) |
 | Conferir a página guiada, a coleta e os critérios de conclusão | [Onboarding no macOS](docs/ONBOARDING-GUIADO.md) |
 | Montar o kit com o Codex no lugar do Claude | [Kit em versão Codex](docs/KIT-CODEX.md) |
+| Ligar o kit a plugins, conectores e credenciais da empresa, com o Claude conduzindo pela conversa | [Sistemas de trabalho](docs/SISTEMAS.md) |
+| Revisar quem já tem o Claude e não consegue usar os sistemas (roteiro, erros explicados, relatório) | [Sistemas de trabalho, seção "Revisão"](docs/SISTEMAS.md#revisão-roteiro-erros-explicados-e-kit-de-revisão) |
 | Ver programas, instalação por sistema e links oficiais | [Ambiente](docs/AMBIENTE.md) |
 | Criar ferramentas com o cliente | [Desenvolvimento](docs/DESENVOLVIMENTO.md) |
 | Alterar textos, página, cofre ou skills de base | [`modelo/`](modelo/) |
