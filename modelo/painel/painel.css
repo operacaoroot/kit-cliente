@@ -1,0 +1,80 @@
+/* ROOT, painel do kit. Tokens do documento-mestre v2.0 (os mesmos do onboarding). Fontes locais, sem CDN. */
+@font-face { font-family: "Space Grotesk"; src: url("../onboarding/assets/SpaceGrotesk-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Space Grotesk"; src: url("../onboarding/assets/SpaceGrotesk-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("../onboarding/assets/JetBrainsMono-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+:root {
+  color-scheme: dark;
+  --base: #070A08; --panel: #0C120D; --ink: #DFFFE8; --muted: #99AD9E; --line: #2D3C30;
+  --accent: #9BDB1F; --ok: #1FFFA8; --warning: #E8B90F; --error: #FF1F6B; --button-ink: #070A08;
+  --body-font: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono-font: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-family: var(--body-font); font-size: 16px; line-height: 1.6;
+  background: var(--base); color: var(--ink);
+}
+:root[data-theme="papel"] {
+  color-scheme: light;
+  --base: #ECE7D8; --panel: #F4F0E6; --ink: #172019; --muted: #4D5D50; --line: #ACB1A3;
+  --accent: #4D7208; --ok: #00806A; --warning: #9A6B00; --error: #C2185B; --button-ink: #FFFFFF;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+.topo { display: flex; align-items: center; gap: 24px; padding: 20px clamp(20px, 5vw, 56px); border-bottom: 1px solid var(--line); }
+.topo img { height: auto; }
+.topo-texto { display: flex; flex-direction: column; flex: 1; }
+.eyebrow { font-family: var(--mono-font); font-size: 12px; letter-spacing: .14em; color: var(--accent); }
+.nome { color: var(--muted); }
+.tema { font-size: 14px; color: var(--muted); }
+.tema select { margin-left: 6px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); padding: 4px 6px; font: inherit; }
+main { max-width: 1180px; margin: 0 auto; padding: 32px clamp(20px, 5vw, 56px) 8px; }
+h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.15; margin: 0 0 12px; }
+h2 { font-size: 18px; margin: 0 0 12px; }
+h3 { font-size: 17px; margin: 0 0 6px; }
+.agora { font-family: var(--mono-font); font-size: 14px; color: var(--accent); margin: 0 0 16px; }
+body[data-fase="instalando"] .agora::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 10px; background: var(--accent); animation: pulso 1.2s ease-in-out infinite; }
+@keyframes pulso { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { body[data-fase="instalando"] .agora::before { animation: none; } }
+p.aviso { border-left: 3px solid var(--warning); padding: 8px 12px; background: var(--panel); }
+progress { width: 100%; height: 10px; appearance: none; -webkit-appearance: none; border: 1px solid var(--line); background: var(--panel); }
+progress::-webkit-progress-bar { background: var(--panel); }
+progress::-webkit-progress-value { background: var(--accent); }
+progress::-moz-progress-bar { background: var(--accent); }
+.contagem { font-size: 14px; color: var(--muted); margin: 6px 0 0; }
+.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 28px; }
+.caixa { background: var(--panel); border: 1px solid var(--line); padding: 20px; min-width: 0; }
+.nota { color: var(--muted); font-size: 14px; margin: -4px 0 12px; }
+.etapas { list-style: none; padding: 0; margin: 0; }
+.etapa { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.etapa:first-child { border-top: 0; }
+.etapa p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.marca { font-family: var(--mono-font); width: 20px; flex: none; text-align: center; color: var(--muted); }
+.etapa.ok .marca { color: var(--ok); }
+.etapa.andamento .marca { color: var(--accent); }
+.etapa.atencao .marca { color: var(--warning); }
+.etapa.falhou .marca { color: var(--error); }
+.situacao { color: var(--muted); font-size: 14px; }
+.eventos { list-style: none; margin: 0; padding: 0; max-height: 380px; overflow: auto; font-family: var(--mono-font); font-size: 13px; }
+.eventos li { padding: 4px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.eventos li:first-child { border-top: 0; }
+.eventos time { color: var(--muted); margin-right: 6px; }
+.eventos .ok { color: var(--ok); }
+.eventos .aviso { color: var(--warning); }
+.lista { margin: 0; padding-left: 20px; }
+.lista li { margin: 4px 0; }
+.lista.ok li::marker { content: "✓  "; color: var(--ok); }
+.lista.falta li::marker { content: "○  "; color: var(--warning); }
+.lista .manual::marker { color: var(--muted); }
+.vazio { color: var(--muted); }
+.passos { margin-top: 36px; }
+.cartoes { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; counter-reset: passo; }
+.cartao { background: var(--panel); border: 1px solid var(--line); padding: 20px; counter-increment: passo; display: flex; flex-direction: column; min-width: 0; }
+.cartao h3::before { content: counter(passo, decimal-leading-zero) "  "; font-family: var(--mono-font); color: var(--accent); }
+.cartao p { margin: 0 0 10px; }
+.como { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--mono-font); font-size: 13px; background: var(--base); border: 1px solid var(--line); padding: 12px; margin: 0 0 12px; }
+.acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; }
+.botao, button { font: inherit; font-size: 14px; padding: 8px 14px; border: 1px solid var(--accent); background: transparent; color: var(--ink); text-decoration: none; cursor: pointer; }
+.botao.primario { background: var(--accent); color: var(--button-ink); font-weight: 700; }
+.botao:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fora { position: fixed; left: -9999px; }
+footer { max-width: 1180px; margin: 32px auto 0; padding: 20px clamp(20px, 5vw, 56px) 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+footer code { font-family: var(--mono-font); overflow-wrap: anywhere; }

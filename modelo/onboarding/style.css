@@ -183,3 +183,8 @@ li { margin: 16px 0; }
   aside, .theme-control, button, .actions { display: none; }
   main { max-width: none; padding: 0; }
 }
+.atividade { list-style: none; margin: 0 0 12px; padding: 0; max-height: 260px; overflow: auto; font-family: var(--mono-font); font-size: 13px; }
+.atividade li { padding: 3px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.atividade li:first-child { border-top: 0; }
+.atividade .ok { color: var(--ok); }
+.atividade .aviso { color: var(--warning); }

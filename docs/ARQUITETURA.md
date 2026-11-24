@@ -35,7 +35,8 @@ kit-<slug>/
 ├── .claude/agents/   auditor-de-contexto
 ├── .claude/settings.json   permissões liberadas, sem bloqueio (ferramentas/autonomia.py tira o pedido de permissão)
 ├── vault/            Obsidian com as notas da conversa (revisar: sim)
-├── ferramentas/      verificar.py, ambiente.py, skills.py, conectar.py + passos.json
+├── ferramentas/      verificar.py, ambiente.py, skills.py, conectar.py, painel.py + passos.json
+├── painel/           Painel do kit: a página que mostra a instalação, o que falta e os próximos passos (PAINEL.md)
 ├── instalar/         .command (Mac), .cmd + .ps1 (Windows), .sh
 ├── LINKS.md          links oficiais dos programas, das contas e da ajuda (gerado do catálogo)
 ├── marca/            o logo da Root; o vault abre com o tema da Root (snippet do Obsidian)

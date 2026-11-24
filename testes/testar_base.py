@@ -99,9 +99,9 @@ class CatalogoDeApps(unittest.TestCase):
             if "obrigatorio" in a["perfis"].values():
                 self.assertEqual(set(a["perfis"].values()), {"obrigatorio"}, a["id"])
         obrig = {a["id"] for a in self.apps if a["perfis"]["chat"] == "obrigatorio" and a.get("agente", "claude") == "claude"}
-        self.assertEqual(obrig, {"git", "gh", "uv", "python", "node", "java", "claude-code", "obsidian"})
+        self.assertEqual(obrig, {"git", "uv", "python", "node", "java", "claude-code", "obsidian"})
         obrig_codex = {a["id"] for a in self.apps if a["perfis"]["chat"] == "obrigatorio" and a.get("agente", "codex") == "codex"}
-        self.assertEqual(obrig_codex, {"git", "gh", "uv", "python", "node", "java", "codex", "obsidian"})
+        self.assertEqual(obrig_codex, {"git", "uv", "python", "node", "java", "codex", "obsidian"})  # gh saiu: o kit liga pela chave
 
     def test_todo_app_tem_links_oficiais(self):
         for a in self.apps:
