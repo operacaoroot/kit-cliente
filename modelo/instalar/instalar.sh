@@ -15,7 +15,7 @@ falha() { printf '\n[atenção] %s\n' "$1"; }
 # O painel é só vitrine: se falhar, a instalação segue.
 painel() { python3 ferramentas/painel.py "$@" >/dev/null 2>&1 || true; }
 # Depois que o painel abriu: fecha a conferência nele antes de sair, para a página não ficar parada.
-parar() { painel concluir; exit "${1:-1}"; }
+parar() { painel concluir --interrompido; exit "${1:-1}"; }
 # A parte que muda com o agente do kit (claude ou codex) mora em instalar/agente.sh:
 # agente_preparar, agente_ligar e agente_atalho. O montador põe ali só a versão do agente deste kit.
 . "$KIT/instalar/agente.sh"

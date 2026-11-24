@@ -191,6 +191,32 @@ class Painel(unittest.TestCase):
         conferencia = next(x for x in e["etapas"] if x["id"] == "conferencia")
         self.assertEqual(conferencia["estado"], "atencao")
 
+    def test_falha_do_instalador_nao_vira_sucesso_com_computador_pronto(self):
+        # Os aplicativos e a chave podem estar prontos mesmo que a preparação do
+        # agente ou a conferência final tenham falhado. Isso não é uma instalação pronta.
+        for etapa in ("autonomia", "conferencia", None):
+            with self.subTest(etapa=etapa):
+                py(self.kit, "ferramentas/painel.py", "iniciar")
+                if etapa:
+                    py(self.kit, "ferramentas/painel.py", "etapa", etapa,
+                       "falhou", "a preparação não terminou")
+                codigo = (
+                    "import sys; sys.path.insert(0, 'ferramentas'); import painel; "
+                    "painel.conferir = lambda _: {'feito': ['Programas e chave prontos'], "
+                    "'falta': [], 'pronto': True}; "
+                    "painel.main(['painel.py', 'concluir'] + sys.argv[1:])"
+                )
+                r = py(self.kit, "-c", codigo, *([] if etapa else ["--interrompido"]))
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                e = ler_estado(self.kit)
+                self.assertEqual(e["fase"], "atencao")
+                self.assertFalse(e["conferencia"]["pronto"])
+                self.assertTrue(e["conferencia"]["falta"])
+                if etapa:
+                    self.assertIn("a preparação não terminou", " ".join(e["conferencia"]["falta"]))
+                else:
+                    self.assertIn("interrompida", " ".join(e["conferencia"]["falta"]))
+
 
 class SoPelaChave(unittest.TestCase):
     """O kit nunca mais pede login nem código do GitHub."""

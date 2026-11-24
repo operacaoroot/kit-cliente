@@ -1,0 +1,41 @@
+name: Windows
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  instalador:
+    name: Instalador (${{ matrix.shell }})
+    runs-on: windows-2022
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    env:
+      PYTHONUTF8: "1"
+      KIT_TEST_SHELL: ${{ matrix.shell }}
+      KIT_TEST_REPORT: evidencias-windows
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Sintaxe, instalador, painel e atalhos
+        run: python testes/testar_instalador_windows.py -v
+      - name: Evidencias do teste ficticio
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.shell }}
+          path: |
+            evidencias-windows/*.json
+            evidencias-windows/*.txt
+          if-no-files-found: warn
+          retention-days: 7

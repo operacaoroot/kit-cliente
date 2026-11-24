@@ -38,3 +38,7 @@ jobs:
         run: python testes/testar_codex.py -v
       - name: Resultado dos instaladores
         run: python testes/testar_resultado_instalador.py -v
+      - name: Painel e chave do kit
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_painel.py -v

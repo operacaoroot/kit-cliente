@@ -5,7 +5,7 @@ Uso (na pasta do kit; os instaladores chamam sozinhos):
     python3 ferramentas/painel.py iniciar [--abrir]          # começa uma instalação nova no painel
     python3 ferramentas/painel.py etapa <id> <estado> [texto] # estado: andamento, ok, atencao, falhou
     python3 ferramentas/painel.py evento <texto> [--tipo ok|aviso|info]
-    python3 ferramentas/painel.py concluir [--abrir] [--sem-rede]  # confere o que ficou pronto e o que falta
+    python3 ferramentas/painel.py concluir [--abrir] [--sem-rede] [--interrompido]
     python3 ferramentas/painel.py abrir                      # abre a página no navegador
     python3 ferramentas/painel.py caminho                    # mostra onde a página está
 
@@ -241,9 +241,15 @@ def iniciar():
     return estado
 
 
-def concluir(sem_rede=False):
+def concluir(sem_rede=False, interrompido=False):
     """Roda a conferência, fecha a etapa final e diz se o kit ficou pronto."""
     estado = carregar() or estado_novo()
+    # A conferência dos programas e da chave não cobre todas as etapas do
+    # instalador. Preserve falhas já registradas, inclusive na etapa final.
+    falhas = ["{}: {}".format(e["titulo"], e.get("detalhe") or "etapa não concluída")
+              for e in estado["etapas"] if e["estado"] == "falhou"]
+    if interrompido and not falhas:
+        falhas.append("A instalação foi interrompida. Rode o instalador de novo; se repetir, peça ajuda à Root.")
     marcar(estado, "conferencia", "andamento", "conferindo o computador e a ligação com a Root")
     gravar(estado)
     try:
@@ -252,6 +258,9 @@ def concluir(sem_rede=False):
         estado["conferencia"] = {"feito": [], "pronto": False, "conferido_em": agora(),
                                  "falta": ["Não consegui conferir o computador. Peça ao {} do kit: \"confere o meu computador\".".format(
                                      estado.get("agente_nome", "agente"))]}
+    if falhas:
+        estado["conferencia"]["pronto"] = False
+        estado["conferencia"]["falta"].extend(falhas)
     pronto = estado["conferencia"]["pronto"]
     estado["fase"] = "pronto" if pronto else "atencao"
     marcar(estado, "conferencia", "ok" if pronto else "atencao",
@@ -301,7 +310,7 @@ def main(argv):
             iniciar()
             return abrir() if "--abrir" in resto else 0
         if comando == "concluir":
-            concluir("--sem-rede" in resto)
+            concluir("--sem-rede" in resto, interrompido="--interrompido" in resto)
             return abrir() if "--abrir" in resto else 0
         if comando == "caminho":
             print(PAGINA)

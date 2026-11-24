@@ -47,7 +47,7 @@ function Fim($codigo) {
 }
 # Depois que o painel abriu: fecha a conferencia nele antes de sair, para a pagina nao ficar parada.
 function Parar($codigo) {
-  Painel concluir
+  Painel concluir --interrompido
   Fim $codigo
 }
 # A parte que muda com o agente do kit mora em instalar\agente.ps1 (Agente-Preparar, Agente-Ligar,
