@@ -122,7 +122,9 @@ class InstaladorWindows(unittest.TestCase):
     def executar(self, agente='codex', falha='', app=False):
         pasta = tempfile.TemporaryDirectory(prefix='kit-windows-')
         self.addCleanup(pasta.cleanup)
-        kit = Path(pasta.name) / 'kit com espacos'
+        # O TEMP do runner pode usar RUNNER~1 (nome curto 8.3). Python e
+        # PowerShell expandem esse mesmo caminho; compare sempre a forma real.
+        kit = Path(pasta.name).resolve() / 'kit com espacos'
         for nome in ('instalar', 'ferramentas', '.root', 'ambiente', 'hooks', 'vault'):
             (kit / nome).mkdir(parents=True, exist_ok=True)
         for nome in ('instalar.ps1', 'instalar.cmd'):
