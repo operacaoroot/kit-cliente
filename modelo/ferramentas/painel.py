@@ -44,13 +44,16 @@ usar_kit(KIT)
 LIMITE_EVENTOS = 300
 ESTADOS = ("pendente", "andamento", "ok", "atencao", "falhou")
 
+# {agente} vira Claude ou Codex, conforme o agente do kit (.root/cliente.json, campo agente).
+# O nome do arquivo de instruções de cada agente a página resolve sozinha (painel.js).
+AGENTES = {"claude": "Claude", "codex": "Codex"}
 ETAPAS = [
     ("basico", "Ferramentas básicas do sistema", "Git, Python e o instalador de programas."),
-    ("programas", "Programas do kit", "Claude Code, Obsidian, Node.js, Java e o que o seu perfil pede."),
+    ("programas", "Programas do kit", "O {agente}, o Obsidian, o Node.js, o Java e o que o seu perfil pede."),
     ("python", "Python do kit", "O ambiente Python só do kit, com as bibliotecas que as ferramentas usam."),
-    ("autonomia", "Claude liberado para trabalhar", "O Claude passa a agir no seu computador sem pedir permissão a cada passo."),
+    ("autonomia", "{agente} pronto para trabalhar", "O {agente} fica pronto para trabalhar na pasta do kit."),
     ("chave", "Kit ligado à Root", "Pela chave que já veio no kit. Não precisa de conta nem de código do GitHub."),
-    ("atalho", "Atalhos na Mesa", "Claude do kit e Painel do kit, para abrir com dois cliques."),
+    ("atalho", "Atalhos na Mesa", "{agente} do kit e Painel do kit, para abrir com dois cliques."),
     ("conferencia", "Conferência final", "O kit confere o que ficou pronto e lista o que falta."),
 ]
 
@@ -80,9 +83,13 @@ def link_obsidian():
 
 def estado_novo():
     cliente = ler_json(KIT / ".root" / "cliente.json")
+    agente = cliente.get("agente") if cliente.get("agente") in AGENTES else "claude"
+    nome_agente = AGENTES[agente]
     return {
         "versao": 1,
         "nome": cliente.get("nome", ""),
+        "agente": agente,
+        "agente_nome": nome_agente,
         "pasta": str(KIT),
         "vault": str(KIT / "vault"),
         "sistema": sistema(),
@@ -90,10 +97,11 @@ def estado_novo():
         "inicio": agora(),
         "atualizado": agora(),
         "agora": "Começando a preparar o seu computador.",
-        "etapas": [{"id": i, "titulo": t, "explica": e, "estado": "pendente", "detalhe": ""} for i, t, e in ETAPAS],
+        "etapas": [{"id": i, "titulo": t.format(agente=nome_agente), "explica": e.format(agente=nome_agente),
+                    "estado": "pendente", "detalhe": ""} for i, t, e in ETAPAS],
         "eventos": [],
         "conferencia": None,
-        "links": {"claude": link_claude(), "obsidian": link_obsidian()},
+        "links": {"claude": link_claude() if agente == "claude" else None, "obsidian": link_obsidian()},
     }
 
 
@@ -242,7 +250,8 @@ def concluir(sem_rede=False):
         estado["conferencia"] = conferir(sem_rede)
     except Exception:  # a página nunca fica parada em "instalando" por causa da conferência
         estado["conferencia"] = {"feito": [], "pronto": False, "conferido_em": agora(),
-                                 "falta": ["Não consegui conferir o computador. Peça ao Claude: \"confere o meu computador\"."]}
+                                 "falta": ["Não consegui conferir o computador. Peça ao {} do kit: \"confere o meu computador\".".format(
+                                     estado.get("agente_nome", "agente"))]}
     pronto = estado["conferencia"]["pronto"]
     estado["fase"] = "pronto" if pronto else "atencao"
     marcar(estado, "conferencia", "ok" if pronto else "atencao",

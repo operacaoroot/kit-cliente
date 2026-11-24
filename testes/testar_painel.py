@@ -58,12 +58,25 @@ class Kits:
             m.pop("entrega", None)
             arq = cls.pasta / ("manifesto-" + sistema + ".json")
             arq.write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
-            with open(os.devnull, "w") as nulo:
-                saida, sys.stdout = sys.stdout, nulo
-                try:
-                    cls.kits[sistema] = montar.montar(str(arq), {"--rascunho", "--permitir-semente"})
-                finally:
-                    sys.stdout = saida
+            cls.kits[sistema] = cls.montar(arq)
+        # Kit do Codex, na linha que tem o agente Codex (branch feat/kit-codex e derivadas).
+        codex = RAIZ / "manifestos" / "exemplo-codex-helena-prado.json"
+        if codex.exists():
+            m = json.loads(codex.read_text(encoding="utf-8"))
+            m["cliente"]["slug"] = "teste-painel-codex"
+            m.pop("entrega", None)
+            arq = cls.pasta / "manifesto-codex.json"
+            arq.write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
+            cls.kits["codex"] = cls.montar(arq)
+
+    @staticmethod
+    def montar(arq):
+        with open(os.devnull, "w") as nulo:
+            saida, sys.stdout = sys.stdout, nulo
+            try:
+                return montar.montar(str(arq), {"--rascunho", "--permitir-semente"})
+            finally:
+                sys.stdout = saida
 
 
 def setUpModule():
@@ -216,6 +229,8 @@ class SoPelaChave(unittest.TestCase):
     def test_instaladores_sem_login_e_com_painel(self):
         for sistema, kit in Kits.kits.items():
             for rel in ("instalar/instalar.sh", "instalar/instalar.ps1", "ferramentas/onboarding.py"):
+                if not (kit / rel).exists():
+                    continue  # a página guiada do Mac só existe no kit do Claude
                 texto = (kit / rel).read_text(encoding="utf-8")
                 self.assertNotIn("--conectar", texto, "{}: {}".format(sistema, rel))
                 self.assertNotIn("auth login", texto, "{}: {}".format(sistema, rel))
@@ -225,7 +240,7 @@ class SoPelaChave(unittest.TestCase):
     def test_nenhum_texto_manda_digitar_codigo(self):
         for sistema, kit in Kits.kits.items():
             for arq in list(kit.rglob("*.md")) + [kit / "ferramentas/passos.json", kit / "onboarding/index.html"]:
-                if ".git" in arq.parts:
+                if ".git" in arq.parts or not arq.exists():
                     continue
                 texto = arq.read_text(encoding="utf-8")
                 rel = arq.relative_to(kit).as_posix()
@@ -238,10 +253,33 @@ class SoPelaChave(unittest.TestCase):
         self.assertEqual(set(gh["perfis"].values()), {"opcional"})
 
 
+class PainelCodex(unittest.TestCase):
+    def test_kit_codex_usa_o_nome_do_agente_e_nao_tem_link_do_claude(self):
+        kit = Kits.kits.get("codex")
+        if kit is None:
+            self.skipTest("esta linha não tem kit Codex")
+        for rel in PECAS:
+            self.assertTrue((kit / rel).is_file(), "codex: falta " + rel)
+        py(kit, "ferramentas/painel.py", "iniciar")
+        e = ler_estado(kit)
+        self.assertEqual((e["agente"], e["agente_nome"]), ("codex", "Codex"))
+        self.assertIsNone(e["links"]["claude"])
+        self.assertEqual(next(x for x in e["etapas"] if x["id"] == "autonomia")["titulo"], "Codex pronto para trabalhar")
+        self.assertNotIn("Claude", json.dumps(e["etapas"], ensure_ascii=False))
+
+    def test_kit_claude_continua_claude(self):
+        kit = Kits.kits["mac"]
+        py(kit, "ferramentas/painel.py", "iniciar")
+        e = ler_estado(kit)
+        self.assertEqual((e["agente"], e["agente_nome"]), ("claude", "Claude"))
+        self.assertTrue(e["links"]["claude"].startswith("claude://code/new?"))
+        self.assertNotIn("+", e["links"]["claude"])
+
+
 class PaginaDoPainel(unittest.TestCase):
     def test_primeiros_passos_cobrem_obsidian_e_conectores(self):
         texto = (RAIZ / "modelo/painel/primeiros-passos.js").read_text(encoding="utf-8")
-        for palavra in ("Obsidian", "extrair-contexto", "cuidar-do-vault", "Conectores", "vamos configurar o meu perfil".capitalize(), "fechar o dia"):
+        for palavra in ("Obsidian", "extrair-contexto", "cuidar-do-vault", "conectores", "{agente}", "{instrucoes}", "vamos configurar o meu perfil".capitalize(), "fechar o dia"):
             self.assertIn(palavra, texto)
         for rel in ("painel/primeiros-passos.js", "painel/index.html", "painel/painel.js"):
             self.assertNotIn("—", (RAIZ / "modelo" / rel).read_text(encoding="utf-8"), rel)

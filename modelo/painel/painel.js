@@ -42,26 +42,38 @@
     else reserva();
   }
 
+  function agente(s) { return s.agente_nome || 'Claude'; }
+
   function trocar(texto, s) {
-    return (texto || '').split('{pasta}').join(s.pasta || 'a pasta do kit').split('{vault}').join(s.vault || 'a pasta vault do kit');
+    const valores = {'{pasta}': s.pasta || 'a pasta do kit', '{vault}': s.vault || 'a pasta vault do kit',
+                     '{agente}': agente(s), '{instrucoes}': s.agente === 'codex' ? 'AGENTS.md' : 'CLAUDE.md'};
+    return Object.keys(valores).reduce((t, k) => t.split(k).join(valores[k]), texto || '');
   }
 
   function proximos(s) {
     const lista = $('#proximos');
     lista.replaceChildren();
+    const comLink = (s.agente || 'claude') === 'claude';
+    $('#nota-passos').textContent = comLink
+      ? 'Cada passo traz o texto pronto para você mandar ao Claude. Use Abrir no Claude; se não abrir, use Copiar texto e cole no Claude, na área Code, com a pasta do kit aberta.'
+      : 'Cada passo traz o texto pronto para você mandar ao ' + agente(s) + '. Use Copiar texto e cole no ' + agente(s) + ', aberto na pasta do kit pelo atalho ' + agente(s) + ' do kit.';
     (window.KIT_PRIMEIROS_PASSOS || []).forEach(p => {
       const li = document.createElement('li');
       li.className = 'cartao';
-      const h = document.createElement('h3'); h.textContent = p.titulo; li.append(h);
-      const porque = document.createElement('p'); porque.textContent = p.porque; li.append(porque);
+      const h = document.createElement('h3'); h.textContent = trocar(p.titulo, s); li.append(h);
+      const porque = document.createElement('p'); porque.textContent = trocar(p.porque, s); li.append(porque);
       if (p.como) { const como = document.createElement('p'); como.className = 'como'; como.textContent = trocar(p.como, s); li.append(como); }
       const acoes = document.createElement('div'); acoes.className = 'acoes';
       if (p.prompt) {
-        const pre = document.createElement('pre'); pre.textContent = p.prompt; li.append(pre);
-        const abrir = document.createElement('a'); abrir.className = 'botao primario'; abrir.textContent = 'Abrir no Claude';
-        abrir.href = linkClaude(s.pasta, p.prompt); acoes.append(abrir);
+        const texto = trocar(p.prompt, s);
+        const pre = document.createElement('pre'); pre.textContent = texto; li.append(pre);
+        if (comLink) {
+          const abrir = document.createElement('a'); abrir.className = 'botao primario'; abrir.textContent = 'Abrir no Claude';
+          abrir.href = linkClaude(s.pasta, texto); acoes.append(abrir);
+        }
         const botao = document.createElement('button'); botao.type = 'button'; botao.textContent = 'Copiar texto';
-        botao.onclick = () => copiar(p.prompt, botao); acoes.append(botao);
+        if (!comLink) botao.className = 'botao primario';
+        botao.onclick = () => copiar(texto, botao); acoes.append(botao);
       }
       if (p.acao === 'obsidian') {
         const obs = document.createElement('a'); obs.className = 'botao primario'; obs.textContent = 'Abrir no Obsidian';
@@ -134,7 +146,7 @@
       c.falta.forEach(t => item(falta, t));
       if (!c.falta.length) item(falta, 'Nada da instalação. Siga os próximos passos abaixo.', 'vazio');
     }
-    item(falta, 'Entrar com a sua conta no aplicativo do Claude (é você quem faz)', 'manual');
+    item(falta, 'Entrar com a sua conta no ' + agente(s) + ' (é você quem faz)', 'manual');
     proximos(s);
   }
 

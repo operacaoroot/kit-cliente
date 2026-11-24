@@ -30,6 +30,10 @@ e, quando a instalação terminava, não tinha o que fazer em seguida.
 | `modelo/ferramentas/onboarding.py` (Mac, página guiada) | serve o mesmo painel em `/painel/index.html`, marca as etapas ao clicar em *Instalar programas* e mostra a atividade ao vivo na etapa de instalação. |
 | atalhos | Mac: `Painel do kit.command` na Mesa. Windows: `Painel do kit.url` na Área de Trabalho. Linux: `painel/index.html` dentro do kit. |
 
+No kit do Codex o painel usa o nome do agente e o `AGENTS.md` nos textos e não mostra o botão
+*Abrir no Claude* (fica só *Copiar texto*). O kit do Codex não leva a pasta `onboarding/`, então a
+página usa a fonte do sistema no lugar da Space Grotesk.
+
 Por que `estado.js` e não `estado.json`: aberto do disco, o navegador não deixa a página ler JSON
 com `fetch`, mas deixa carregar um `<script>` da mesma pasta. O texto que vai para o JS troca `</`
 por `<\/`, para nenhuma linha fechar a tag do script.
