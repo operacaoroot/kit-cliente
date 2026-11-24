@@ -11,7 +11,7 @@ import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fontes_publicas
@@ -39,7 +39,8 @@ def ler_json(path, default=None):
 
 
 def link_claude(kit, mensagem=''):
-    return 'claude://code/new?' + urlencode({'folder': str(kit.resolve()), 'q': mensagem})
+    # Espaço vira %20, não +: o Claude lê os dois jeitos só se for %20.
+    return 'claude://code/new?' + urlencode({'folder': str(kit.resolve()), 'q': mensagem}, quote_via=quote)
 
 
 class Onboarding:
