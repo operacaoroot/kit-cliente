@@ -1,5 +1,5 @@
 {
-  "versao": "1.1.0",
+  "versao": "1.2.0",
   "_leia": "Fonte única do que o kit instala e dos links que o cliente usa. Os instaladores, a conferência, a skill preparar-ambiente e o LINKS.md do kit leem daqui. perfis: obrigatorio (instala sempre), recomendado (instala por padrão no perfil), opcional (só com --com <id>). No Mac, Node, Java e GitHub CLI vão para a pasta do usuário (~/.local), sem senha de administrador. Nenhum app guarda dado do cliente fora da máquina dele.",
   "apps": [
     {
@@ -15,8 +15,8 @@
     {
       "id": "gh",
       "nome": "GitHub CLI",
-      "para_que": "entrar no GitHub com a sua conta, aceitar o convite do kit e enviar o progresso no seu nome",
-      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "para_que": "usar o GitHub com uma conta sua, se um dia quiser; o kit não precisa dele, porque fala com a Root pela chave que vem no kit",
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
       "links": {"site": "https://cli.github.com/", "download": "https://github.com/cli/cli/releases/latest", "ajuda": "https://cli.github.com/manual/"},
       "mac": {"checar": {"comando": "gh", "caminhos": ["~/.local/bin/gh"]}, "instalar": {"tipo": "github-asset", "repo": "cli/cli", "binarios": ["gh"], "arquivos": {"arm64": "_macOS_arm64.zip", "x86_64": "_macOS_amd64.zip"}}},
       "windows": {"checar": {"comando": "gh", "caminhos": ["%ProgramFiles%\\GitHub CLI\\gh.exe"]}, "instalar": {"winget": "GitHub.cli", "admin": true}},
@@ -131,7 +131,6 @@
     {"grupo": "Seus dados de IA", "nome": "ChatGPT: exportar o histórico", "url": "https://help.openai.com/en/articles/7260999-how-do-i-export-my-chatgpt-history-and-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina"},
     {"grupo": "Seus dados de IA", "nome": "Claude: exportar o histórico", "url": "https://support.anthropic.com/en/articles/9450526-how-can-i-export-my-claude-ai-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina"},
     {"grupo": "Ajuda", "nome": "Claude Code: documentação", "url": "https://code.claude.com/docs", "para_que": "comandos e atalhos do Claude que roda no kit"},
-    {"grupo": "Ajuda", "nome": "Obsidian: ajuda", "url": "https://help.obsidian.md/", "para_que": "como abrir o vault, criar notas e links"},
-    {"grupo": "Ajuda", "nome": "GitHub: colaborar num repositório", "url": "https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository", "para_que": "o que significa ser colaborador do repositório do kit"}
+    {"grupo": "Ajuda", "nome": "Obsidian: ajuda", "url": "https://help.obsidian.md/", "para_que": "como abrir o vault, criar notas e links"}
   ]
 }

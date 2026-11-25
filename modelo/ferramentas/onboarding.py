@@ -11,10 +11,11 @@ import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fontes_publicas
+import painel
 
 KIT = Path(__file__).resolve().parent.parent
 CAMPOS = ('nome', 'cargo', 'empresa', 'setor', 'responsabilidades', 'publico', 'objetivo', 'tom', 'site_pessoal', 'site_empresa', 'redes_pessoais', 'redes_empresa')
@@ -38,12 +39,14 @@ def ler_json(path, default=None):
 
 
 def link_claude(kit, mensagem=''):
-    return 'claude://code/new?' + urlencode({'folder': str(kit.resolve()), 'q': mensagem})
+    # Espaço vira %20, não +: o Claude lê os dois jeitos só se for %20.
+    return 'claude://code/new?' + urlencode({'folder': str(kit.resolve()), 'q': mensagem}, quote_via=quote)
 
 
 class Onboarding:
     def __init__(self, kit):
         self.kit = kit
+        painel.usar_kit(kit)
         self.path = kit / '_privado/onboarding/estado.json'
         self.lock = threading.RLock()
         self.trabalho = None
@@ -75,6 +78,9 @@ class Onboarding:
         s['vault_pasta'] = str(self.kit / 'vault')
         s['sincronizar_url'] = link_claude(self.kit, 'Quero fechar o dia e sincronizar minha carga inicial com o repositório privado do kit. Mostre os arquivos e confirme comigo antes de enviar. Não inclua arquivos de _privado nem credenciais.')
         s['prova_url'] = link_claude(self.kit, 'Vamos validar meu kit. Leia CLAUDE.md e execute a skill validar-onboarding. Não envie nada ao GitHub ainda.')
+        # O que o computador está fazendo agora, para a pessoa acompanhar a instalação.
+        s['painel_url'] = '/painel/index.html'
+        s['atividade'] = list(reversed((painel.carregar() or {}).get('eventos', [])[-12:]))
         return s
 
     def iniciar(self, acao, dados):
@@ -200,20 +206,43 @@ class Onboarding:
     def instalar(self, dados):
         if dados.get('confirmar') is not True:
             raise ValueError('Confirme a instalação dos programas do catálogo.')
-        for args, titulo in ((['--instalar'], 'Instalando programas'), (['--venv'], 'Preparando o Python do kit')):
+        try:
+            painel.iniciar()
+        except Exception:
+            pass  # o painel é só vitrine
+        painel.etapa('basico', 'ok', 'ferramentas da Apple e Python do sistema prontos')
+        for args, titulo, etapa in ((['--instalar'], 'Instalando programas', 'programas'), (['--venv'], 'Preparando o Python do kit', 'python')):
             with self.lock:
                 self.estado['mensagem'] = titulo + '. Isso pode levar alguns minutos; mantenha esta janela aberta.'
+            painel.etapa(etapa, 'andamento', titulo.lower())
             r = self.rodar([sys.executable, 'ferramentas/ambiente.py'] + args, timeout=3600)
             if r.returncode:
+                painel.etapa(etapa, 'atencao', 'ficou pendência; use Conferir ambiente para ver o que falta')
+                try:
+                    painel.concluir()  # a página não fica parada em "instalando"
+                except Exception:
+                    pass
                 raise ValueError('A instalação tem pendências. Use Conferir ambiente para identificar o que falta e tente novamente.')
+            painel.etapa(etapa, 'ok')
         # O computador, o Claude e o servidor são da pessoa: o Claude trabalha sem pedir permissão.
-        self.rodar([sys.executable, 'ferramentas/autonomia.py'], timeout=60)
-        # Mantém o método de acesso já escolhido; configura a chave apenas no primeiro uso.
-        cliente = ler_json(self.kit / '.root/cliente.json')
-        remoto = self.rodar(['git', 'remote', 'get-url', 'origin'])
-        if not cliente.get('github') and (self.kit / '.root/chave').exists() and not remoto.stdout.strip().startswith('https://'):
-            self.rodar([sys.executable, 'ferramentas/conectar.py', '--usar-chave'])
+        painel.etapa('autonomia', 'andamento')
+        r = self.rodar([sys.executable, 'ferramentas/autonomia.py'], timeout=60)
+        painel.etapa('autonomia', 'ok' if r.returncode == 0 else 'atencao',
+                     'o Claude trabalha sem pedir permissão a cada passo' if r.returncode == 0 else 'não consegui gravar a liberação do Claude')
+        # Sempre pela chave que veio no kit: sem conta, sem login e sem código do GitHub.
+        if (self.kit / '.root/chave').exists():
+            painel.etapa('chave', 'andamento', 'pela chave que veio no kit')
+            r = self.rodar([sys.executable, 'ferramentas/conectar.py', '--usar-chave'])
+            painel.etapa('chave', 'ok' if r.returncode == 0 else 'falhou',
+                         'kit ligado pela chave; sem conta nem código do GitHub' if r.returncode == 0 else 'não consegui ligar o kit pela chave')
+        else:
+            painel.etapa('chave', 'falhou', 'a chave do kit não veio no ZIP; extraia o ZIP inteiro de novo')
+        painel.etapa('atalho', 'ok', 'Continuar onboarding, Claude do kit e Painel do kit na Mesa')
         self.conferir({})
+        try:
+            painel.concluir()
+        except Exception:
+            pass
 
     def conferir(self, dados):
         r = self.rodar([sys.executable, 'ferramentas/ambiente.py', '--conferir', '--json'], timeout=120)
@@ -272,17 +301,28 @@ class API(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.headers.get('Host') != self.server.endereco:
             return self.enviar(403, {'erro': 'Origem inválida.'})
-        if self.path == '/api/estado':
+        caminho = self.path.split('?', 1)[0]  # o painel pede o estado com ?t= para não pegar cópia velha
+        if caminho == '/api/estado':
             if not self.autorizado():
                 return self.enviar(403, {'erro': 'Reabra o onboarding pelo atalho.'})
             return self.enviar(200, self.server.app.snapshot())
-        arquivos = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+        js, css = 'text/javascript; charset=utf-8', 'text/css; charset=utf-8'
+        arquivos = {'/': ('onboarding/index.html', 'text/html; charset=utf-8'), '/app.js': ('onboarding/app.js', js), '/style.css': ('onboarding/style.css', css)}
         for nome in ('SpaceGrotesk-Regular.ttf', 'SpaceGrotesk-Bold.ttf', 'JetBrainsMono-Regular.ttf', 'root-logo.png'):
-            arquivos['/assets/' + nome] = ('assets/' + nome, 'font/ttf' if nome.endswith('.ttf') else 'image/png')
-        if self.path not in arquivos:
+            tipo = 'font/ttf' if nome.endswith('.ttf') else 'image/png'
+            arquivos['/assets/' + nome] = ('onboarding/assets/' + nome, tipo)
+            arquivos['/onboarding/assets/' + nome] = ('onboarding/assets/' + nome, tipo)
+        # O Painel do kit: a mesma página que abre do disco no Windows e no Linux.
+        arquivos.update({'/painel/index.html': ('painel/index.html', 'text/html; charset=utf-8'), '/painel/painel.css': ('painel/painel.css', css),
+                         '/painel/painel.js': ('painel/painel.js', js), '/painel/primeiros-passos.js': ('painel/primeiros-passos.js', js),
+                         '/marca/root-logo.png': ('marca/root-logo.png', 'image/png'), '/_privado/painel/estado.js': ('_privado/painel/estado.js', js)})
+        if caminho not in arquivos:
             return self.enviar(404, {})
-        nome, tipo = arquivos[self.path]
-        self.enviar(200, (self.server.app.kit / 'onboarding' / nome).read_bytes(), tipo)
+        nome, tipo = arquivos[caminho]
+        arquivo = self.server.app.kit / nome
+        if not arquivo.is_file():
+            return self.enviar(404, {})
+        self.enviar(200, arquivo.read_bytes(), tipo)
 
     def do_POST(self):
         if not self.autorizado():
@@ -336,6 +376,10 @@ def main():
             path = desktop / nome
             path.write_text('#!/bin/bash\nexec ' + shlex.quote(sys.executable) + ' ' + shlex.quote(str(KIT / 'ferramentas/onboarding.py')) + extra + '\n', encoding='utf-8')
             path.chmod(0o700)
+        # O painel abre do disco, mesmo com o onboarding fechado.
+        atalho_painel = desktop / 'Painel do kit.command'
+        atalho_painel.write_text('#!/bin/bash\nopen ' + shlex.quote(str(KIT / 'painel/index.html')) + '\n', encoding='utf-8')
+        atalho_painel.chmod(0o700)
     webbrowser.open(url)
     print('Onboarding aberto no navegador. Mantenha esta janela aberta. Para continuar depois, use o atalho Continuar onboarding.', flush=True)
     try:

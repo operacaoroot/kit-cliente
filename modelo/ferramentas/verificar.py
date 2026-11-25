@@ -55,7 +55,7 @@ def checar_instalar(sem_rede):
         if not (ROOT_DIR / "chave").exists() and acesso_resumido()["modo"] != "colaborador":
             faltas.append("sem conta do GitHub ligada e sem a chave do kit em .root/chave")
     elif not conectar.estado()["modo"]:
-        faltas.append("o kit ainda não está ligado ao GitHub (peça ao Claude: \"liga o kit ao GitHub\")")
+        faltas.append("o kit ainda não está ligado à Root (peça ao Claude: \"liga o kit à Root\")")
     if not (KIT / ".git").exists():
         faltas.append("a pasta do kit não é um repositório git")
     if not faltas and not sem_rede:

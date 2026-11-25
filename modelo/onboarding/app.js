@@ -43,6 +43,10 @@ function render(s) {
   $('#sync').href = s.sincronizar_url;
   $('#folder').textContent = s.pasta; $('#vault-folder').textContent = s.vault_pasta;
   $('#probe').href = s.prova_url; $('#vault').href = s.obsidian_url; $('#daily').href = s.claude_url;
+  document.querySelectorAll('.painel-link').forEach(a => { a.href = s.painel_url || '/painel/index.html'; });
+  $('#atividade').replaceChildren();
+  for (const ev of (s.atividade || [])) { const li = document.createElement('li'); li.className = ev.tipo; li.textContent = ev.em + '  ' + ev.texto; $('#atividade').append(li); }
+  if (!(s.atividade || []).length) { const li = document.createElement('li'); li.textContent = 'Nada ainda. A lista começa quando você clicar em Instalar programas.'; $('#atividade').append(li); }
   const version = JSON.stringify(s.fontes);
   if (version !== sourcesVersion) {
     sourcesVersion = version; $('#sources').replaceChildren();
