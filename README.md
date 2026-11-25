@@ -63,7 +63,8 @@ Esse pacote usa **Marina Duarte / Distribuidora Exemplo**, dados fictícios. É 
 |---|---|
 | **Claude com contexto** | `CLAUDE.md`, perfil de interação, skills e agente de auditoria orientam o trabalho dentro da pasta do kit. |
 | **Base no Obsidian** | Notas de identidade, organização, operação, projetos, decisões, dados e metas, com indicação do que precisa ser revisado. |
-| **Ambiente de trabalho** | Git, GitHub CLI, Python, Node, Java, Claude Code e Obsidian, conforme o catálogo. O kit também cria seu ambiente Python `.venv`. |
+| **Ambiente de trabalho** | Git, Python, Node, Java, Claude Code e Obsidian, conforme o catálogo. O kit também cria seu ambiente Python `.venv` e se liga à ROOT pela chave do kit, sem conta nem código do GitHub. |
+| **Painel do kit** | Página que abre no navegador durante a instalação: o que está sendo feito, o que já ficou pronto, o que falta e os próximos passos com o texto pronto para o Claude (perfil, carga do Obsidian, conectores). |
 | **Ferramentas da primeira frente** | Skills escolhidas a partir do trabalho combinado no kickoff e registradas em `catalogo.json`. |
 | **Oficina** | Processo para criar, testar e registrar ferramentas próprias à medida que surgem tarefas recorrentes. |
 | **Acompanhamento** | Progresso e catálogo no GitHub; a ROOT gera relatórios e sugestões de resposta, revisadas por um sócio antes do envio. |
@@ -149,6 +150,8 @@ O agendamento de três execuções diárias é configurado separadamente; execut
 | Entender etapas, responsabilidades e estrutura do kit | [Arquitetura](docs/ARQUITETURA.md) |
 | Conferir a página guiada, a coleta e os critérios de conclusão | [Onboarding no macOS](docs/ONBOARDING-GUIADO.md) |
 | Montar o kit com o Codex no lugar do Claude | [Kit em versão Codex](docs/KIT-CODEX.md) |
+| Ligar o kit a plugins, conectores e credenciais da empresa, com o Claude conduzindo pela conversa | [Sistemas de trabalho](docs/SISTEMAS.md) |
+| Revisar quem já tem o Claude e não consegue usar os sistemas (roteiro, erros explicados, relatório) | [Sistemas de trabalho, seção "Revisão"](docs/SISTEMAS.md#revisão-roteiro-erros-explicados-e-kit-de-revisão) |
 | Ver programas, instalação por sistema e links oficiais | [Ambiente](docs/AMBIENTE.md) |
 | Criar ferramentas com o cliente | [Desenvolvimento](docs/DESENVOLVIMENTO.md) |
 | Alterar textos, página, cofre ou skills de base | [`modelo/`](modelo/) |

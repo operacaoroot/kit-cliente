@@ -84,6 +84,7 @@ class Fluxo(unittest.TestCase):
         q = parse_qs(urlsplit(url).query)
         self.assertEqual(q['folder'], [str((self.kit / 'João e Ana').resolve())])
         self.assertEqual(q['q'], ['Olá'])
+        self.assertNotIn('+', url)
 
     def test_nao_conclui_sem_prova_nem_rede(self):
         self.app.perfil(self.perfil)

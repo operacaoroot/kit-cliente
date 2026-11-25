@@ -56,7 +56,7 @@ def checar_instalar(sem_rede):
         if not (ROOT_DIR / "chave").exists() and acesso_resumido()["modo"] != "colaborador":
             faltas.append("sem conta do GitHub ligada e sem a chave do kit em .root/chave")
     elif not conectar.estado()["modo"]:
-        faltas.append("o kit ainda não está ligado ao GitHub (peça ao {}: \"liga o kit ao GitHub\")".format(agente.NOME))
+        faltas.append("o kit ainda não está ligado à Root (peça ao {}: \"liga o kit à Root\")".format(agente.NOME))
     if not (KIT / ".git").exists():
         faltas.append("a pasta do kit não é um repositório git")
     if cliente_do_kit().get("mcp"):
@@ -96,6 +96,11 @@ def checar_perfil():
     cab = cabecalho(p.read_text(encoding="utf-8"))
     ok = any(linha.strip().lower() == "confirmado: sim" for linha in cab.splitlines())
     return ok, "perfil confirmado" if ok else "perfil ainda não confirmado"
+
+
+def checar_sistemas():
+    import sistemas  # noqa: E402  (mesma pasta; plugins, conectores e credenciais, só no kit Claude)
+    return sistemas.pronto()
 
 
 def checar_vault():
@@ -187,6 +192,7 @@ def main(argv):
     checagens = {
         "instalar": lambda: checar_instalar(sem_rede),
         "perfil": checar_perfil,
+        "sistemas": checar_sistemas,
         "vault": checar_vault,
         "contexto": checar_contexto,
         "primeira-frente": checar_primeira_frente,

@@ -50,11 +50,15 @@ from agente import AGENTES  # noqa: E402  (a mesma tabela que as ferramentas do 
 PROGRAMA_DO_AGENTE = {"claude": "Claude Code", "codex": "Codex CLI"}
 INSTRUCOES_DO_AGENTE = {"claude": "CLAUDE.md", "codex": "AGENTS.md"}
 # Peças que só fazem sentido num dos agentes (nomes de arquivo ou pasta dentro de modelo/).
-SO_DO_CLAUDE = (".claude", "onboarding", "onboarding.py", "fontes_publicas.py", "autonomia.py", "agente-claude.sh", "agente-claude.ps1")
+SO_DO_CLAUDE = (".claude", "onboarding", "onboarding.py", "fontes_publicas.py", "autonomia.py", "agente-claude.sh", "agente-claude.ps1",
+                "sistemas.py", "revisar_sistemas.py", "pedir-segredo.ps1")
 SO_DO_CODEX = ("mcp.py", "agente-codex.sh", "agente-codex.ps1")
-# Skills de base que dependem da página guiada do aplicativo Claude.
-SKILLS_SO_DO_CLAUDE = {"validar-onboarding"}
+# Skills de base que dependem do aplicativo Claude (página guiada, conversa conduzida, plugins e conectores).
+SKILLS_SO_DO_CLAUDE = {"validar-onboarding", "comecar", "ligar-sistemas", "revisar-sistemas"}
 PERFIS_DO_MCP = ("leitura", "equipe", "full")
+SLUG = r"[a-z0-9]+(-[a-z0-9]+)*"
+# Nome de campo de credencial que é segredo pela cara: nunca pode vir com valor no manifesto.
+CAMPO_SEGREDO = re.compile(r"PASS|SENHA|SECRET|TOKEN|CRYPT|PRIVATE")
 SECAO_CONTA = {
     "claude": "## O Claude\n\nDurante o primeiro mês, a assinatura do Claude é por conta da Root: você assina o plano\n"
               "individual no seu nome e a Root reembolsa o primeiro mês contra o comprovante. A conta é sua\n"
@@ -253,6 +257,125 @@ def conferir_mcp(mcp):
     return faltas
 
 
+def conferir_ferramentas(d, onde):
+    faltas = []
+    for tipo in ("leitura", "escrita"):
+        lista = d.get(tipo, [])
+        if not isinstance(lista, list) or not all(isinstance(x, str) and re.fullmatch(r"[A-Za-z0-9_-]+", x) for x in lista):
+            faltas.append("{}.{} deve ser uma lista de nomes de ferramenta".format(onde, tipo))
+    if isinstance(d.get("leitura"), list) and isinstance(d.get("escrita"), list) and set(d["leitura"]) & set(d["escrita"]):
+        faltas.append("{}: ferramenta em leitura e em escrita ao mesmo tempo".format(onde))
+    return faltas
+
+
+def conferir_sistemas(s, agente="claude"):
+    """O bloco sistemas do manifesto (só no kit Claude): plugins, conectores da conta do Claude,
+    credenciais locais e regras. Segredo nunca vem com valor: a pessoa digita na instalação."""
+    if s is None:
+        return []
+    if agente != "claude":
+        return ["sistemas só existe no kit Claude; no kit Codex o servidor da empresa vai no bloco mcp"]
+    if not isinstance(s, dict):
+        return ["sistemas deve ser um objeto com plugins, conectores, credenciais e regras"]
+    faltas = []
+    extras = sorted(set(s) - {"plugins", "conectores", "credenciais", "regras", "erros"})
+    if extras:
+        faltas.append("sistemas não conhece: " + ", ".join(extras))
+    if not (s.get("plugins") or s.get("conectores")):
+        faltas.append("sistemas precisa de pelo menos um plugin ou um conector")
+    for i, p in enumerate(s.get("plugins") or []):
+        onde = "sistemas.plugins[{}]".format(i)
+        for campo in ("nome", "marketplace", "repo", "plugin", "para_que"):
+            if not p.get(campo):
+                faltas.append("{}.{}".format(onde, campo))
+        for campo in ("marketplace", "plugin"):
+            if p.get(campo) and not re.fullmatch(SLUG, str(p[campo])):
+                faltas.append("{}.{} só com minúsculas, números e hífen".format(onde, campo))
+        if p.get("repo") and not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", str(p["repo"])):
+            faltas.append("{}.repo no formato dono/repositorio do GitHub".format(onde))
+        if p.get("versao_minima") is not None and not re.fullmatch(r"\d+(\.\d+)*", str(p["versao_minima"])):
+            faltas.append("{}.versao_minima só com números e pontos, como 1.5.0".format(onde))
+        teste = p.get("teste")
+        if teste is not None:
+            script = str((teste or {}).get("script") or "") if isinstance(teste, dict) else ""
+            if not script or script.startswith(("/", "\\")) or ".." in script:
+                faltas.append("{}.teste.script deve ser um caminho dentro do plugin".format(onde))
+        for servidor, ferramentas in (p.get("servidores") or {}).items():
+            if not re.fullmatch(r"[A-Za-z0-9_-]+", servidor):
+                faltas.append("{}.servidores: nome de servidor inválido: {}".format(onde, servidor))
+            faltas += conferir_ferramentas(ferramentas, "{}.servidores.{}".format(onde, servidor))
+    for i, c in enumerate(s.get("conectores") or []):
+        onde = "sistemas.conectores[{}]".format(i)
+        for campo in ("id", "nome", "para_que", "link", "ferramenta_de_teste"):
+            if not c.get(campo):
+                faltas.append("{}.{}".format(onde, campo))
+        if c.get("id") and not re.fullmatch(SLUG, str(c["id"])):
+            faltas.append("{}.id só com minúsculas, números e hífen".format(onde))
+        if c.get("link") and not str(c["link"]).startswith("https://"):
+            faltas.append("{}.link precisa começar com https://".format(onde))
+        faltas += conferir_ferramentas(c, onde)
+        if c.get("ferramenta_de_teste") and c["ferramenta_de_teste"] in (c.get("escrita") or []):
+            faltas.append("{}.ferramenta_de_teste não pode ser de escrita".format(onde))
+    ids = set()
+    for i, c in enumerate(s.get("credenciais") or []):
+        onde = "sistemas.credenciais[{}]".format(i)
+        for campo in ("id", "nome", "para", "arquivo", "campos"):
+            if not c.get(campo):
+                faltas.append("{}.{}".format(onde, campo))
+        if c.get("id") in ids:
+            faltas.append("{}.id repetido: {}".format(onde, c["id"]))
+        ids.add(c.get("id"))
+        if c.get("id") and not re.fullmatch(SLUG, str(c["id"])):
+            faltas.append("{}.id só com minúsculas, números e hífen".format(onde))
+        arquivo = str(c.get("arquivo") or "")
+        if arquivo and (not arquivo.startswith("~/") or ".." in arquivo):
+            faltas.append("{}.arquivo deve ficar na pasta da pessoa (começar com ~/)".format(onde))
+        for campo in c.get("campos") or []:
+            nome = str(campo.get("nome") or "")
+            if not re.fullmatch(r"[A-Z][A-Z0-9_]*", nome):
+                faltas.append("{}.campos: nome em MAIÚSCULAS, como EMPRESA_EMAIL ({})".format(onde, nome or "vazio"))
+                continue
+            extras = sorted(set(campo) - {"nome", "valor", "segredo", "pergunta", "publico"})
+            if extras:
+                faltas.append("{}.campos.{} não leva {}".format(onde, nome, ", ".join(extras)))
+            if campo.get("segredo"):
+                if "valor" in campo:
+                    faltas.append("{}.campos.{} é segredo e não leva valor: a pessoa digita na instalação".format(onde, nome))
+                if not campo.get("pergunta"):
+                    faltas.append("{}.campos.{}.pergunta (o texto da janela)".format(onde, nome))
+            else:
+                if CAMPO_SEGREDO.search(nome):
+                    faltas.append("{}.campos.{} tem cara de segredo: marque segredo true e tire o valor".format(onde, nome))
+                if not isinstance(campo.get("valor"), str) or not campo.get("valor"):
+                    faltas.append("{}.campos.{}.valor (ou segredo true)".format(onde, nome))
+                if "KEY" in nome and not campo.get("publico"):
+                    faltas.append("{}.campos.{}: chave com valor no manifesto só se for pública (publico true)".format(onde, nome))
+    regras = s.get("regras") or []
+    if not isinstance(regras, list) or not all(isinstance(r, str) and r.strip() for r in regras):
+        faltas.append("sistemas.regras deve ser uma lista de frases")
+    vistos = set()
+    for i, e in enumerate(s.get("erros") or []):
+        onde = "sistemas.erros[{}]".format(i)
+        if not isinstance(e, dict):
+            faltas.append(onde + " deve ser um objeto")
+            continue
+        if not e.get("id") or not re.fullmatch(SLUG, str(e["id"])) or e["id"] in vistos:
+            faltas.append("{}.id só com minúsculas, números e hífen, sem repetir".format(onde))
+        vistos.add(e.get("id"))
+        sinais = e.get("sinais")
+        if not isinstance(sinais, list) or not sinais or not all(isinstance(x, str) and len(x.strip()) >= 4 for x in sinais):
+            faltas.append("{}.sinais: lista com os trechos do erro (4 letras ou mais cada)".format(onde))
+        for campo in ("significa", "resolve"):
+            if not isinstance(e.get(campo), str) or not e[campo].strip():
+                faltas.append("{}.{}".format(onde, campo))
+        if e.get("quem_resolve", "voce") not in ("voce", "responsavel"):
+            faltas.append("{}.quem_resolve é voce ou responsavel".format(onde))
+        extras = sorted(set(e) - {"id", "sinais", "significa", "resolve", "quem_resolve"})
+        if extras:
+            faltas.append("{} não leva {}".format(onde, ", ".join(extras)))
+    return faltas
+
+
 def conferir_manifesto(m, perfis, rascunho, permitir_semente):
     faltas = []
     c = m.get("cliente", {})
@@ -270,6 +393,7 @@ def conferir_manifesto(m, perfis, rascunho, permitir_semente):
     if agente_do(m) not in AGENTES:
         faltas.append("agente deve ser um de: " + ", ".join(AGENTES))
     faltas += conferir_mcp(m.get("mcp"))
+    faltas += conferir_sistemas(m.get("sistemas"), agente_do(m))
     p = m.get("perfil", {})
     if p.get("escolhido") not in perfis["perfis"]:
         faltas.append("perfil.escolhido deve ser um de: " + ", ".join(perfis["perfis"]))
@@ -300,6 +424,127 @@ def conferir_manifesto(m, perfis, rascunho, permitir_semente):
     if portoes and not rascunho:
         raise Recusa("portão fechado:\n  - " + "\n  - ".join(portoes) + "\nResolva ou monte com --rascunho.")
     return portoes
+
+
+# ---------------------------------------------------------------- sistemas
+
+def ferramentas_de_sistema(m):
+    """(leitura, escrita) com o nome que o Claude Code dá a cada ferramenta. As do plugin têm nome
+    fixo (mcp__plugin_<plugin>_<servidor>__<ferramenta>); as do conector da conta do Claude têm um
+    servidor que muda por pessoa, por isso a escrita delas vai com curinga (vale em ask)."""
+    s = m.get("sistemas") or {}
+    leitura, escrita = [], []
+    for p in s.get("plugins", []):
+        for servidor, f in (p.get("servidores") or {}).items():
+            prefixo = "mcp__plugin_{}_{}__".format(p["plugin"], servidor)
+            leitura += [prefixo + x for x in f.get("leitura", [])]
+            escrita += [prefixo + x for x in f.get("escrita", [])]
+    for c in s.get("conectores", []):
+        escrita += ["mcp__*__" + x for x in c.get("escrita", [])]
+    return leitura, escrita
+
+
+def settings_do_kit(m):
+    """O .claude/settings.json do kit: as permissões liberadas do modelo, mais a leitura dos plugins
+    liberada e toda ferramenta de gravação em sistema em ask (pergunta mesmo no modo sem permissão)."""
+    cfg = ler_json(MODELO / ".claude" / "settings.json")
+    leitura, escrita = ferramentas_de_sistema(m)
+    if leitura:
+        cfg["permissions"]["allow"] = cfg["permissions"]["allow"] + leitura
+    if escrita:
+        cfg["permissions"]["ask"] = escrita
+    return cfg
+
+
+def nomes_dos_sistemas(s):
+    nomes = [p["nome"] for p in (s or {}).get("plugins", [])] + ["conector " + c["nome"] for c in (s or {}).get("conectores", [])]
+    return " e ".join([", ".join(nomes[:-1]), nomes[-1]]) if len(nomes) > 1 else "".join(nomes)
+
+
+def sistemas_do_kit(m):
+    """O .root/sistemas.json do kit: o bloco do manifesto, que já não tem segredo (o portão recusa)."""
+    s = json.loads(json.dumps(m["sistemas"]))
+    s["_responsavel"] = ((m.get("combinado") or {}).get("responsavel_root") or "").strip() or "quem entregou o kit"
+    s["_leia"] = ("Sistemas que este kit liga. Quem liga é ferramentas/sistemas.py (skill ligar-sistemas). "
+                  "Segredo nunca entra aqui: a pessoa digita na janela que o script abre.")
+    return s
+
+
+def passos_do_kit(m):
+    """Os passos do modelo para este kit: o passo de sistemas só entra se o manifesto tiver sistemas,
+    e o Windows Claude recebe as instruções do painel e da abertura da conversa."""
+    passos = ler_json(MODELO / "passos.json")
+    s = m.get("sistemas")
+    nomes = nomes_dos_sistemas(s)
+    windows_claude = m["cliente"]["sistema"] == "windows" and agente_do(m) == "claude"
+    lista = []
+    for p in passos["passos"]:
+        if p.get("so_com") == "sistemas" and not s:
+            continue
+        p = dict(p)
+        p.pop("so_com", None)
+        alternativo = p.pop("texto_windows_claude", None)
+        if alternativo and windows_claude:
+            p["texto"] = alternativo
+        p["texto"] = {k: v.replace("{{sistemas_nomes}}", nomes) for k, v in p["texto"].items()}
+        lista.append(p)
+    passos["passos"] = lista
+    return passos
+
+
+def secao_de_sistemas(m):
+    """A seção do CLAUDE.md sobre os sistemas e a regra de gravação, que vale acima da autonomia."""
+    s = m.get("sistemas")
+    if not s:
+        return ""
+    quem = m["cliente"]["primeiro_nome"]
+    linhas = ["## Sistemas de trabalho", "",
+              "{} usa estes sistemas pelo Claude. Os detalhes estão em `.root/sistemas.json`; para ligar, testar ou "
+              "consertar, use a skill `ligar-sistemas`.".format(quem), ""]
+    for p in s.get("plugins", []):
+        linhas.append("- **{}** (`{}@{}`, instalado no Claude Code deste computador): {}".format(p["nome"], p["plugin"], p["marketplace"], p["para_que"]))
+    for c in s.get("conectores", []):
+        linhas.append("- **{}** (conector na conta do Claude de {}): {}".format(c["nome"], quem, c["para_que"]))
+    for c in s.get("credenciais", []):
+        linhas.append("- **{}**: {}. Fica em `{}`. Não abra nem mostre esse arquivo; para saber o que falta, "
+                      "`python3 ferramentas/sistemas.py --conferir`.".format(c["nome"], c["para"], c["arquivo"]))
+    linhas += ["", "**Gravar em sistema vale acima da autonomia da seção anterior.** Incluir, alterar, baixar, excluir, "
+               "cancelar, faturar ou registrar pagamento ou recebimento mexe em dado que não é só de {q} e pode não ter "
+               "volta. Por isso:".format(q=quem), "",
+               "1. Antes de gravar, mostre a prévia: o que vai ser feito, em que empresa, com que valores e datas. Grave só "
+               "depois de {q} responder \"sim\" para aquela gravação. Um \"sim\" vale para uma gravação, não para as próximas.".format(q=quem),
+               "2. Grave uma coisa por vez e leia de volta para confirmar que ficou certo.",
+               "3. Pedido em lote (várias empresas ou vários títulos) começa por um item só, conferido com {q}.".format(q=quem),
+               "4. Ferramenta com prévia (`dry_run`) roda primeiro em prévia. Pendência que pede aprovação humana é decisão "
+               "de {q}: mostre e espere.".format(q=quem),
+               "5. O Claude pede permissão antes de cada ferramenta de gravação, de propósito. Não sugira desligar esse pedido."]
+    if s.get("regras"):
+        linhas += [""] + ["- " + r for r in s["regras"]]
+    return "\n".join(linhas) + "\n"
+
+
+def readme_de_sistemas(m):
+    s = m.get("sistemas")
+    if not s:
+        return ""
+    return ("## Os sistemas de trabalho\n\nO kit liga o Claude a {}. O passo \"Ligar o Claude aos sistemas do seu "
+            "trabalho\" faz isso com você. A sua senha é digitada só numa janela do computador, nunca no chat, e o "
+            "Claude pede a sua permissão antes de gravar qualquer coisa num sistema.\n").format(nomes_dos_sistemas(s))
+
+
+ABERTURA_WINDOWS_CLAUDE = (
+    "## Começar\n\n"
+    "1. Baixe o ZIP do kit no link que a Root mandou e extraia a pasta inteira em Documentos. Mantenha todos os "
+    "arquivos juntos. Não use arquivos chamados Source code: eles não têm o acesso preparado pela Root.\n"
+    "2. Dê dois cliques em `instalar\\instalar.cmd`. O Painel do kit abre no navegador e acompanha a instalação, "
+    "mostra o que falta e traz os próximos passos. Quando o Windows pedir permissão, clique em Sim. O kit se liga "
+    "à Root pela chave do ZIP, sem conta nem código do GitHub. Leva de 10 a 25 minutos.\n"
+    "3. No fim, se o aplicativo do Claude estiver disponível, ele abre na aba Code, na pasta do kit, com uma mensagem já escrita. Entre com a "
+    "sua conta do Claude se ele pedir, confirme que confia na pasta e envie a mensagem. Se ele abrir sem a pasta, "
+    "clique em escolher pasta e selecione a pasta do kit em Documentos. Se não abrir, use o atalho Claude do kit ou o painel.\n"
+    "4. Daí em diante é conversa: o Claude conduz os passos abaixo com você, um de cada vez. Para voltar outro dia, "
+    "use o atalho **Claude do kit** na Área de Trabalho e escreva \"continuar\".\n\n"
+    "Os passos abaixo ficam aqui para consulta.\n\n")
 
 
 # ---------------------------------------------------------------- contexto
@@ -337,7 +582,10 @@ def montar_contexto(m, perfis, kit_id):
     if agente == "codex":
         skills_base.append(("auditar-contexto", "confere o pacote do histórico de IA"))
     else:
+        skills_base.insert(0, ("comecar", "conduz a pessoa pela conversa, um passo por vez, até o kit pronto"))
         skills_base.append(("validar-onboarding", "testa o perfil e a escrita no vault pela interface do Claude"))
+        skills_base.append(("ligar-sistemas", "liga e testa os plugins, conectores e credenciais dos sistemas de trabalho"))
+        skills_base.append(("revisar-sistemas", "revisa a ligação com os sistemas, explica cada erro e escreve o relatório"))
     linhas = ["**Base (todo kit tem):**", ""]
     linhas += ["- `{}`: {}".format(n, d) for n, d in skills_base]
     linhas += ["", "**Frente ({}):**".format(", ".join(r["nome"] for r in receitas)), ""]
@@ -359,14 +607,19 @@ def montar_contexto(m, perfis, kit_id):
                      "`python3 ferramentas/mcp.py --testar`.").format(nome=mcp["nome"], perfil=mcp["perfil"], pessoa=c["primeiro_nome"])
     else:
         mcp_texto = "Este kit não tem servidor MCP da empresa registrado. Se a Root ligar um depois, o registro vem pela atualização do kit."
+    secao_conta = SECAO_CONTA[agente]
+    if (m.get("claude") or {}).get("texto_da_conta"):
+        secao_conta = "## O {}\n\n{}".format(nome_agente, m["claude"]["texto_da_conta"])
     return {
         "nome": c["nome"], "primeiro_nome": c["primeiro_nome"], "empresa": c["empresa"], "cargo": c["cargo"],
         "kit_id": kit_id, "hoje": dt.date.today().isoformat(), "versao_modelo": ler_json(MODELO / "passos.json")["versao"],
         "agente": agente, "agente_nome": nome_agente, "agente_programa": PROGRAMA_DO_AGENTE[agente],
         "agente_comando": AGENTES[agente]["comando"], "pasta_skills": raiz_das_skills(agente),
-        "arquivo_instrucoes": INSTRUCOES_DO_AGENTE[agente], "secao_conta": SECAO_CONTA[agente],
+        "arquivo_instrucoes": INSTRUCOES_DO_AGENTE[agente], "secao_conta": secao_conta,
         "mcp_nome": mcp.get("nome", ""), "mcp_url": mcp.get("url", ""), "mcp_perfil": mcp.get("perfil", ""),
         "mcp_variavel": mcp.get("variavel", ""), "mcp_texto": mcp_texto,
+        "sistemas_secao": secao_de_sistemas(m), "sistemas_readme": readme_de_sistemas(m),
+        "sistemas_nomes": nomes_dos_sistemas(m.get("sistemas")),
         "perfil_id": p["escolhido"], "nivel": nivel, "nivel_nome": NIVEL[nivel][0], "nivel_regra": NIVEL[nivel][1],
         "tom": TOM.get(tom, tom), "formato": FORMATO.get(formato, formato), "tom_id": tom, "formato_id": formato,
         "iniciativa": iniciativa, "iniciativa_regra": INICIATIVA[iniciativa],
@@ -383,7 +636,7 @@ def montar_contexto(m, perfis, kit_id):
         "canal_de_ajuda": comb.get("canal_de_ajuda", "o canal combinado"),
         "prazo_resposta_horas": comb.get("prazo_resposta_horas", 4),
         "horarios_acompanhamento": ", ".join(comb.get("horarios_acompanhamento", ["08:30", "13:00", "18:00"])),
-        "total_passos": len(ler_json(MODELO / "passos.json")["passos"]),
+        "total_passos": len(passos_do_kit(m)["passos"]),
     }, receitas
 
 
@@ -581,10 +834,12 @@ def montar(caminho_manifesto, opcoes):
     shutil.copytree(MODELO, destino, ignore=ignorar)
     for ext in ("sh", "ps1"):  # a parte do instalador que é do agente deste kit
         shutil.copy2(MODELO / "instalar" / "agente-{}.{}".format(agente, ext), destino / "instalar" / "agente.{}".format(ext))
-    passos = ler_json(MODELO / "passos.json")
+    passos = passos_do_kit(m)
     if agente == "codex":
         passos = json.loads(converter(json.dumps(passos, ensure_ascii=False)))
         (destino / "oficina" / "LEIA-ME.md").write_text(converter((MODELO / "oficina" / "LEIA-ME.md").read_text(encoding="utf-8")), encoding="utf-8")
+    else:
+        (destino / ".claude" / "settings.json").write_text(json.dumps(settings_do_kit(m), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (destino / "ferramentas" / "passos.json").write_text(json.dumps(passos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (destino / "ambiente" / "apps.json").write_text(json.dumps(catalogo_de_apps(agente), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for tmpl in MODELO.rglob("*.tmpl"):
@@ -624,6 +879,9 @@ def montar(caminho_manifesto, opcoes):
         guia = destino / "COMECE-AQUI.md"
         abertura = "## Começar pela página guiada\n\nNo repositório privado que a Root compartilhou com você, abra Releases e baixe o ZIP do kit em Assets. Não use os arquivos chamados Source code: eles não incluem o acesso preparado pela Root. Abra o ZIP para extrair a pasta e mantenha todos os arquivos juntos. Não é necessário instalar Git nem executar um clone antes de começar.\n\nAbra `instalar/instalar.command`. A página permite confirmar seus dados profissionais, revisar fontes públicas, instalar os programas e abrir o Claude com seu kit. Se o macOS bloquear o arquivo, confira com a Root a origem do kit e use Ajustes do Sistema > Privacidade e Segurança > Abrir Mesmo Assim. Se as ferramentas da Apple forem solicitadas, termine a instalação e abra o arquivo novamente.\n\nPara retomar, use o atalho **Continuar onboarding** na Mesa. Para trabalhar depois, use **Claude do kit**, na interface Code com a pasta deste kit. O chat comum não carrega esta pasta automaticamente.\n\nAs etapas abaixo continuam disponíveis para aprofundar o uso após a configuração inicial.\n\n"
         guia.write_text(abertura + guia.read_text(encoding="utf-8"), encoding="utf-8")
+    elif sistema == "windows" and agente == "claude":
+        guia = destino / "COMECE-AQUI.md"
+        guia.write_text(ABERTURA_WINDOWS_CLAUDE + guia.read_text(encoding="utf-8"), encoding="utf-8")
     (destino / "LINKS.md").write_text(gerar_links(sistema, m["perfil"]["escolhido"], agente), encoding="utf-8")
 
     for skill_md in (destino / raiz).rglob("*.md"):
@@ -652,6 +910,8 @@ def montar(caminho_manifesto, opcoes):
     if m.get("mcp"):
         cliente["mcp"] = dict(m["mcp"])
     (destino / ".root").mkdir(exist_ok=True)
+    if m.get("sistemas"):
+        (destino / ".root" / "sistemas.json").write_text(json.dumps(sistemas_do_kit(m), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if agente == "claude":
         inicial = {"nome": m["cliente"]["nome"], "cargo": ctx["cargo"], "empresa": ctx["empresa"]}
         (destino / ".root/onboarding-inicial.json").write_text(json.dumps(inicial, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -692,6 +952,10 @@ def montar(caminho_manifesto, opcoes):
     print("  kit_id: {} · agente: {} · perfil: {} · frente: {}".format(kit_id, agente, m["perfil"]["escolhido"], ", ".join(m["frente"])))
     if m.get("mcp"):
         print("  servidor MCP: {} ({}), perfil {}; o token é pedido na instalação".format(m["mcp"]["nome"], m["mcp"]["url"], m["mcp"]["perfil"]))
+    if m.get("sistemas"):
+        leitura, escrita = ferramentas_de_sistema(m)
+        print("  sistemas: {}; {} ferramenta(s) de leitura liberadas, {} de gravação com pergunta".format(
+            nomes_dos_sistemas(m["sistemas"]), len(leitura), len(escrita)))
     print("  arquivos versionados: {}".format(len(versionados)))
     if rascunho:
         print("  RASCUNHO: " + "; ".join(portoes))

@@ -9,7 +9,7 @@ dele. Mudou o catálogo, mudou tudo junto.
 | App | Para quê | Guiado | Chat | Construtor | Mac | Windows |
 |---|---|---|---|---|---|---|
 | Git | guardar o trabalho e falar com a Root | obrigatório | obrigatório | obrigatório | ferramentas da Apple | winget `Git.Git` (pede Sim) |
-| GitHub CLI | entrar com a conta do cliente, aceitar o convite, enviar no nome dele | obrigatório | obrigatório | obrigatório | release oficial em `~/.local`, sem admin | winget `GitHub.cli` (pede Sim) |
+| GitHub CLI | opcional desde 2026-11-24: o kit liga pela chave, sem login (ver CHAVE.md) | opcional | opcional | opcional | release oficial em `~/.local`, sem admin | winget `GitHub.cli` (pede Sim) |
 | uv | instalar o Python sem administrador | obrigatório | obrigatório | obrigatório | script oficial | script oficial |
 | Python 3.12 | conferência e ferramentas | obrigatório | obrigatório | obrigatório | `uv python install` | `uv python install` |
 | Node.js LTS | conectores do Claude (MCP) e ferramentas em JavaScript | obrigatório | obrigatório | obrigatório | nodejs.org em `~/.local`, sem admin | winget `OpenJS.NodeJS.LTS` (pede Sim) |
