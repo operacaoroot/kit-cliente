@@ -1,6 +1,6 @@
 {
-  "versao": "1.1.0",
-  "_leia": "Fonte única do que o kit instala e dos links que o cliente usa. Os instaladores, a conferência, a skill preparar-ambiente e o LINKS.md do kit leem daqui. perfis: obrigatorio (instala sempre), recomendado (instala por padrão no perfil), opcional (só com --com <id>). No Mac, Node, Java e GitHub CLI vão para a pasta do usuário (~/.local), sem senha de administrador. Nenhum app guarda dado do cliente fora da máquina dele.",
+  "versao": "1.2.1",
+  "_leia": "Fonte única do que o kit instala e dos links que o cliente usa. Os instaladores, a conferência, a skill preparar-ambiente e o LINKS.md do kit leem daqui. perfis: obrigatorio (instala sempre), recomendado (instala por padrão no perfil), opcional (só com --com <id>). No Mac, Node, Java e GitHub CLI vão para a pasta do usuário (~/.local), sem senha de administrador. Nenhum app guarda dado do cliente fora da máquina dele. agente: claude ou codex quando o app ou o serviço é só de um dos agentes do kit; sem o campo vale para os dois. O montador grava no kit só o que é do agente dele.",
   "apps": [
     {
       "id": "git",
@@ -15,8 +15,8 @@
     {
       "id": "gh",
       "nome": "GitHub CLI",
-      "para_que": "entrar no GitHub com a sua conta, aceitar o convite do kit e enviar o progresso no seu nome",
-      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "para_que": "usar o GitHub com uma conta sua, se um dia quiser; o kit não precisa dele, porque fala com a Root pela chave que vem no kit",
+      "perfis": {"guiado": "opcional", "chat": "opcional", "construtor": "opcional"},
       "links": {"site": "https://cli.github.com/", "download": "https://github.com/cli/cli/releases/latest", "ajuda": "https://cli.github.com/manual/"},
       "mac": {"checar": {"comando": "gh", "caminhos": ["~/.local/bin/gh"]}, "instalar": {"tipo": "github-asset", "repo": "cli/cli", "binarios": ["gh"], "arquivos": {"arm64": "_macOS_arm64.zip", "x86_64": "_macOS_amd64.zip"}}},
       "windows": {"checar": {"comando": "gh", "caminhos": ["%ProgramFiles%\\GitHub CLI\\gh.exe"]}, "instalar": {"winget": "GitHub.cli", "admin": true}},
@@ -45,7 +45,7 @@
     {
       "id": "node",
       "nome": "Node.js LTS",
-      "para_que": "rodar conectores do Claude (MCP) e ferramentas feitas em JavaScript",
+      "para_que": "rodar conectores (MCP) e ferramentas feitas em JavaScript",
       "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
       "links": {"site": "https://nodejs.org/", "download": "https://nodejs.org/en/download"},
       "mac": {"checar": {"comando": "node", "caminhos": ["~/.local/bin/node"]}, "instalar": {"tipo": "node-dist", "indice": "https://nodejs.org/dist/index.json"}},
@@ -70,7 +70,19 @@
       "links": {"site": "https://www.claude.com/product/claude-code", "download": "https://claude.ai/download", "ajuda": "https://code.claude.com/docs"},
       "mac": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude", "~/.claude/local/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}},
       "windows": {"checar": {"comando": "claude", "caminhos": ["%USERPROFILE%\\.local\\bin\\claude.exe"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.ps1"}},
-      "linux": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}}
+      "linux": {"checar": {"comando": "claude", "caminhos": ["~/.local/bin/claude"]}, "instalar": {"tipo": "script", "url": "https://claude.ai/install.sh"}},
+      "agente": "claude"
+    },
+    {
+      "id": "codex",
+      "nome": "Codex CLI",
+      "agente": "codex",
+      "para_que": "o Codex do ChatGPT que trabalha dentro da pasta do kit",
+      "perfis": {"guiado": "obrigatorio", "chat": "obrigatorio", "construtor": "obrigatorio"},
+      "links": {"site": "https://openai.com/codex/", "download": "https://developers.openai.com/codex/cli", "ajuda": "https://developers.openai.com/codex"},
+      "mac": {"checar": {"comando": "codex", "caminhos": ["~/.local/bin/codex"]}, "instalar": {"tipo": "script", "url": "https://chatgpt.com/codex/install.sh"}},
+      "windows": {"checar": {"comando": "codex", "caminhos": ["%LOCALAPPDATA%\\Microsoft\\WinGet\\Links\\codex.exe"]}, "instalar": {"winget": "OpenAI.Codex"}},
+      "linux": {"checar": {"comando": "codex", "caminhos": ["~/.local/bin/codex"]}, "instalar": {"tipo": "script", "url": "https://chatgpt.com/codex/install.sh"}}
     },
     {
       "id": "obsidian",
@@ -90,7 +102,8 @@
       "links": {"site": "https://claude.ai/", "download": "https://claude.ai/download"},
       "mac": {"checar": {"apps": ["Claude.app"]}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}},
       "windows": {"checar": {"caminhos": ["%LOCALAPPDATA%\\AnthropicClaude\\claude.exe", "%LOCALAPPDATA%\\Programs\\Claude\\Claude.exe"]}, "instalar": {"winget": "Anthropic.Claude"}},
-      "linux": {"checar": {"comando": "__nao_existe_no_linux__"}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}}
+      "linux": {"checar": {"comando": "__nao_existe_no_linux__"}, "instalar": {"tipo": "pagina", "url": "https://claude.ai/download"}},
+      "agente": "claude"
     },
     {
       "id": "vscode",
@@ -124,14 +137,15 @@
     }
   ],
   "servicos": [
-    {"grupo": "Contas", "nome": "Claude: assinar o plano individual", "url": "https://claude.ai/upgrade", "para_que": "a conta do Claude é sua desde o primeiro dia; a Root reembolsa o primeiro mês contra o comprovante"},
-    {"grupo": "Contas", "nome": "Claude: entrar", "url": "https://claude.ai/login", "para_que": "o Claude Code usa esta mesma conta"},
+    {"grupo": "Contas", "nome": "Claude: assinar o plano individual", "url": "https://claude.ai/upgrade", "para_que": "a conta do Claude é sua desde o primeiro dia; a Root reembolsa o primeiro mês contra o comprovante", "agente": "claude"},
+    {"grupo": "Contas", "nome": "Claude: entrar", "url": "https://claude.ai/login", "para_que": "o Claude Code usa esta mesma conta", "agente": "claude"},
     {"grupo": "Contas", "nome": "GitHub: criar a sua conta", "url": "https://github.com/signup", "para_que": "é pela sua conta que você recebe o kit e envia o progresso; passe o nome de usuário para a Root"},
     {"grupo": "Contas", "nome": "GitHub: convites pendentes", "url": "https://github.com/notifications", "para_que": "onde aparece o convite do repositório do kit, se o instalador não aceitar sozinho"},
+    {"grupo": "Contas", "nome": "ChatGPT: entrar", "url": "https://chatgpt.com/", "para_que": "a conta do ChatGPT da empresa; o Codex entra com esta mesma conta", "agente": "codex"},
     {"grupo": "Seus dados de IA", "nome": "ChatGPT: exportar o histórico", "url": "https://help.openai.com/en/articles/7260999-how-do-i-export-my-chatgpt-history-and-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina"},
-    {"grupo": "Seus dados de IA", "nome": "Claude: exportar o histórico", "url": "https://support.anthropic.com/en/articles/9450526-how-can-i-export-my-claude-ai-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina"},
-    {"grupo": "Ajuda", "nome": "Claude Code: documentação", "url": "https://code.claude.com/docs", "para_que": "comandos e atalhos do Claude que roda no kit"},
+    {"grupo": "Seus dados de IA", "nome": "Claude: exportar o histórico", "url": "https://support.anthropic.com/en/articles/9450526-how-can-i-export-my-claude-ai-data", "para_que": "o arquivo que o passo \"contexto\" lê, na sua máquina", "agente": "claude"},
+    {"grupo": "Ajuda", "nome": "Claude Code: documentação", "url": "https://code.claude.com/docs", "para_que": "comandos e atalhos do Claude que roda no kit", "agente": "claude"},
     {"grupo": "Ajuda", "nome": "Obsidian: ajuda", "url": "https://help.obsidian.md/", "para_que": "como abrir o vault, criar notas e links"},
-    {"grupo": "Ajuda", "nome": "GitHub: colaborar num repositório", "url": "https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository", "para_que": "o que significa ser colaborador do repositório do kit"}
+    {"grupo": "Ajuda", "nome": "Codex: documentação", "url": "https://developers.openai.com/codex", "para_que": "comandos e configuração do Codex que roda no kit", "agente": "codex"}
   ]
 }

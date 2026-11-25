@@ -1,0 +1,166 @@
+{
+  "versao_do_manifesto": "1",
+  "_aviso": "Cliente FICTÍCIO, usado só para testar a versão Codex do montador. Nenhum dado real.",
+  "cliente": {
+    "slug": "exemplo-codex-helena-prado",
+    "nome": "Helena Prado",
+    "primeiro_nome": "Helena",
+    "empresa": "Consultoria Ambiental Exemplo",
+    "cargo": "Diretora comercial",
+    "github": null,
+    "email": "",
+    "sistema": "mac"
+  },
+  "agente": "codex",
+  "mcp": {
+    "nome": "exemplo-os",
+    "url": "https://mcp.exemplo-os.invalid/mcp",
+    "perfil": "leitura",
+    "variavel": "EXEMPLO_OS_MCP_TOKEN"
+  },
+  "kickoff": {
+    "data": "2026-11-04",
+    "conduzido_por": "Sócio da Root",
+    "gravacao": "granola:exemplo-codex",
+    "desvios_do_roteiro": []
+  },
+  "reunioes": [
+    {
+      "data": "2026-10-28",
+      "tipo": "comercial",
+      "fonte": "granola:exemplo-codex-1"
+    },
+    {
+      "data": "2026-11-04",
+      "tipo": "kickoff",
+      "fonte": "granola:exemplo-codex-2"
+    }
+  ],
+  "conferencia_das_reunioes": {
+    "feita_por": "Sócio da Root",
+    "feita_em": "2026-11-04",
+    "divergencias_em_aberto": []
+  },
+  "perfil": {
+    "sinais": [
+      {
+        "id": "cita-ferramenta-de-ia",
+        "minuto": "00:03:10",
+        "trecho": "eu uso o ChatGPT da empresa para adaptar proposta"
+      },
+      {
+        "id": "usa-ia-toda-semana",
+        "minuto": "00:03:40",
+        "trecho": "toda semana, em toda proposta que sai"
+      },
+      {
+        "id": "tem-prompt-ou-projeto-salvo",
+        "minuto": "00:05:20",
+        "trecho": "tenho um projeto no ChatGPT com os modelos"
+      }
+    ],
+    "proposto": {
+      "perfil": "chat",
+      "porcentagem": {
+        "guiado": 10,
+        "chat": 62,
+        "construtor": 28
+      },
+      "distancia": 34,
+      "decisao": "socio-confere",
+      "sinais_aceitos": [
+        "cita-ferramenta-de-ia",
+        "usa-ia-toda-semana",
+        "tem-prompt-ou-projeto-salvo"
+      ],
+      "sinais_descartados": [],
+      "versao_dos_pesos": "1.0.0"
+    },
+    "escolhido": "chat",
+    "ajustes": {
+      "tom": null,
+      "formato": null,
+      "iniciativa_claude": null,
+      "passos_por_dia": 1,
+      "horario": "fim da tarde",
+      "como_aprende": "fazendo"
+    },
+    "restricoes": [
+      "proposta de cliente não sai da máquina nem do servidor da empresa"
+    ],
+    "conferido_por": "Sócio da Root",
+    "conferido_em": "2026-11-04"
+  },
+  "dores": [
+    {
+      "texto": "cada proposta nova começa procurando a parecida nas pastas antigas",
+      "minuto": "00:12:00"
+    },
+    {
+      "texto": "a formatação no Word toma mais tempo do que o conteúdo",
+      "minuto": "00:17:30"
+    }
+  ],
+  "fontes": [
+    {
+      "tipo": "chatgpt-export",
+      "descricao": "projeto com os modelos de proposta e o histórico de adaptações",
+      "prioridade": 1,
+      "acesso": "o cliente tem",
+      "minuto": "00:18:00"
+    },
+    {
+      "tipo": "pasta-local",
+      "descricao": "pastas de propostas por ano, sincronizadas no computador",
+      "prioridade": 2,
+      "acesso": "o cliente tem",
+      "minuto": "00:19:10"
+    }
+  ],
+  "frente": [
+    "dossie-de-conta",
+    "kit-de-contexto-e-conteudo"
+  ],
+  "notas_iniciais": [
+    {
+      "pasta": "10-Identidade",
+      "titulo": "Quem é a Helena",
+      "kind": "fato",
+      "corpo": "Diretora comercial da Consultoria Ambiental Exemplo. Responde pelas propostas e pela relação com os clientes.",
+      "fonte": "kickoff 2026-11-04 00:02:00"
+    },
+    {
+      "pasta": "40-Operacao",
+      "titulo": "Como a proposta é feita hoje",
+      "kind": "nota",
+      "corpo": "A Helena procura a proposta parecida nas pastas por ano, adapta o texto no ChatGPT e refaz a formatação no Word.",
+      "fonte": "kickoff 2026-11-04 00:12:00"
+    },
+    {
+      "pasta": "90-Metas",
+      "titulo": "O que ela quer em 30 dias",
+      "kind": "fato",
+      "corpo": "Sair do convite para a proposta formatada em menos de um dia, com a proposta parecida achada pelo servidor da empresa.",
+      "fonte": "kickoff 2026-11-04 00:24:00"
+    }
+  ],
+  "combinado": {
+    "canal_de_ajuda": "WhatsApp com a Root",
+    "responsavel_root": "Sócio da Root",
+    "prazo_resposta_horas": 4,
+    "horarios_acompanhamento": [
+      "08:30",
+      "13:00",
+      "18:00"
+    ]
+  },
+  "conta_de_ia": {
+    "plano": "ChatGPT da empresa, já existente; o Codex entra com ela",
+    "reembolso": "não há: a conta é da empresa",
+    "observacao": "o bloco `claude` do manifesto Claude não se aplica"
+  },
+  "entrega": {
+    "repo": "operacaoroot/kit-exemplo-codex-helena-prado",
+    "local": ""
+  }
+}

@@ -8,18 +8,22 @@ Montado pela Root em {{hoje}}, a partir das conversas com {{primeiro_nome}}
 ## Por onde começar
 
 Abra `COMECE-AQUI.md`. São {{total_passos}} passos, cada um com o tempo estimado e o jeito de
-saber que deu certo. Faça um de cada vez: o Claude do kit sabe em que passo você está e
+saber que deu certo. Faça um de cada vez: o {{agente_nome}} do kit sabe em que passo você está e
 explica o próximo do jeito que você pediu.
 
 ## Os programas e os links
 
-O instalador (`instalar/`) confere o seu computador e instala o que falta: Git, GitHub CLI,
-Python, Node.js, Java, Claude Code e Obsidian, mais o que o seu perfil recomenda. Todos os
-endereços oficiais, de download e de ajuda, estão em `LINKS.md`.
+O instalador (`instalar/`) confere o seu computador e instala o que falta: Git, Python,
+Node.js, Java, {{agente_programa}} e Obsidian, mais o que o seu perfil recomenda. Enquanto ele
+trabalha, o **Painel do kit** abre no navegador e mostra o que está sendo feito, o que já ficou
+pronto, o que falta e os próximos passos com o texto pronto para o {{agente_nome}}. Depois, abra
+pelo atalho "Painel do kit" na Mesa. Todos os endereços oficiais, de download e de ajuda, estão
+em `LINKS.md`.
 
+{{sistemas_readme}}
 ## Como pedir
 
-Abra o Claude dentro da pasta do kit e escreva do seu jeito. Estes pedidos funcionam:
+Abra o {{agente_nome}} dentro da pasta do kit e escreva do seu jeito. Estes pedidos funcionam:
 
 {{como_pedir}}
 - "qual o próximo passo" · "onde eu estou"
@@ -37,36 +41,32 @@ Abra o Claude dentro da pasta do kit e escreva do seu jeito. Estes pedidos funci
 |---|---|
 | `COMECE-AQUI.md` | os passos, na ordem |
 | `LINKS.md` | os links oficiais dos programas, das contas e da ajuda |
-| `perfil.md` | o jeito de atender que você escolheu para o Claude |
+| `perfil.md` | o jeito de atender que você escolheu para o {{agente_nome}} |
 | `vault/` | a sua base no Obsidian: o que a Root entendeu da conversa, para você corrigir e ampliar |
 | `entregas/` | o que a frente produz (rascunhos para você revisar) |
-| `entrada/` | onde você coloca exportações e arquivos para o Claude ler; nunca vai para a Root |
-| `ajuda/` | os pedidos de ajuda que o Claude registra para a Root |
-| `.claude/` | as ferramentas em uso (skills e agentes) |
+| `entrada/` | onde você coloca exportações e arquivos para o {{agente_nome}} ler; nunca vai para a Root |
+| `ajuda/` | os pedidos de ajuda que o {{agente_nome}} registra para a Root |
+| `{{pasta_skills}}/` | as ferramentas em uso (skills) |
 | `oficina/` | as ferramentas que você está criando e testando |
 | `catalogo.json` | a lista de todas as ferramentas do kit: de quem é, estado e versão |
 | `ambiente/` | o que o kit instala no seu computador e as bibliotecas do Python do kit |
 | `instalar/` | os instaladores (Mac, Windows e Linux) |
 | `ferramentas/` | a conferência dos passos, do computador e das ferramentas |
-| `.root/` | a identificação e a chave do kit (não mexa) |
+| `.root/` | a identificação e as chaves do kit (não mexa) |
 | `marca/` | o logo da Root usado no kit |
 
 ## Como o kit chega e o que a Root vê
 
-O kit mora num repositório privado no GitHub, só seu, e você entra nele como colaborador com a
-sua conta. É por ela que o kit envia o seu progresso e recebe as atualizações da Root. O GitHub
-registra quem baixou, quando e quem enviou cada mudança.
+O kit mora num repositório privado no GitHub, só seu. Ele fala com esse repositório pela chave
+que veio no kit, que só abre este repositório: você não precisa de conta no GitHub, login nem
+código de confirmação. É por ela que o kit envia o seu progresso e recebe as atualizações da Root.
 
 A Root acompanha a **forma de trabalho**: quais passos foram feitos, quando, os pedidos de ajuda e
 o catálogo das ferramentas que você criou (o texto delas, nunca os seus arquivos). Isso chega
 quando você fecha o dia. A pasta `entrada/` e qualquer arquivo em `_privado/` nunca saem do seu
 computador.
 
-## O Claude
-
-Durante o primeiro mês, a assinatura do Claude é por conta da Root: você assina o plano
-individual no seu nome e a Root reembolsa o primeiro mês contra o comprovante. A conta é sua
-desde o primeiro dia, então nada muda quando o reembolso acabar.
+{{secao_conta}}
 
 ## Uso pessoal e responsabilidade
 

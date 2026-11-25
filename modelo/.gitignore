@@ -1,6 +1,8 @@
 # A chave do kit é pessoal e nunca vai para o repositório.
 .root/chave
 .root/chave.pub
+# O token do servidor da empresa (kit Codex) é desta pessoa e também fica fora.
+.root/mcp.env
 # O que a pessoa coloca para o Claude ler e os intermediários nunca saem da máquina.
 entrada/
 _privado/

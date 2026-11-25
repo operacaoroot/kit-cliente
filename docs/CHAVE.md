@@ -1,25 +1,27 @@
-# O acesso ao kit: colaborador e chave
+# O acesso ao kit: a chave, sempre
 
-Desde a mesa de 2026-09-29 o cliente entra no repositório privado do kit **como colaborador, com
-a conta dele no GitHub**. A chave do kit continua existindo: é o selo do kit e o caminho para quem
-ainda não tem conta.
+**Desde 2026-11-24 o kit fala com a Root só pela chave do kit.** O cliente não precisa de conta
+no GitHub, não faz login e não digita código. Os instaladores (Mac, Windows e Linux) e a página
+guiada do Mac rodam `ferramentas/conectar.py --usar-chave`; o `--conectar` antigo continua aceito
+só para não quebrar instrução velha e faz o mesmo que `--usar-chave`. O GitHub CLI virou opcional
+no catálogo.
 
-## Colaborador (o padrão)
+Por quê: no jeito anterior (abaixo), o `gh auth login --web` mostrava um código de 8 letras para a
+pessoa confirmar no navegador. Na instalação dos clientes esse código não aparecia de forma
+confiável (a página guiada roda os comandos sem terminal, e no Windows a janela some atrás do
+navegador), a instalação travava e o cliente ficava sem saber o que fazer.
 
-1. No kickoff, o cliente passa o **nome de usuário** do GitHub (quem não tem, cria a conta ali,
-   pelo link do `LINKS.md`). Vai em `cliente.github` no manifesto.
-2. `montar.py --github` cria o repositório e convida esse usuário com escrita. O GitHub só
-   convida por nome de usuário em repositório de conta pessoal (a `operacaoroot` é conta
-   pessoal); convite por e-mail só existe para organização. Trocar a conta por uma organização é
-   o caminho se um dia o convite por e-mail for necessário.
-3. No passo "instalar", `ferramentas/conectar.py --conectar` faz o login do cliente pelo
-   navegador (`gh auth login --web`), aceita o convite, troca o remoto para HTTPS e configura o git
-   com a identidade dele no GitHub. Dali em diante cada envio sai no nome dele: o GitHub registra
-   quem baixou, quem usa e quem enviou cada mudança.
-4. O acompanhador mostra os colaboradores, o convite pendente (alerta com 24 h) e acusa envio por
-   conta que não é a do cliente.
+## Colaborador (jeito antigo, de 2026-09-29 a 2026-11-24)
 
-Convidar depois, trocar o usuário ou ver quem tem acesso:
+O cliente entrava no repositório privado como colaborador, com a conta dele no GitHub: passava o
+nome de usuário no kickoff (`cliente.github` no manifesto), `montar.py --github` convidava esse
+usuário e o `conectar.py --conectar` fazia o login pelo navegador. O montador e o
+`montador/acesso.py` ainda sabem convidar, ver e tirar colaboradores, e o acompanhador ainda mostra
+quem está no repositório, mas o kit não usa mais esse caminho para se ligar. Kits antigos ligados
+pela conta (remoto `https://`) continuam funcionando; para não depender de login, basta rodar
+`--usar-chave` neles.
+
+Ver quem tem acesso, convidar ou trocar usuário (se um dia for preciso de novo):
 
 ```bash
 python3 montador/acesso.py estado <slug>

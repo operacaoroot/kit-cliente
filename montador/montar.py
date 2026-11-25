@@ -16,6 +16,11 @@ Opções:
 
 O montador é determinístico: o mesmo manifesto gera o mesmo kit (a não ser pelo
 kit_id, a chave e as datas). Nenhum modelo de IA é chamado aqui.
+
+O campo `agente` do manifesto escolhe a versão do kit: `claude` (padrão) ou `codex`. No kit
+Codex o ZIP sai com o Codex CLI no lugar do Claude Code, AGENTS.md no lugar de CLAUDE.md, as
+skills em .agents/skills e, se o manifesto tiver `mcp`, o servidor da empresa é registrado na
+instalação por `codex mcp add` com token por pessoa (o token nunca entra aqui). Ver docs/KIT-CODEX.md.
 Só biblioteca padrão, compatível com Python 3.9.
 """
 import datetime as dt
@@ -38,6 +43,30 @@ RECEITAS = RAIZ / "receitas"
 SAIDA = RAIZ / "saida"
 DONO_GITHUB = "operacaoroot"
 CONFIG_ROOT = Path.home() / ".config" / "root"
+
+sys.path.insert(0, str(MODELO / "ferramentas"))
+from agente import AGENTES  # noqa: E402  (a mesma tabela que as ferramentas do kit usam)
+
+PROGRAMA_DO_AGENTE = {"claude": "Claude Code", "codex": "Codex CLI"}
+INSTRUCOES_DO_AGENTE = {"claude": "CLAUDE.md", "codex": "AGENTS.md"}
+# Peças que só fazem sentido num dos agentes (nomes de arquivo ou pasta dentro de modelo/).
+SO_DO_CLAUDE = (".claude", "onboarding", "onboarding.py", "fontes_publicas.py", "autonomia.py", "agente-claude.sh", "agente-claude.ps1",
+                "sistemas.py", "revisar_sistemas.py", "pedir-segredo.ps1")
+SO_DO_CODEX = ("mcp.py", "agente-codex.sh", "agente-codex.ps1")
+# Skills de base que dependem do aplicativo Claude (página guiada, conversa conduzida, plugins e conectores).
+SKILLS_SO_DO_CLAUDE = {"validar-onboarding", "comecar", "ligar-sistemas", "revisar-sistemas"}
+PERFIS_DO_MCP = ("leitura", "equipe", "full")
+SLUG = r"[a-z0-9]+(-[a-z0-9]+)*"
+# Nome de campo de credencial que é segredo pela cara: nunca pode vir com valor no manifesto.
+CAMPO_SEGREDO = re.compile(r"PASS|SENHA|SECRET|TOKEN|CRYPT|PRIVATE")
+SECAO_CONTA = {
+    "claude": "## O Claude\n\nDurante o primeiro mês, a assinatura do Claude é por conta da Root: você assina o plano\n"
+              "individual no seu nome e a Root reembolsa o primeiro mês contra o comprovante. A conta é sua\n"
+              "desde o primeiro dia, então nada muda quando o reembolso acabar.",
+    "codex": "## O Codex\n\nO Codex entra com a conta do ChatGPT da empresa, que já existe e continua sendo da empresa.\n"
+             "A Root não assina nem paga conta de IA para este kit. Se o uso pedir um plano maior, a Root\n"
+             "apresenta o custo antes de qualquer mudança.",
+}
 
 PASTAS_DO_VAULT = {
     "10-Identidade": "quem é, o que faz, voz e vocabulário",
@@ -75,6 +104,71 @@ def para_windows(texto):
     return texto.replace("python3 ", PYTHON_NO_WINDOWS)
 
 
+# Frases em que "Claude" é o claude.ai da pessoa como FONTE DE DADO (exportação do histórico),
+# não o agente do kit. Ficam como estão no kit Codex.
+PRESERVAR_NO_CODEX = (
+    "exportações do ChatGPT e do Claude", "Extrair contexto do ChatGPT e do Claude", "zip do Claude",
+    "Claude: Configurações > Privacidade > Exportar dados", "**Claude:** costuma vir", "memória do Claude",
+    "entre o Claude e o ChatGPT", "exportação Claude de", "Claude e ChatGPT.md", "dentro do ChatGPT e do Claude",
+)
+TROCAS_PARA_CODEX = (
+    ("Chame o agente `auditor-de-contexto`", "Use a skill `auditar-contexto`"),
+    ("agente `auditor-de-contexto`", "skill `auditar-contexto`"),
+    ("Claude Code", "Codex"), ("CLAUDE.md", "AGENTS.md"),
+    (".claude/skills", ".agents/skills"), (".claude/", ".agents/"),
+    ("Claude do kit", "Codex do kit"), ("`claude`", "`codex`"), ("conta do Claude", "conta do ChatGPT"),
+)
+
+
+def para_codex(texto):
+    """Texto escrito para o kit Claude vira texto do kit Codex. O que fala do claude.ai como fonte
+    de dado da pessoa é preservado; o que fala do agente, do arquivo de instruções e da pasta das
+    skills é trocado. A linha sobre autonomia.py sai, porque o Codex não tem essa ferramenta."""
+    texto = re.sub(r"(?m)^- Se o Claude estiver pedindo permissão a cada passo.*\n(?:  .*\n)?", "", texto)
+    guardados = {}
+    for i, frase in enumerate(PRESERVAR_NO_CODEX):
+        marca = "\x00{}\x00".format(i)
+        if frase in texto:
+            texto = texto.replace(frase, marca)
+            guardados[marca] = frase
+    for antes, depois in TROCAS_PARA_CODEX:
+        texto = texto.replace(antes, depois)
+    texto = re.sub(r"\bClaude\b", "Codex", texto)
+    for marca, frase in guardados.items():
+        texto = texto.replace(marca, frase)
+    return texto
+
+
+def agente_do(m):
+    return m.get("agente") or "claude"
+
+
+def raiz_das_skills(agente):
+    return AGENTES[agente]["raiz_skills"]
+
+
+def auditor_como_skill(texto):
+    """O agente auditor-de-contexto (subagente do Claude) vira a skill auditar-contexto no Codex."""
+    texto = re.sub(r"(?m)^name: auditor-de-contexto$", "name: auditar-contexto", texto, count=1)
+    return re.sub(r"(?m)^tools:.*\n", "", texto, count=1)
+
+
+def texto_da_skill_de_base(nome, agente="claude"):
+    """O SKILL.md de uma skill de base, já no texto do agente do kit."""
+    if nome == "auditar-contexto":
+        return para_codex(auditor_como_skill((MODELO / ".claude" / "agents" / "auditor-de-contexto.md").read_text(encoding="utf-8")))
+    texto = (MODELO / ".claude" / "skills" / nome / "SKILL.md").read_text(encoding="utf-8")
+    return para_codex(texto) if agente == "codex" else texto
+
+
+def catalogo_de_apps(agente="claude"):
+    """O ambiente/apps.json do kit: só os apps e serviços do agente dele (ou de todos)."""
+    dados = ler_json(MODELO / "ambiente" / "apps.json")
+    dados["apps"] = [a for a in dados["apps"] if a.get("agente", agente) == agente]
+    dados["servicos"] = [s for s in dados.get("servicos", []) if s.get("agente", agente) == agente]
+    return dados
+
+
 def resumo_da_skill(skill_md):
     texto = Path(skill_md).read_text(encoding="utf-8")
     m = re.search(r"(?m)^description:\s*(.+)$", texto)
@@ -85,24 +179,37 @@ def resumo_da_skill(skill_md):
     return desc[: corte + 1] if corte > 0 else desc
 
 
-def skills_de_base():
-    return sorted(p.name for p in (MODELO / ".claude" / "skills").iterdir() if (p / "SKILL.md").exists())
+def skills_de_base(agente="claude"):
+    nomes = sorted(p.name for p in (MODELO / ".claude" / "skills").iterdir() if (p / "SKILL.md").exists())
+    if agente == "codex":
+        nomes = sorted((set(nomes) - SKILLS_SO_DO_CLAUDE) | {"auditar-contexto"})
+    return nomes
 
 
-def montar_catalogo(receitas, versao, existente=None):
+def resumo_de_texto(texto):
+    m = re.search(r"(?m)^description:\s*(.+)$", texto)
+    if not m:
+        return ""
+    desc = m.group(1).strip()
+    corte = desc.find(". ")
+    return desc[: corte + 1] if corte > 0 else desc
+
+
+def montar_catalogo(receitas, versao, existente=None, agente="claude"):
     """Catálogo das ferramentas do kit. As da Root e da frente são refeitas; as do cliente ficam."""
     hoje = dt.date.today().isoformat()
     antigas = {s["nome"]: s for s in (existente or {}).get("skills", [])}
+    converter = para_codex if agente == "codex" else (lambda texto: texto)
     skills = []
-    for nome in skills_de_base():
+    for nome in skills_de_base(agente):
         skills.append({"nome": nome, "origem": "root", "estado": "ativa", "versao": versao,
-                       "resumo": resumo_da_skill(MODELO / ".claude" / "skills" / nome / "SKILL.md"),
+                       "resumo": resumo_de_texto(texto_da_skill_de_base(nome, agente)),
                        "desde": antigas.get(nome, {}).get("desde", hoje)})
     for r in receitas:
         for s in r["skills"]:
             skills.append({"nome": s, "origem": "frente", "receita": r["chave"], "estado": "ativa",
                            "versao": r.get("versao", "1.0.0"),
-                           "resumo": resumo_da_skill(RECEITAS / r["chave"] / "skills" / s / "SKILL.md"),
+                           "resumo": converter(resumo_da_skill(RECEITAS / r["chave"] / "skills" / s / "SKILL.md")),
                            "desde": antigas.get(s, {}).get("desde", hoje)})
     feitas = {s["nome"] for s in skills}
     skills += [s for s in (existente or {}).get("skills", []) if s.get("origem") == "cliente" and s["nome"] not in feitas]
@@ -125,6 +232,150 @@ def render(texto, ctx):
 
 # ---------------------------------------------------------------- portões
 
+def conferir_mcp(mcp):
+    """O bloco mcp do manifesto: nome, url, perfil e o NOME da variável do token. Nunca o token."""
+    if mcp is None:
+        return []
+    if not isinstance(mcp, dict):
+        return ["mcp deve ser um objeto com nome, url, perfil e variavel"]
+    faltas = []
+    for campo in ("nome", "url", "perfil", "variavel"):
+        if not mcp.get(campo):
+            faltas.append("mcp.%s" % campo)
+    if mcp.get("nome") and not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", str(mcp["nome"])):
+        faltas.append("mcp.nome só com minúsculas, números e hífen (é o nome do servidor no codex)")
+    url = str(mcp.get("url") or "")
+    if url and not (url.startswith("https://") or re.match(r"http://(127\.0\.0\.1|localhost)(:\d+)?/", url)):
+        faltas.append("mcp.url precisa começar com https:// (http:// só em 127.0.0.1 ou localhost, para teste)")
+    if mcp.get("perfil") and mcp["perfil"] not in PERFIS_DO_MCP:
+        faltas.append("mcp.perfil deve ser um de: " + ", ".join(PERFIS_DO_MCP))
+    if mcp.get("variavel") and not re.fullmatch(r"[A-Z][A-Z0-9_]*", str(mcp["variavel"])):
+        faltas.append("mcp.variavel em MAIÚSCULAS, como EMPRESA_MCP_TOKEN (é o nome da variável, não o token)")
+    extras = sorted(set(mcp) - {"nome", "url", "perfil", "variavel"})
+    if extras:
+        faltas.append("mcp não leva {}: o token nunca entra no manifesto".format(", ".join(extras)))
+    return faltas
+
+
+def conferir_ferramentas(d, onde):
+    faltas = []
+    for tipo in ("leitura", "escrita"):
+        lista = d.get(tipo, [])
+        if not isinstance(lista, list) or not all(isinstance(x, str) and re.fullmatch(r"[A-Za-z0-9_-]+", x) for x in lista):
+            faltas.append("{}.{} deve ser uma lista de nomes de ferramenta".format(onde, tipo))
+    if isinstance(d.get("leitura"), list) and isinstance(d.get("escrita"), list) and set(d["leitura"]) & set(d["escrita"]):
+        faltas.append("{}: ferramenta em leitura e em escrita ao mesmo tempo".format(onde))
+    return faltas
+
+
+def conferir_sistemas(s, agente="claude"):
+    """O bloco sistemas do manifesto (só no kit Claude): plugins, conectores da conta do Claude,
+    credenciais locais e regras. Segredo nunca vem com valor: a pessoa digita na instalação."""
+    if s is None:
+        return []
+    if agente != "claude":
+        return ["sistemas só existe no kit Claude; no kit Codex o servidor da empresa vai no bloco mcp"]
+    if not isinstance(s, dict):
+        return ["sistemas deve ser um objeto com plugins, conectores, credenciais e regras"]
+    faltas = []
+    extras = sorted(set(s) - {"plugins", "conectores", "credenciais", "regras", "erros"})
+    if extras:
+        faltas.append("sistemas não conhece: " + ", ".join(extras))
+    if not (s.get("plugins") or s.get("conectores")):
+        faltas.append("sistemas precisa de pelo menos um plugin ou um conector")
+    for i, p in enumerate(s.get("plugins") or []):
+        onde = "sistemas.plugins[{}]".format(i)
+        for campo in ("nome", "marketplace", "repo", "plugin", "para_que"):
+            if not p.get(campo):
+                faltas.append("{}.{}".format(onde, campo))
+        for campo in ("marketplace", "plugin"):
+            if p.get(campo) and not re.fullmatch(SLUG, str(p[campo])):
+                faltas.append("{}.{} só com minúsculas, números e hífen".format(onde, campo))
+        if p.get("repo") and not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", str(p["repo"])):
+            faltas.append("{}.repo no formato dono/repositorio do GitHub".format(onde))
+        if p.get("versao_minima") is not None and not re.fullmatch(r"\d+(\.\d+)*", str(p["versao_minima"])):
+            faltas.append("{}.versao_minima só com números e pontos, como 1.5.0".format(onde))
+        teste = p.get("teste")
+        if teste is not None:
+            script = str((teste or {}).get("script") or "") if isinstance(teste, dict) else ""
+            if not script or script.startswith(("/", "\\")) or ".." in script:
+                faltas.append("{}.teste.script deve ser um caminho dentro do plugin".format(onde))
+        for servidor, ferramentas in (p.get("servidores") or {}).items():
+            if not re.fullmatch(r"[A-Za-z0-9_-]+", servidor):
+                faltas.append("{}.servidores: nome de servidor inválido: {}".format(onde, servidor))
+            faltas += conferir_ferramentas(ferramentas, "{}.servidores.{}".format(onde, servidor))
+    for i, c in enumerate(s.get("conectores") or []):
+        onde = "sistemas.conectores[{}]".format(i)
+        for campo in ("id", "nome", "para_que", "link", "ferramenta_de_teste"):
+            if not c.get(campo):
+                faltas.append("{}.{}".format(onde, campo))
+        if c.get("id") and not re.fullmatch(SLUG, str(c["id"])):
+            faltas.append("{}.id só com minúsculas, números e hífen".format(onde))
+        if c.get("link") and not str(c["link"]).startswith("https://"):
+            faltas.append("{}.link precisa começar com https://".format(onde))
+        faltas += conferir_ferramentas(c, onde)
+        if c.get("ferramenta_de_teste") and c["ferramenta_de_teste"] in (c.get("escrita") or []):
+            faltas.append("{}.ferramenta_de_teste não pode ser de escrita".format(onde))
+    ids = set()
+    for i, c in enumerate(s.get("credenciais") or []):
+        onde = "sistemas.credenciais[{}]".format(i)
+        for campo in ("id", "nome", "para", "arquivo", "campos"):
+            if not c.get(campo):
+                faltas.append("{}.{}".format(onde, campo))
+        if c.get("id") in ids:
+            faltas.append("{}.id repetido: {}".format(onde, c["id"]))
+        ids.add(c.get("id"))
+        if c.get("id") and not re.fullmatch(SLUG, str(c["id"])):
+            faltas.append("{}.id só com minúsculas, números e hífen".format(onde))
+        arquivo = str(c.get("arquivo") or "")
+        if arquivo and (not arquivo.startswith("~/") or ".." in arquivo):
+            faltas.append("{}.arquivo deve ficar na pasta da pessoa (começar com ~/)".format(onde))
+        for campo in c.get("campos") or []:
+            nome = str(campo.get("nome") or "")
+            if not re.fullmatch(r"[A-Z][A-Z0-9_]*", nome):
+                faltas.append("{}.campos: nome em MAIÚSCULAS, como EMPRESA_EMAIL ({})".format(onde, nome or "vazio"))
+                continue
+            extras = sorted(set(campo) - {"nome", "valor", "segredo", "pergunta", "publico"})
+            if extras:
+                faltas.append("{}.campos.{} não leva {}".format(onde, nome, ", ".join(extras)))
+            if campo.get("segredo"):
+                if "valor" in campo:
+                    faltas.append("{}.campos.{} é segredo e não leva valor: a pessoa digita na instalação".format(onde, nome))
+                if not campo.get("pergunta"):
+                    faltas.append("{}.campos.{}.pergunta (o texto da janela)".format(onde, nome))
+            else:
+                if CAMPO_SEGREDO.search(nome):
+                    faltas.append("{}.campos.{} tem cara de segredo: marque segredo true e tire o valor".format(onde, nome))
+                if not isinstance(campo.get("valor"), str) or not campo.get("valor"):
+                    faltas.append("{}.campos.{}.valor (ou segredo true)".format(onde, nome))
+                if "KEY" in nome and not campo.get("publico"):
+                    faltas.append("{}.campos.{}: chave com valor no manifesto só se for pública (publico true)".format(onde, nome))
+    regras = s.get("regras") or []
+    if not isinstance(regras, list) or not all(isinstance(r, str) and r.strip() for r in regras):
+        faltas.append("sistemas.regras deve ser uma lista de frases")
+    vistos = set()
+    for i, e in enumerate(s.get("erros") or []):
+        onde = "sistemas.erros[{}]".format(i)
+        if not isinstance(e, dict):
+            faltas.append(onde + " deve ser um objeto")
+            continue
+        if not e.get("id") or not re.fullmatch(SLUG, str(e["id"])) or e["id"] in vistos:
+            faltas.append("{}.id só com minúsculas, números e hífen, sem repetir".format(onde))
+        vistos.add(e.get("id"))
+        sinais = e.get("sinais")
+        if not isinstance(sinais, list) or not sinais or not all(isinstance(x, str) and len(x.strip()) >= 4 for x in sinais):
+            faltas.append("{}.sinais: lista com os trechos do erro (4 letras ou mais cada)".format(onde))
+        for campo in ("significa", "resolve"):
+            if not isinstance(e.get(campo), str) or not e[campo].strip():
+                faltas.append("{}.{}".format(onde, campo))
+        if e.get("quem_resolve", "voce") not in ("voce", "responsavel"):
+            faltas.append("{}.quem_resolve é voce ou responsavel".format(onde))
+        extras = sorted(set(e) - {"id", "sinais", "significa", "resolve", "quem_resolve"})
+        if extras:
+            faltas.append("{} não leva {}".format(onde, ", ".join(extras)))
+    return faltas
+
+
 def conferir_manifesto(m, perfis, rascunho, permitir_semente):
     faltas = []
     c = m.get("cliente", {})
@@ -139,6 +390,10 @@ def conferir_manifesto(m, perfis, rascunho, permitir_semente):
         faltas.append("cliente.github deve ser o nome de usuário do GitHub (sem @ e sem e-mail)")
     if c.get("sistema") not in ("mac", "windows", "linux"):
         faltas.append("cliente.sistema deve ser mac, windows ou linux")
+    if agente_do(m) not in AGENTES:
+        faltas.append("agente deve ser um de: " + ", ".join(AGENTES))
+    faltas += conferir_mcp(m.get("mcp"))
+    faltas += conferir_sistemas(m.get("sistemas"), agente_do(m))
     p = m.get("perfil", {})
     if p.get("escolhido") not in perfis["perfis"]:
         faltas.append("perfil.escolhido deve ser um de: " + ", ".join(perfis["perfis"]))
@@ -171,6 +426,127 @@ def conferir_manifesto(m, perfis, rascunho, permitir_semente):
     return portoes
 
 
+# ---------------------------------------------------------------- sistemas
+
+def ferramentas_de_sistema(m):
+    """(leitura, escrita) com o nome que o Claude Code dá a cada ferramenta. As do plugin têm nome
+    fixo (mcp__plugin_<plugin>_<servidor>__<ferramenta>); as do conector da conta do Claude têm um
+    servidor que muda por pessoa, por isso a escrita delas vai com curinga (vale em ask)."""
+    s = m.get("sistemas") or {}
+    leitura, escrita = [], []
+    for p in s.get("plugins", []):
+        for servidor, f in (p.get("servidores") or {}).items():
+            prefixo = "mcp__plugin_{}_{}__".format(p["plugin"], servidor)
+            leitura += [prefixo + x for x in f.get("leitura", [])]
+            escrita += [prefixo + x for x in f.get("escrita", [])]
+    for c in s.get("conectores", []):
+        escrita += ["mcp__*__" + x for x in c.get("escrita", [])]
+    return leitura, escrita
+
+
+def settings_do_kit(m):
+    """O .claude/settings.json do kit: as permissões liberadas do modelo, mais a leitura dos plugins
+    liberada e toda ferramenta de gravação em sistema em ask (pergunta mesmo no modo sem permissão)."""
+    cfg = ler_json(MODELO / ".claude" / "settings.json")
+    leitura, escrita = ferramentas_de_sistema(m)
+    if leitura:
+        cfg["permissions"]["allow"] = cfg["permissions"]["allow"] + leitura
+    if escrita:
+        cfg["permissions"]["ask"] = escrita
+    return cfg
+
+
+def nomes_dos_sistemas(s):
+    nomes = [p["nome"] for p in (s or {}).get("plugins", [])] + ["conector " + c["nome"] for c in (s or {}).get("conectores", [])]
+    return " e ".join([", ".join(nomes[:-1]), nomes[-1]]) if len(nomes) > 1 else "".join(nomes)
+
+
+def sistemas_do_kit(m):
+    """O .root/sistemas.json do kit: o bloco do manifesto, que já não tem segredo (o portão recusa)."""
+    s = json.loads(json.dumps(m["sistemas"]))
+    s["_responsavel"] = ((m.get("combinado") or {}).get("responsavel_root") or "").strip() or "quem entregou o kit"
+    s["_leia"] = ("Sistemas que este kit liga. Quem liga é ferramentas/sistemas.py (skill ligar-sistemas). "
+                  "Segredo nunca entra aqui: a pessoa digita na janela que o script abre.")
+    return s
+
+
+def passos_do_kit(m):
+    """Os passos do modelo para este kit: o passo de sistemas só entra se o manifesto tiver sistemas,
+    e o Windows Claude recebe as instruções do painel e da abertura da conversa."""
+    passos = ler_json(MODELO / "passos.json")
+    s = m.get("sistemas")
+    nomes = nomes_dos_sistemas(s)
+    windows_claude = m["cliente"]["sistema"] == "windows" and agente_do(m) == "claude"
+    lista = []
+    for p in passos["passos"]:
+        if p.get("so_com") == "sistemas" and not s:
+            continue
+        p = dict(p)
+        p.pop("so_com", None)
+        alternativo = p.pop("texto_windows_claude", None)
+        if alternativo and windows_claude:
+            p["texto"] = alternativo
+        p["texto"] = {k: v.replace("{{sistemas_nomes}}", nomes) for k, v in p["texto"].items()}
+        lista.append(p)
+    passos["passos"] = lista
+    return passos
+
+
+def secao_de_sistemas(m):
+    """A seção do CLAUDE.md sobre os sistemas e a regra de gravação, que vale acima da autonomia."""
+    s = m.get("sistemas")
+    if not s:
+        return ""
+    quem = m["cliente"]["primeiro_nome"]
+    linhas = ["## Sistemas de trabalho", "",
+              "{} usa estes sistemas pelo Claude. Os detalhes estão em `.root/sistemas.json`; para ligar, testar ou "
+              "consertar, use a skill `ligar-sistemas`.".format(quem), ""]
+    for p in s.get("plugins", []):
+        linhas.append("- **{}** (`{}@{}`, instalado no Claude Code deste computador): {}".format(p["nome"], p["plugin"], p["marketplace"], p["para_que"]))
+    for c in s.get("conectores", []):
+        linhas.append("- **{}** (conector na conta do Claude de {}): {}".format(c["nome"], quem, c["para_que"]))
+    for c in s.get("credenciais", []):
+        linhas.append("- **{}**: {}. Fica em `{}`. Não abra nem mostre esse arquivo; para saber o que falta, "
+                      "`python3 ferramentas/sistemas.py --conferir`.".format(c["nome"], c["para"], c["arquivo"]))
+    linhas += ["", "**Gravar em sistema vale acima da autonomia da seção anterior.** Incluir, alterar, baixar, excluir, "
+               "cancelar, faturar ou registrar pagamento ou recebimento mexe em dado que não é só de {q} e pode não ter "
+               "volta. Por isso:".format(q=quem), "",
+               "1. Antes de gravar, mostre a prévia: o que vai ser feito, em que empresa, com que valores e datas. Grave só "
+               "depois de {q} responder \"sim\" para aquela gravação. Um \"sim\" vale para uma gravação, não para as próximas.".format(q=quem),
+               "2. Grave uma coisa por vez e leia de volta para confirmar que ficou certo.",
+               "3. Pedido em lote (várias empresas ou vários títulos) começa por um item só, conferido com {q}.".format(q=quem),
+               "4. Ferramenta com prévia (`dry_run`) roda primeiro em prévia. Pendência que pede aprovação humana é decisão "
+               "de {q}: mostre e espere.".format(q=quem),
+               "5. O Claude pede permissão antes de cada ferramenta de gravação, de propósito. Não sugira desligar esse pedido."]
+    if s.get("regras"):
+        linhas += [""] + ["- " + r for r in s["regras"]]
+    return "\n".join(linhas) + "\n"
+
+
+def readme_de_sistemas(m):
+    s = m.get("sistemas")
+    if not s:
+        return ""
+    return ("## Os sistemas de trabalho\n\nO kit liga o Claude a {}. O passo \"Ligar o Claude aos sistemas do seu "
+            "trabalho\" faz isso com você. A sua senha é digitada só numa janela do computador, nunca no chat, e o "
+            "Claude pede a sua permissão antes de gravar qualquer coisa num sistema.\n").format(nomes_dos_sistemas(s))
+
+
+ABERTURA_WINDOWS_CLAUDE = (
+    "## Começar\n\n"
+    "1. Baixe o ZIP do kit no link que a Root mandou e extraia a pasta inteira em Documentos. Mantenha todos os "
+    "arquivos juntos. Não use arquivos chamados Source code: eles não têm o acesso preparado pela Root.\n"
+    "2. Dê dois cliques em `instalar\\instalar.cmd`. O Painel do kit abre no navegador e acompanha a instalação, "
+    "mostra o que falta e traz os próximos passos. Quando o Windows pedir permissão, clique em Sim. O kit se liga "
+    "à Root pela chave do ZIP, sem conta nem código do GitHub. Leva de 10 a 25 minutos.\n"
+    "3. No fim, se o aplicativo do Claude estiver disponível, ele abre na aba Code, na pasta do kit, com uma mensagem já escrita. Entre com a "
+    "sua conta do Claude se ele pedir, confirme que confia na pasta e envie a mensagem. Se ele abrir sem a pasta, "
+    "clique em escolher pasta e selecione a pasta do kit em Documentos. Se não abrir, use o atalho Claude do kit ou o painel.\n"
+    "4. Daí em diante é conversa: o Claude conduz os passos abaixo com você, um de cada vez. Para voltar outro dia, "
+    "use o atalho **Claude do kit** na Área de Trabalho e escreva \"continuar\".\n\n"
+    "Os passos abaixo ficam aqui para consulta.\n\n")
+
+
 # ---------------------------------------------------------------- contexto
 
 def montar_contexto(m, perfis, kit_id):
@@ -191,6 +567,8 @@ def montar_contexto(m, perfis, kit_id):
         "- {} ({}: \"{}\")".format(catalogo.get(s["id"], {}).get("descricao", s["id"]), s.get("minuto", "?"), s.get("trecho", ""))
         for s in p.get("sinais", [])
     ) or "- Nenhum sinal registrado. O perfil é o padrão até você configurar."
+    agente = agente_do(m)
+    nome_agente = AGENTES[agente]["nome"]
     skills_base = [
         ("preparar-ambiente", "confere o computador e instala o que falta do catálogo"),
         ("perfil-de-interacao", "como falar com a pessoa; ajustar a pedido"),
@@ -200,21 +578,48 @@ def montar_contexto(m, perfis, kit_id):
         ("pedir-ajuda", "registra o pedido para a Root"),
         ("fechar-o-dia", "salva, envia o progresso e traz atualizações"),
         ("criar-skill", "cria, testa e põe em uso as ferramentas da própria pessoa"),
-        ("validar-onboarding", "testa o perfil e a escrita no vault pela interface do Claude"),
     ]
+    if agente == "codex":
+        skills_base.append(("auditar-contexto", "confere o pacote do histórico de IA"))
+    else:
+        skills_base.insert(0, ("comecar", "conduz a pessoa pela conversa, um passo por vez, até o kit pronto"))
+        skills_base.append(("validar-onboarding", "testa o perfil e a escrita no vault pela interface do Claude"))
+        skills_base.append(("ligar-sistemas", "liga e testa os plugins, conectores e credenciais dos sistemas de trabalho"))
+        skills_base.append(("revisar-sistemas", "revisa a ligação com os sistemas, explica cada erro e escreve o relatório"))
     linhas = ["**Base (todo kit tem):**", ""]
     linhas += ["- `{}`: {}".format(n, d) for n, d in skills_base]
     linhas += ["", "**Frente ({}):**".format(", ".join(r["nome"] for r in receitas)), ""]
     for r in receitas:
         for s in r["skills"]:
             linhas.append("- `{}`: da frente \"{}\". {}".format(s, r["nome"], r["dor"]))
-    linhas += ["", "Agente: `auditor-de-contexto` (confere o pacote do histórico de IA)."]
+    if agente == "claude":
+        linhas += ["", "Agente: `auditor-de-contexto` (confere o pacote do histórico de IA)."]
     como_pedir = "\n".join("- " + ped for r in receitas for ped in r["como_pedir"])
     comb = m.get("combinado", {})
     kickoff = m.get("kickoff", {})
+    mcp = m.get("mcp") or {}
+    if mcp:
+        mcp_texto = ("O servidor da empresa é `{nome}` (perfil `{perfil}`), registrado no Codex por `codex mcp add` na "
+                     "instalação. Use as ferramentas dele para consultar a base e o estado da casa antes de supor. "
+                     "O token é de {pessoa} e mora em `.root/mcp.env`, carregado pelo atalho \"Codex do kit\": não "
+                     "copie o token para nota, entrega ou pedido de ajuda. Se o servidor não aparecer na conversa, "
+                     "rode `python3 ferramentas/mcp.py --conferir` e, se preciso, `--registrar`; para provar a ligação, "
+                     "`python3 ferramentas/mcp.py --testar`.").format(nome=mcp["nome"], perfil=mcp["perfil"], pessoa=c["primeiro_nome"])
+    else:
+        mcp_texto = "Este kit não tem servidor MCP da empresa registrado. Se a Root ligar um depois, o registro vem pela atualização do kit."
+    secao_conta = SECAO_CONTA[agente]
+    if (m.get("claude") or {}).get("texto_da_conta"):
+        secao_conta = "## O {}\n\n{}".format(nome_agente, m["claude"]["texto_da_conta"])
     return {
         "nome": c["nome"], "primeiro_nome": c["primeiro_nome"], "empresa": c["empresa"], "cargo": c["cargo"],
         "kit_id": kit_id, "hoje": dt.date.today().isoformat(), "versao_modelo": ler_json(MODELO / "passos.json")["versao"],
+        "agente": agente, "agente_nome": nome_agente, "agente_programa": PROGRAMA_DO_AGENTE[agente],
+        "agente_comando": AGENTES[agente]["comando"], "pasta_skills": raiz_das_skills(agente),
+        "arquivo_instrucoes": INSTRUCOES_DO_AGENTE[agente], "secao_conta": secao_conta,
+        "mcp_nome": mcp.get("nome", ""), "mcp_url": mcp.get("url", ""), "mcp_perfil": mcp.get("perfil", ""),
+        "mcp_variavel": mcp.get("variavel", ""), "mcp_texto": mcp_texto,
+        "sistemas_secao": secao_de_sistemas(m), "sistemas_readme": readme_de_sistemas(m),
+        "sistemas_nomes": nomes_dos_sistemas(m.get("sistemas")),
         "perfil_id": p["escolhido"], "nivel": nivel, "nivel_nome": NIVEL[nivel][0], "nivel_regra": NIVEL[nivel][1],
         "tom": TOM.get(tom, tom), "formato": FORMATO.get(formato, formato), "tom_id": tom, "formato_id": formato,
         "iniciativa": iniciativa, "iniciativa_regra": INICIATIVA[iniciativa],
@@ -231,18 +636,18 @@ def montar_contexto(m, perfis, kit_id):
         "canal_de_ajuda": comb.get("canal_de_ajuda", "o canal combinado"),
         "prazo_resposta_horas": comb.get("prazo_resposta_horas", 4),
         "horarios_acompanhamento": ", ".join(comb.get("horarios_acompanhamento", ["08:30", "13:00", "18:00"])),
-        "total_passos": len(ler_json(MODELO / "passos.json")["passos"]),
+        "total_passos": len(passos_do_kit(m)["passos"]),
     }, receitas
 
 
 # ---------------------------------------------------------------- peças
 
-def comece_aqui(ctx, sistema, perfil_id):
-    passos = ler_json(MODELO / "passos.json")["passos"]
+def comece_aqui(ctx, sistema, perfil_id, passos=None):
+    passos = passos or ler_json(MODELO / "passos.json")["passos"]
     nivel = ctx["nivel"]
     abertura = {
-        "guiado": "São {} passos. Faça um por dia, no seu tempo. Cada passo diz quanto tempo leva e como saber que deu certo. Se travar, peça ajuda ao Claude do kit: ele registra o pedido e a Root responde.",
-        "chat": "São {} passos, cada um com tempo estimado e a prova de que deu certo. O Claude do kit sabe em que passo você está: pergunte \"qual o próximo passo\".",
+        "guiado": "São {} passos. Faça um por dia, no seu tempo. Cada passo diz quanto tempo leva e como saber que deu certo. Se travar, peça ajuda ao " + ctx["agente_nome"] + " do kit: ele registra o pedido e a Root responde.",
+        "chat": "São {} passos, cada um com tempo estimado e a prova de que deu certo. O " + ctx["agente_nome"] + " do kit sabe em que passo você está: pergunte \"qual o próximo passo\".",
         "construtor": "{} passos. Prova de cada um em `ferramentas/verificar.py`.",
     }[nivel].format(len(passos))
     out = ["# Comece aqui", "", "Kit de {} · {}".format(ctx["nome"], ctx["hoje"]), "", abertura, ""]
@@ -375,9 +780,9 @@ def publicar_no_github(destino, slug, nome):
     return "{}/{}".format(DONO_GITHUB, repo)
 
 
-def gerar_links(sistema, perfil):
+def gerar_links(sistema, perfil, agente="claude"):
     """O LINKS.md do kit: cada app com o link oficial e o que o perfil pede, e as contas e ajudas."""
-    dados = ler_json(MODELO / "ambiente" / "apps.json")
+    dados = catalogo_de_apps(agente)
     rotulo = {"obrigatorio": "obrigatório", "recomendado": "recomendado", "opcional": "opcional"}
     linhas = ["# Links do kit", "",
               "Todos os endereços são oficiais. O instalador do kit já baixa e instala o que é",
@@ -420,40 +825,66 @@ def montar(caminho_manifesto, opcoes):
         shutil.rmtree(destino)
     kit_id = "kit-" + uuid.uuid4().hex[:12]
     ctx, receitas = montar_contexto(m, perfis, kit_id)
+    agente = ctx["agente"]
+    raiz = raiz_das_skills(agente)
+    converter = para_codex if agente == "codex" else (lambda texto: texto)
 
-    ignorar = shutil.ignore_patterns("*.tmpl", "passos.json", ".DS_Store", "__pycache__", ".venv")
+    so_do_outro = SO_DO_CLAUDE if agente == "codex" else SO_DO_CODEX
+    ignorar = shutil.ignore_patterns("*.tmpl", "passos.json", ".DS_Store", "__pycache__", ".venv", "agente-*.sh", "agente-*.ps1", *so_do_outro)
     shutil.copytree(MODELO, destino, ignore=ignorar)
-    shutil.copy2(MODELO / "passos.json", destino / "ferramentas" / "passos.json")
+    for ext in ("sh", "ps1"):  # a parte do instalador que é do agente deste kit
+        shutil.copy2(MODELO / "instalar" / "agente-{}.{}".format(agente, ext), destino / "instalar" / "agente.{}".format(ext))
+    passos = passos_do_kit(m)
+    if agente == "codex":
+        passos = json.loads(converter(json.dumps(passos, ensure_ascii=False)))
+        (destino / "oficina" / "LEIA-ME.md").write_text(converter((MODELO / "oficina" / "LEIA-ME.md").read_text(encoding="utf-8")), encoding="utf-8")
+    else:
+        (destino / ".claude" / "settings.json").write_text(json.dumps(settings_do_kit(m), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (destino / "ferramentas" / "passos.json").write_text(json.dumps(passos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (destino / "ambiente" / "apps.json").write_text(json.dumps(catalogo_de_apps(agente), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for tmpl in MODELO.rglob("*.tmpl"):
         rel = tmpl.relative_to(MODELO).with_suffix("")
-        (destino / rel).parent.mkdir(parents=True, exist_ok=True)
-        if rel.name == "00 - Comece aqui.md":
+        if rel.name == "00 - Comece aqui.md" or (rel.name in INSTRUCOES_DO_AGENTE.values() and rel.name != ctx["arquivo_instrucoes"]):
             continue
+        (destino / rel).parent.mkdir(parents=True, exist_ok=True)
         (destino / rel).write_text(render(tmpl.read_text(encoding="utf-8"), ctx), encoding="utf-8")
+
+    if agente == "codex":
+        for nome in skills_de_base("codex"):
+            pasta = destino / raiz / "skills" / nome
+            pasta.mkdir(parents=True, exist_ok=True)
+            (pasta / "SKILL.md").write_text(texto_da_skill_de_base(nome, "codex"), encoding="utf-8")
 
     registrar = (RECEITAS / "_comum" / "registrar-resultado.md").read_text(encoding="utf-8")
     for r in receitas:
         for s in r["skills"]:
             origem = RECEITAS / r["chave"] / "skills" / s
-            alvo = destino / ".claude" / "skills" / s
+            alvo = destino / raiz / "skills" / s
             shutil.copytree(origem, alvo)
             skill_md = alvo / "SKILL.md"
-            skill_md.write_text(skill_md.read_text(encoding="utf-8").replace("{{registrar_resultado}}", registrar), encoding="utf-8")
+            skill_md.write_text(converter(skill_md.read_text(encoding="utf-8").replace("{{registrar_resultado}}", registrar)), encoding="utf-8")
 
-    catalogo = montar_catalogo(receitas, ctx["versao_modelo"])
+    catalogo = montar_catalogo(receitas, ctx["versao_modelo"], agente=agente)
     (destino / "catalogo.json").write_text(json.dumps(catalogo, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     ctx["indice_notas"] = escrever_vault(destino, m, receitas, ctx)
     comece_tmpl = (MODELO / "vault" / "00 - Comece aqui.md.tmpl").read_text(encoding="utf-8")
     (destino / "vault" / "00 - Comece aqui.md").write_text(render(comece_tmpl, ctx), encoding="utf-8")
-    (destino / "COMECE-AQUI.md").write_text(comece_aqui(ctx, sistema, m["perfil"]["escolhido"]), encoding="utf-8")
-    if sistema == "mac":
+    (destino / "COMECE-AQUI.md").write_text(comece_aqui(ctx, sistema, m["perfil"]["escolhido"], passos["passos"]), encoding="utf-8")
+    if sistema == "mac" and agente == "codex":
+        guia = destino / "COMECE-AQUI.md"
+        abertura = "## Começar\n\nNo repositório privado que a Root compartilhou com você, abra Releases e baixe o ZIP do kit em Assets. Não use os arquivos chamados Source code: eles não incluem o acesso preparado pela Root. Abra o ZIP para extrair a pasta e mantenha todos os arquivos juntos.\n\nAbra `instalar/instalar.command`. Uma janela de terminal instala os programas, liga o kit ao GitHub e ao servidor da empresa (ela pede o token que a Root entregou a você) e cria o atalho **Codex do kit** na Mesa. Se o macOS bloquear o arquivo, confira com a Root a origem do kit e use Ajustes do Sistema > Privacidade e Segurança > Abrir Mesmo Assim. Se as ferramentas da Apple forem solicitadas, termine a instalação e abra o arquivo novamente.\n\nNa primeira abertura do Codex, entre com a conta do ChatGPT da empresa e aceite a pasta do kit como confiável.\n\n"
+        guia.write_text(abertura + guia.read_text(encoding="utf-8"), encoding="utf-8")
+    elif sistema == "mac":
         guia = destino / "COMECE-AQUI.md"
         abertura = "## Começar pela página guiada\n\nNo repositório privado que a Root compartilhou com você, abra Releases e baixe o ZIP do kit em Assets. Não use os arquivos chamados Source code: eles não incluem o acesso preparado pela Root. Abra o ZIP para extrair a pasta e mantenha todos os arquivos juntos. Não é necessário instalar Git nem executar um clone antes de começar.\n\nAbra `instalar/instalar.command`. A página permite confirmar seus dados profissionais, revisar fontes públicas, instalar os programas e abrir o Claude com seu kit. Se o macOS bloquear o arquivo, confira com a Root a origem do kit e use Ajustes do Sistema > Privacidade e Segurança > Abrir Mesmo Assim. Se as ferramentas da Apple forem solicitadas, termine a instalação e abra o arquivo novamente.\n\nPara retomar, use o atalho **Continuar onboarding** na Mesa. Para trabalhar depois, use **Claude do kit**, na interface Code com a pasta deste kit. O chat comum não carrega esta pasta automaticamente.\n\nAs etapas abaixo continuam disponíveis para aprofundar o uso após a configuração inicial.\n\n"
         guia.write_text(abertura + guia.read_text(encoding="utf-8"), encoding="utf-8")
-    (destino / "LINKS.md").write_text(gerar_links(sistema, m["perfil"]["escolhido"]), encoding="utf-8")
+    elif sistema == "windows" and agente == "claude":
+        guia = destino / "COMECE-AQUI.md"
+        guia.write_text(ABERTURA_WINDOWS_CLAUDE + guia.read_text(encoding="utf-8"), encoding="utf-8")
+    (destino / "LINKS.md").write_text(gerar_links(sistema, m["perfil"]["escolhido"], agente), encoding="utf-8")
 
-    for skill_md in (destino / ".claude").rglob("*.md"):
+    for skill_md in (destino / raiz).rglob("*.md"):
         skill_md.write_text(skill_md.read_text(encoding="utf-8").rstrip() + "\n\n<!-- {} -->\n".format(kit_id), encoding="utf-8")
 
     if sistema == "windows":
@@ -470,15 +901,20 @@ def montar(caminho_manifesto, opcoes):
     ident = {"kit_id": kit_id, "slug": slug, "nome": m["cliente"]["nome"], "emitido_em": emitido}
     cliente = dict(ident)
     cliente.update({
-        "modelo": ctx["versao_modelo"], "perfil": m["perfil"]["escolhido"], "frente": m["frente"],
+        "modelo": ctx["versao_modelo"], "agente": agente, "perfil": m["perfil"]["escolhido"], "frente": m["frente"],
         "repo": "{}/kit-{}".format(DONO_GITHUB, slug), "rascunho": rascunho,
         "github": m["cliente"].get("github") or None,
         "selo": assinar(ident),
         "aviso": "Kit pessoal montado pela Root para {}. A chave em .root/chave é deste kit e só dele.".format(m["cliente"]["nome"]),
     })
+    if m.get("mcp"):
+        cliente["mcp"] = dict(m["mcp"])
     (destino / ".root").mkdir(exist_ok=True)
-    inicial = {"nome": m["cliente"]["nome"], "cargo": ctx["cargo"], "empresa": ctx["empresa"]}
-    (destino / ".root/onboarding-inicial.json").write_text(json.dumps(inicial, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if m.get("sistemas"):
+        (destino / ".root" / "sistemas.json").write_text(json.dumps(sistemas_do_kit(m), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if agente == "claude":
+        inicial = {"nome": m["cliente"]["nome"], "cargo": ctx["cargo"], "empresa": ctx["empresa"]}
+        (destino / ".root/onboarding-inicial.json").write_text(json.dumps(inicial, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (destino / ".root" / "cliente.json").write_text(json.dumps(cliente, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     rodar(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "{} ({})".format(kit_id, slug), "-f", str(destino / ".root" / "chave")], destino)
@@ -513,7 +949,13 @@ def montar(caminho_manifesto, opcoes):
     Path(caminho_manifesto).write_text(json.dumps(m, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     print("Kit montado: {}".format(destino))
-    print("  kit_id: {} · perfil: {} · frente: {}".format(kit_id, m["perfil"]["escolhido"], ", ".join(m["frente"])))
+    print("  kit_id: {} · agente: {} · perfil: {} · frente: {}".format(kit_id, agente, m["perfil"]["escolhido"], ", ".join(m["frente"])))
+    if m.get("mcp"):
+        print("  servidor MCP: {} ({}), perfil {}; o token é pedido na instalação".format(m["mcp"]["nome"], m["mcp"]["url"], m["mcp"]["perfil"]))
+    if m.get("sistemas"):
+        leitura, escrita = ferramentas_de_sistema(m)
+        print("  sistemas: {}; {} ferramenta(s) de leitura liberadas, {} de gravação com pergunta".format(
+            nomes_dos_sistemas(m["sistemas"]), len(leitura), len(escrita)))
     print("  arquivos versionados: {}".format(len(versionados)))
     if rascunho:
         print("  RASCUNHO: " + "; ".join(portoes))

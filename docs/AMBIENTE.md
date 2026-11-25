@@ -9,17 +9,20 @@ dele. Mudou o catálogo, mudou tudo junto.
 | App | Para quê | Guiado | Chat | Construtor | Mac | Windows |
 |---|---|---|---|---|---|---|
 | Git | guardar o trabalho e falar com a Root | obrigatório | obrigatório | obrigatório | ferramentas da Apple | winget `Git.Git` (pede Sim) |
-| GitHub CLI | entrar com a conta do cliente, aceitar o convite, enviar no nome dele | obrigatório | obrigatório | obrigatório | release oficial em `~/.local`, sem admin | winget `GitHub.cli` (pede Sim) |
+| GitHub CLI | opcional desde 2026-11-24: o kit liga pela chave, sem login (ver CHAVE.md) | opcional | opcional | opcional | release oficial em `~/.local`, sem admin | winget `GitHub.cli` (pede Sim) |
 | uv | instalar o Python sem administrador | obrigatório | obrigatório | obrigatório | script oficial | script oficial |
 | Python 3.12 | conferência e ferramentas | obrigatório | obrigatório | obrigatório | `uv python install` | `uv python install` |
 | Node.js LTS | conectores do Claude (MCP) e ferramentas em JavaScript | obrigatório | obrigatório | obrigatório | nodejs.org em `~/.local`, sem admin | winget `OpenJS.NodeJS.LTS` (pede Sim) |
 | Java 21 (Temurin) | ferramentas e conectores em Java | obrigatório | obrigatório | obrigatório | Adoptium em `~/.local`, sem admin | winget `EclipseAdoptium.Temurin.21.JDK` (pede Sim) |
-| Claude Code | o Claude do kit | obrigatório | obrigatório | obrigatório | script oficial | script oficial |
+| Claude Code | o Claude do kit (só no kit Claude) | obrigatório | obrigatório | obrigatório | script oficial | script oficial |
+| Codex CLI | o Codex do kit (só no kit Codex) | obrigatório | obrigatório | obrigatório | script oficial (`chatgpt.com/codex/install.sh`) | winget `OpenAI.Codex` |
 | Obsidian | a base (vault) | obrigatório | obrigatório | obrigatório | dmg do GitHub, sem admin | winget |
-| Claude (app) | Claude em janela, aba Code | recomendado | recomendado | opcional | página de download | winget |
+| Claude (app) | Claude em janela, aba Code (só no kit Claude) | recomendado | recomendado | opcional | página de download | winget |
 | VS Code | ver e editar arquivos | opcional | recomendado | recomendado | zip oficial, sem admin | winget, escopo do usuário |
 | Docker Desktop | homologação local | opcional | opcional | recomendado | página de download | winget (pede Sim) |
 | LibreOffice | PDF sem Word | opcional | opcional | opcional | página de download | winget (pede Sim) |
+
+Um app ou serviço com `agente` no catálogo só vai para o kit daquele agente (`claude` ou `codex`); sem o campo, vai para os dois. O montador grava no kit um `apps.json` já filtrado.
 
 Cada app tem no catálogo os **links oficiais** (site, download e ajuda). O catálogo também guarda
 os **serviços** que o cliente usa (conta do Claude, conta do GitHub, convite, exportação do

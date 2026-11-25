@@ -1,0 +1,52 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-22.04  # o ubuntu-latest (26.04) não tem Python 3.9
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Git do montador (os kits de teste fazem commit)
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@operacaoroot.invalid"
+      - name: Sintaxe
+        run: |
+          python -m compileall -q modelo/ferramentas montador testes perfis acompanhador
+          bash -n modelo/instalar/instalar.sh
+          bash -n modelo/instalar/instalar.command
+          bash -n testes/validar_codex_real.sh
+      - name: Base do kit
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_base.py -v
+      - name: Onboarding
+        run: python testes/testar_onboarding.py -v
+      - name: Kit Codex
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_codex.py -v
+      - name: Resultado dos instaladores
+        run: python testes/testar_resultado_instalador.py -v
+      - name: Painel e chave do kit
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_painel.py -v
+      - name: Sistemas de trabalho e conversa conduzida
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_sistemas.py -v
+      - name: Roteiro de revisão dos sistemas e kit de revisão
+        env:
+          KIT_SELO_SEGREDO: ci-descartavel
+        run: python testes/testar_revisao.py -v

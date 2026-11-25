@@ -1,5 +1,5 @@
 {
-  "versao": "1.3.0",
+  "versao": "1.6.1",
   "passos": [
     {
       "id": "instalar",
@@ -10,16 +10,21 @@
         "chat"
       ],
       "texto": {
-        "guiado": "Este passo deixa o seu computador pronto e liga o kit à sua conta do GitHub. Dê dois cliques no instalador e espere: ele instala o Git, o Python, o Node.js, o Java, o Claude Code e o Obsidian se faltarem. Perto do fim aparece um código de 8 letras: tecle Enter, o navegador abre, cole o código e clique em Authorize. Se o Mac disser que não pode abrir o arquivo, vá em Ajustes do Sistema, Privacidade e Segurança, e clique em \"Abrir mesmo assim\" (na primeira vez a Root faz isso com você). No fim aparece uma lista; se algo ficar vermelho, tire um print e mande para a Root.",
-        "chat": "Dê dois cliques no instalador. Ele instala o que faltar (Git, GitHub CLI, Python, Node.js, Java, Claude Code, Obsidian e os recomendados do seu perfil), cria o Python do kit e liga o kit à sua conta do GitHub: aparece um código, você confirma no navegador e o convite do kit é aceito sozinho. Tudo verde, passo concluído. Os links oficiais estão em LINKS.md.",
-        "construtor": "Rode o instalador. `ferramentas/ambiente.py --instalar` lê `ambiente/apps.json` (Git, gh, uv, Python 3.12, Node LTS, Java 21, Claude Code, Obsidian, mais os recomendados), cria o `.venv` e `ferramentas/conectar.py --conectar` faz `gh auth login --web`, aceita o convite e troca o remoto para HTTPS. Sem conta: `--usar-chave`. Links em LINKS.md."
+        "guiado": "Este passo deixa o seu computador pronto. Dê dois cliques no instalador e espere: ele instala o Git, o Python, o Node.js, o Java, o Claude Code e o Obsidian se faltarem, e liga o kit à Root pela chave que já vem nele (você não precisa de conta nem de código do GitHub). Logo no começo abre no navegador o Painel do kit, que mostra o que está acontecendo, o que já ficou pronto e o que falta. Se o Mac disser que não pode abrir o arquivo, vá em Ajustes do Sistema, Privacidade e Segurança, e clique em \"Abrir mesmo assim\" (na primeira vez a Root faz isso com você). No fim, o painel traz os próximos passos com o texto pronto para mandar ao Claude.",
+        "chat": "Dê dois cliques no instalador. Ele instala o que faltar (Git, Python, Node.js, Java, Claude Code, Obsidian e os recomendados do seu perfil), cria o Python do kit e liga o kit à Root pela chave dele, sem conta nem código do GitHub. O Painel do kit abre no navegador e mostra cada etapa; no fim, traz o que falta e os próximos passos com o texto pronto. Os links oficiais estão em LINKS.md.",
+        "construtor": "Rode o instalador. `ferramentas/ambiente.py --instalar` lê `ambiente/apps.json` (Git, uv, Python 3.12, Node LTS, Java 21, Claude Code, Obsidian, mais os recomendados), cria o `.venv` e `ferramentas/conectar.py --usar-chave` liga o kit pela chave em `.root/chave`. `ferramentas/painel.py` alimenta o Painel do kit (`painel/index.html`). Links em LINKS.md."
       },
       "comando": {
         "mac": "clique duas vezes em instalar/instalar.command",
         "windows": "clique duas vezes em instalar\\instalar.cmd",
         "linux": "bash instalar/instalar.sh"
       },
-      "prova": "a conferência mostra o computador pronto e o kit ligado ao GitHub"
+      "prova": "a conferência mostra o computador pronto e o kit ligado à Root pela chave",
+      "texto_windows_claude": {
+        "guiado": "Dê dois cliques no instalador e espere. Ele instala os programas e liga o kit à Root pela chave que já vem nele, sem conta nem código do GitHub. O Windows pode pedir permissão: clique em Sim. O Painel do kit abre no navegador e mostra o que está sendo instalado, o que ficou pronto e o que falta. No fim, traz os próximos passos com o texto pronto. Se o aplicativo do Claude estiver disponível, ele também abre na pasta do kit com uma mensagem escrita. Entre com a sua conta do Claude, confirme que confia na pasta e envie a mensagem. Na primeira vez a Root faz isso com você.",
+        "chat": "Dê dois cliques no instalador. O Painel do kit abre no navegador e mostra cada etapa, as pendências e os próximos passos. O kit se liga à Root pela chave do ZIP, sem conta nem código do GitHub. Ao terminar, abra o Claude pelo atalho ou pelo painel; com o aplicativo disponível, a conversa abre na pasta do kit com a primeira mensagem pronta.",
+        "construtor": "Rode o instalador. O Painel do kit acompanha ambiente/apps.json, .venv e a ligação pela chave em .root/chave. No fim, confira as pendências e os próximos passos no painel. O Claude abre na pasta do kit se o aplicativo estiver disponível. Links em LINKS.md."
+      }
     },
     {
       "id": "perfil",
@@ -40,6 +45,26 @@
         "linux": "rode `claude` dentro da pasta do kit"
       },
       "prova": "o perfil.md está com a linha confirmado: sim"
+    },
+    {
+      "id": "sistemas",
+      "so_com": "sistemas",
+      "titulo": "Ligar o Claude aos sistemas do seu trabalho",
+      "minutos": 20,
+      "ao_vivo_para": [
+        "guiado"
+      ],
+      "texto": {
+        "guiado": "Aqui o Claude passa a enxergar os sistemas que você usa no trabalho: {{sistemas_nomes}}. Ele faz quase tudo sozinho. Você faz três coisas: digita a sua senha numa janelinha que ele abre (ele não vê o que você digita), clica em Conectar e Autorizar numa tela do aplicativo do Claude e abre uma conversa nova quando ele pedir. No fim, ele mostra uma consulta de verdade feita nos sistemas. Escreva \"vamos ligar os sistemas\" ou só \"continuar\".",
+        "chat": "O Claude liga {{sistemas_nomes}}: grava a sua senha por uma janela do sistema (nunca pelo chat), instala o plugin, guia a conexão na conta do Claude e prova com uma consulta real numa conversa nova.",
+        "construtor": "Skill `ligar-sistemas`: `ferramentas/sistemas.py --gravar-credencial`, `--instalar-plugins`, `--testar-plugin`, conector pela conta do Claude e `--registrar <id> ok` depois do teste numa conversa nova. Sistemas: {{sistemas_nomes}}."
+      },
+      "comando": {
+        "mac": "no Claude do kit: \"vamos ligar os sistemas\"",
+        "windows": "no Claude do kit: \"vamos ligar os sistemas\"",
+        "linux": "no Claude do kit: \"vamos ligar os sistemas\""
+      },
+      "prova": "a conferência mostra cada plugin instalado e testado, as credenciais completas e cada conector testado numa conversa"
     },
     {
       "id": "vault",

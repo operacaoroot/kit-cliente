@@ -2,7 +2,8 @@
 """A oficina das ferramentas (skills) que a pessoa cria no próprio kit.
 
 Uma ferramenta nova nasce em oficina/<nome>/, é testada com um caso real e só então é
-promovida para .claude/skills/<nome>/, onde o Claude passa a usá-la sozinho. O catálogo
+promovida para a pasta de skills do agente do kit (.claude/skills no Claude, .agents/skills no
+Codex), onde ele passa a usá-la sozinho. O catálogo
 (catalogo.json, na raiz do kit) diz de onde veio cada ferramenta e em que estado está.
 
 Uso (na pasta do kit; no Windows troque `python3` por `.venv/Scripts/python`):
@@ -26,10 +27,14 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import agente  # noqa: E402  (mesma pasta; qual agente trabalha neste kit)
+
 KIT = Path(__file__).resolve().parent.parent
 CATALOGO = KIT / "catalogo.json"
 OFICINA = KIT / "oficina"
-ATIVAS = KIT / ".claude" / "skills"
+ATIVAS = agente.PASTA_SKILLS
+PASTA_ATIVAS = agente.RAIZ_SKILLS + "/skills"
 APOSENTADAS = OFICINA / "_aposentadas"
 NOME_VALIDO = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -208,7 +213,7 @@ def problemas(nome):
         faltas.append("o cabeçalho do SKILL.md precisa de name: {}".format(nome))
     desc = cab.get("description", "")
     if len(desc) < 40:
-        faltas.append("a description do cabeçalho está curta demais para o Claude saber quando usar")
+        faltas.append("a description do cabeçalho está curta demais para o {} saber quando usar".format(agente.NOME))
     if "<" in desc and ">" in desc:
         faltas.append("a description ainda tem texto de exemplo entre < >")
     if "<!--" in texto:
@@ -271,7 +276,7 @@ def promover(nome):
     e.update({"estado": "ativa", "versao": versao, "promovida_em": hoje()})
     e.pop("rascunho_na_oficina", None)
     gravar_catalogo(cat)
-    print("{} promovida (versão {}). O Claude passa a usá-la na próxima conversa.".format(nome, versao))
+    print("{} promovida (versão {}). O {} passa a usá-la na próxima conversa.".format(nome, versao, agente.NOME))
     print("Para a Root acompanhar, feche o dia.")
 
 
@@ -300,12 +305,12 @@ def inconsistencias(cat=None):
         for pasta in sorted(p for p in ATIVAS.iterdir() if p.is_dir()):
             s = nomes.get(pasta.name)
             if not s:
-                achados.append("{} está em .claude/skills e não está no catálogo".format(pasta.name))
+                achados.append("{} está em {} e não está no catálogo".format(pasta.name, PASTA_ATIVAS))
             elif s.get("estado") != "ativa":
-                achados.append("{} está em .claude/skills mas o catálogo diz {}".format(pasta.name, s.get("estado")))
+                achados.append("{} está em {} mas o catálogo diz {}".format(pasta.name, PASTA_ATIVAS, s.get("estado")))
     for s in cat["skills"]:
         if s.get("estado") == "ativa" and not (ATIVAS / s["nome"] / "SKILL.md").exists():
-            achados.append("{} está ativa no catálogo e não existe em .claude/skills".format(s["nome"]))
+            achados.append("{} está ativa no catálogo e não existe em {}".format(s["nome"], PASTA_ATIVAS))
         if s.get("estado") == "homologacao" and not (OFICINA / s["nome"]).exists():
             achados.append("{} está em homologação e não existe em oficina/".format(s["nome"]))
     return achados

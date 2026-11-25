@@ -63,7 +63,8 @@ Esse pacote usa **Marina Duarte / Distribuidora Exemplo**, dados fictícios. É 
 |---|---|
 | **Claude com contexto** | `CLAUDE.md`, perfil de interação, skills e agente de auditoria orientam o trabalho dentro da pasta do kit. |
 | **Base no Obsidian** | Notas de identidade, organização, operação, projetos, decisões, dados e metas, com indicação do que precisa ser revisado. |
-| **Ambiente de trabalho** | Git, GitHub CLI, Python, Node, Java, Claude Code e Obsidian, conforme o catálogo. O kit também cria seu ambiente Python `.venv`. |
+| **Ambiente de trabalho** | Git, Python, Node, Java, Claude Code e Obsidian, conforme o catálogo. O kit também cria seu ambiente Python `.venv` e se liga à ROOT pela chave do kit, sem conta nem código do GitHub. |
+| **Painel do kit** | Página que abre no navegador durante a instalação: o que está sendo feito, o que já ficou pronto, o que falta e os próximos passos com o texto pronto para o Claude (perfil, carga do Obsidian, conectores). |
 | **Ferramentas da primeira frente** | Skills escolhidas a partir do trabalho combinado no kickoff e registradas em `catalogo.json`. |
 | **Oficina** | Processo para criar, testar e registrar ferramentas próprias à medida que surgem tarefas recorrentes. |
 | **Acompanhamento** | Progresso e catálogo no GitHub; a ROOT gera relatórios e sugestões de resposta, revisadas por um sócio antes do envio. |
@@ -100,6 +101,8 @@ python3 perfis/pontuar.py manifestos/novo-cliente.json --gravar
 A pontuação propõe um perfil; um sócio confere e assina `perfil.escolhido` e `perfil.conferido_por`. As reuniões também precisam estar conferidas. O montador recusa a entrega sem esses campos. Informe a conta do cliente em `cliente.github` para convidá-lo como colaborador.
 
 Consulte o [roteiro de kickoff](docs/KICKOFF.md), os [perfis](docs/PERFIS.md) e o [manifesto de exemplo](manifestos/exemplo-marina-duarte.json).
+
+Se o agente do computador da pessoa for o **Codex do ChatGPT** em vez do Claude, ponha `"agente": "codex"` no manifesto (e o bloco `mcp` quando a empresa tiver servidor MCP). O kit sai com o Codex CLI, `AGENTS.md`, as skills em `.agents/skills` e o registro do servidor por `codex mcp add` na instalação. Critérios, testes e validação real em [Kit em versão Codex](docs/KIT-CODEX.md); exemplo fictício em `manifestos/exemplo-codex-helena-prado.json`.
 
 ### 2. Gerar o kit e o repositório privado
 
@@ -146,6 +149,9 @@ O agendamento de três execuções diárias é configurado separadamente; execut
 |---|---|
 | Entender etapas, responsabilidades e estrutura do kit | [Arquitetura](docs/ARQUITETURA.md) |
 | Conferir a página guiada, a coleta e os critérios de conclusão | [Onboarding no macOS](docs/ONBOARDING-GUIADO.md) |
+| Montar o kit com o Codex no lugar do Claude | [Kit em versão Codex](docs/KIT-CODEX.md) |
+| Ligar o kit a plugins, conectores e credenciais da empresa, com o Claude conduzindo pela conversa | [Sistemas de trabalho](docs/SISTEMAS.md) |
+| Revisar quem já tem o Claude e não consegue usar os sistemas (roteiro, erros explicados, relatório) | [Sistemas de trabalho, seção "Revisão"](docs/SISTEMAS.md#revisão-roteiro-erros-explicados-e-kit-de-revisão) |
 | Ver programas, instalação por sistema e links oficiais | [Ambiente](docs/AMBIENTE.md) |
 | Criar ferramentas com o cliente | [Desenvolvimento](docs/DESENVOLVIMENTO.md) |
 | Alterar textos, página, cofre ou skills de base | [`modelo/`](modelo/) |
@@ -163,6 +169,7 @@ Os testes de API do onboarding precisam poder abrir uma porta local. Para os tes
 ```bash
 python3 testes/testar_onboarding.py -v
 KIT_SELO_SEGREDO=teste-local-descartavel python3 testes/testar_base.py -v
+KIT_SELO_SEGREDO=teste-local-descartavel python3 testes/testar_codex.py -v
 python3 -m compileall -q modelo/ferramentas montador
 bash -n modelo/instalar/instalar.command
 ```

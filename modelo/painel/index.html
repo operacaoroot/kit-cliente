@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ROOT · Painel do kit</title>
+<link rel="stylesheet" href="painel.css">
+<script defer src="primeiros-passos.js"></script>
+<script defer src="painel.js"></script>
+</head>
+<body>
+<header class="topo">
+<img src="../marca/root-logo.png" width="140" height="60" alt="Operação ROOT">
+<div class="topo-texto">
+<span class="eyebrow">PAINEL DO KIT</span>
+<span id="nome" class="nome"></span>
+</div>
+<label class="tema">Tema <select id="tema" aria-label="Tema do painel"><option value="escuro">Escuro</option><option value="papel">Papel</option></select></label>
+</header>
+
+<main>
+<section class="abertura">
+<h1 id="titulo">Carregando o painel…</h1>
+<p id="agora" class="agora" role="status" aria-live="polite"></p>
+<p id="aviso" class="aviso" hidden></p>
+<progress id="barra" max="7" value="0" aria-label="Etapas concluídas"></progress>
+<p id="contagem" class="contagem"></p>
+</section>
+
+<section class="grade">
+<div class="caixa">
+<h2>Etapas da instalação</h2>
+<ol id="etapas" class="etapas"></ol>
+</div>
+<div class="caixa">
+<h2>O que está acontecendo no seu computador</h2>
+<p class="nota">O mais recente fica em cima. Nada daqui sai do seu computador.</p>
+<ul id="eventos" class="eventos"></ul>
+</div>
+</section>
+
+<section class="grade">
+<div class="caixa">
+<h2>O que já foi feito</h2>
+<ul id="feito" class="lista ok"></ul>
+</div>
+<div class="caixa">
+<h2>O que falta</h2>
+<ul id="falta" class="lista falta"></ul>
+</div>
+</section>
+
+<section class="passos">
+<h2>Próximos passos</h2>
+<p id="nota-passos" class="nota">Cada passo traz o texto pronto para você mandar ao Claude. Use Abrir no Claude; se não abrir, use Copiar texto e cole no Claude, na área Code, com a pasta do kit aberta.</p>
+<ol id="proximos" class="cartoes"></ol>
+</section>
+</main>
+
+<footer>
+<p>A página se atualiza sozinha. Pode fechar e abrir de novo pelo atalho <strong>Painel do kit</strong>.</p>
+<p>Pasta do kit: <code id="pasta"></code></p>
+</footer>
+</body>
+</html>
